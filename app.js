@@ -117,16 +117,26 @@ function tsSummaryHTML(now) {
     <div class="kv"><span class="k">倒數</span><span class="v big">${cd(next.arrivalInst.getTime())}</span></div>`;
 }
 
+/* 由 skydata 自動偵測「今天正在進行」的季節（依日期）。使用者手動設定的優先。 */
+function currentSeason(now) {
+  const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.seasons) || [];
+  const p = skyParts(now);
+  const today = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+  return list.find(s => s.start && s.end && s.start <= today && today <= s.end) || null;
+}
 function seasonSummaryHTML(now) {
-  const name = Store.get('season_name', '');
-  const end = Store.get('season_end', '');
-  if (!end) return `<p class="muted">尚未設定季節。</p><p class="note">到「蠟燭預算」分頁填入季節結束日，這裡就會顯示倒數。</p>`;
+  const cur = currentSeason(now);
+  const userEnd = Store.get('season_end', '');
+  const name = Store.get('season_name', '') || (cur ? cur.short : '');
+  const end = userEnd || (cur ? cur.end : '');
+  const auto = !userEnd && cur;
+  if (!end) return `<p class="muted">目前無進行中的季節。</p><p class="note">新季節開始後會自動顯示；也可到「蠟燭預算」分頁手動設定。</p>`;
   const [y, mo, d] = end.split('-').map(Number);
   const endInst = skyWallToDate(y, mo, d, 23, 59, 59);
   const p = skyParts(now);
   const diff = Math.round((Date.UTC(y, mo - 1, d) - Date.UTC(p.year, p.month - 1, p.day)) / 86400000);
   const daysLeft = Math.max(0, diff + 1); // 結束日當天 23:59:59 前仍可賺，故含結束日
-  return `<div class="kv"><span class="k">${name ? escapeHtml(name) : '本季'}</span><span class="v">${end} 結束</span></div>
+  return `<div class="kv"><span class="k">${name ? escapeHtml(name) : '本季'}${auto ? ' <span class="muted">(自動)</span>' : ''}</span><span class="v">${end} 結束</span></div>
     <div class="kv"><span class="k">剩餘天數</span><span class="v big">${daysLeft} 天</span></div>
     <p class="note">結束倒數：${cd(endInst.getTime(), { done: '已結束' })}</p>`;
 }
@@ -259,6 +269,12 @@ function bindCandles() {
     if (saved != null) el.value = saved;
     if (!candlesBound) el.addEventListener('input', () => { Store.set(keys[i], el.value); computeCandles(); });
   });
+  // 未手動設定時，自動帶入偵測到的當前季節（不寫入儲存，季節換了會自動更新）
+  const cur = currentSeason(new Date());
+  if (cur) {
+    if (!$('#c-season-name').value) $('#c-season-name').value = cur.short;
+    if (!$('#c-season-end').value) $('#c-season-end').value = cur.end;
+  }
   candlesBound = true;
   computeCandles();
 }
