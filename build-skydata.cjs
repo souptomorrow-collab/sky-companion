@@ -8,6 +8,9 @@ const path = require('path');
 
 const all = JSON.parse(fs.readFileSync(path.join(__dirname, 'everything.json'), 'utf8'));
 const get = k => (all[k] && all[k].items) || [];
+// 光之翼描述的繁中翻譯（由 sky-wl-translate workflow 產生，可選）
+let WL_DESC_ZH = {};
+try { WL_DESC_ZH = JSON.parse(fs.readFileSync(path.join(__dirname, 'wl-desc-zh.json'), 'utf8')); } catch (e) {}
 
 const itemsMap = new Map(get('items').map(x => [x.guid, x]));
 const nodesMap = new Map(get('nodes').map(x => [x.guid, x]));
@@ -124,6 +127,7 @@ const wingedLights = get('wingedLights').map(w => {
   return {
     realm: folder ? (FOLDER_ZH[folder] || folder) : '其他',
     order: w.order, desc: w.description || '',
+    descZh: WL_DESC_ZH[w.description] || '',
     video: v ? WL_BASE + v : null,
     pos: (w.mapData && w.mapData.position) || null,
   };
