@@ -224,6 +224,14 @@ input:focus { outline: none; border-color: var(--accent); }
 #lightbox-img { max-width: 94vw; max-height: 82vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
 #lightbox-cap { color: #f3f5ff; font-size: 14px; text-align: center; max-width: 90vw; line-height: 1.5; }
 
+/* 每日任務卡 */
+.q-prog { margin: 8px 0 6px; font-weight: 600; color: var(--gold-soft); font-size: 14px; }
+.q-types { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.q-item { display: flex; align-items: center; gap: 8px; font-size: 13.5px; cursor: pointer; }
+.q-item input { width: 16px; height: 16px; accent-color: var(--gold); flex: 0 0 auto; }
+.q-claims { display: flex; flex-wrap: wrap; gap: 12px; }
+.q-claim { display: flex; align-items: center; gap: 10px; flex: 1 1 250px; font-size: 13px; }
+
 /* mobile */
 @media (max-width: 560px) {
   .app-header { padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 14px max(14px, env(safe-area-inset-left)); }

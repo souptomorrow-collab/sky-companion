@@ -179,6 +179,22 @@ const daily = {
   eden: '伊甸之眼每週日 00:00 PT 重置（按每座雕像計）。一週內可多次進入補滿尚未獻光的雕像，最大化升華蠟燭。',
 };
 
+// 每日任務（今天的具體任務無法預測；以下為類型、領取地點與獎勵的通用整理）
+const dailyQuests = {
+  types: [
+    { name: '社交 Social', desc: '和朋友一起做有趣的事' },
+    { name: '季節 Seasonal', desc: '呼應當前季節主題的任務' },
+    { name: '生態 Ecology', desc: '與世界與生物互動' },
+    { name: '先祖 Spirit', desc: '尋找或重訪某位先祖、體驗其回憶' },
+  ],
+  reward: '每個任務 1 根蠟燭（季節期間改給季節蠟燭），4 個共 4 根。',
+  claim: [
+    { place: '家 · 返回神像', desc: '在「家」的返回神像（Return Shrine）領取', img: 'img/quest-home.webp' },
+    { place: '鳥族村 · 拱門咖啡櫃台', desc: '到鳥族村 Archway Cafe 櫃台找等待的先祖領取', img: 'img/quest-cafe.webp' },
+  ],
+  note: '今天的 4 個具體任務無法預測（官方每天決定，只有重置後才知道）；任務地點每天輪換，上線後用各國度的「地圖神像」就會以黃色圖示標出當天任務位置。',
+};
+
 // ---------- 輸出 ----------
 const SKYDATA = {
   meta: {
@@ -187,7 +203,7 @@ const SKYDATA = {
     note: '先祖/季節/物品/花費/國度/活動為資料集擷取；貨幣/碎石/每日攻略為社群整理。數值可能隨遊戲更新而變動。',
     counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length, wingedLights: wingedLights.length },
   },
-  seasons, spirits, realms, events, travelingSpirits, currencies, shards, daily,
+  seasons, spirits, realms, events, travelingSpirits, currencies, shards, daily, dailyQuests,
   wingedLights, realmShapes,
 };
 
