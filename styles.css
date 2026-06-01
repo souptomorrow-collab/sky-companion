@@ -197,6 +197,13 @@ input:focus { outline: none; border-color: var(--accent); }
 .tips { margin: 10px 0 0; padding-left: 18px; }
 .tips li { margin: 4px 0; color: var(--muted); font-size: 13px; }
 
+/* 光之翼地圖 */
+.wl-map-wrap { background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 12px; padding: 8px; margin: 8px 0 14px; overflow: auto; }
+.wl-map { width: 100%; height: auto; max-height: 72vh; display: block; }
+.wl-map circle { cursor: pointer; transition: fill .1s; }
+.wl-map a:hover circle, .wl-map circle:hover { fill: #ffffff; }
+.wl-map text { pointer-events: none; font-weight: 700; }
+
 /* mobile */
 @media (max-width: 560px) {
   .app-header { padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 14px max(14px, env(safe-area-inset-left)); }

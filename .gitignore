@@ -9,6 +9,8 @@ desktop.ini
 _test.*
 _smoke.*
 _verify.*
+_names.json
+_map.json
 *.log
 node_modules/
 

@@ -115,6 +115,24 @@ const realms = get('realms').map(r => {
   };
 });
 
+// ---------- 光之翼 + 國度輪廓（地圖用）----------
+const FOLDER_ZH = { aviary: '鳥族村', prairie: '雲野', forest: '雨林', valley: '霞谷', wasteland: '暮土', vault: '禁閣', isle: '晨島', dawn: '晨島', eden: '伊甸之眼', void: '星海', home: '家' };
+const WL_BASE = 'https://sky-planner.com/assets/game/winged-lights/';
+const wingedLights = get('wingedLights').map(w => {
+  const v = w.mapData && w.mapData.videoUrl;
+  const folder = v ? v.split('/')[0].toLowerCase() : null;
+  return {
+    realm: folder ? (FOLDER_ZH[folder] || folder) : '其他',
+    order: w.order, desc: w.description || '',
+    video: v ? WL_BASE + v : null,
+    pos: (w.mapData && w.mapData.position) || null,
+  };
+}).sort((a, b) => (a.order || 0) - (b.order || 0));
+const realmShapes = get('realms').filter(r => r.mapData && r.mapData.boundary).map(r => ({
+  name: r.name, short: r.shortName, color: r.mapData.boundaryColor || '#7aa8ff',
+  boundary: r.mapData.boundary, pos: r.mapData.position || null,
+}));
+
 // ---------- 活動 ----------
 const events = get('events').map(e => ({
   name: e.name, short: e.shortName, recurring: !!e.recurring,
@@ -159,9 +177,10 @@ const SKYDATA = {
     source: 'Silverfeelin/SkyGame-Data (MIT License)',
     url: 'https://github.com/Silverfeelin/SkyGame-Data',
     note: '先祖/季節/物品/花費/國度/活動為資料集擷取；貨幣/碎石/每日攻略為社群整理。數值可能隨遊戲更新而變動。',
-    counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length },
+    counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length, wingedLights: wingedLights.length },
   },
   seasons, spirits, realms, events, travelingSpirits, currencies, shards, daily,
+  wingedLights, realmShapes,
 };
 
 const outPath = path.join(__dirname, 'skydata.js');
