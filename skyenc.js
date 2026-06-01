@@ -63,7 +63,7 @@ function spiritCard(sp) {
   return `<details class="spirit" data-name="${escapeHtml(sp.name)}">
     <summary>
       <span class="star ${col ? 'on' : ''}" data-star="${escapeHtml(sp.name)}" role="button" aria-label="標記已解鎖">${col ? '★' : '☆'}</span>
-      <span class="sp-name">${escapeHtml(sp.name)}</span>
+      <span class="sp-name">${typeof nm === 'function' ? nm(sp.name) : escapeHtml(sp.name)}</span>
       ${spiritBadges(sp)}
       <span class="sp-total">${fmtTotals(sp.totals)}</span>
     </summary>

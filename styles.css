@@ -167,6 +167,7 @@ input:focus { outline: none; border-color: var(--accent); }
 .chip:hover { color: var(--text); }
 .chip.on { background: linear-gradient(180deg, var(--gold-soft), var(--gold)); color: #1a1326; font-weight: 700; border: none; }
 
+.zh { color: var(--muted); font-size: .9em; }
 .dex-list { margin-top: 8px; }
 .spirit, .wiki-card { border: 1px solid var(--line); border-radius: 10px; margin: 6px 0; background: rgba(0,0,0,.14); overflow: hidden; }
 .spirit > summary, .wiki-card > summary {

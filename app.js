@@ -12,6 +12,13 @@ function addDays(y, mo, d, n) {
 }
 const dateKey = c => `${c.y}-${pad(c.mo)}-${pad(c.d)}`;
 
+/* 名稱顯示：英文名 +（若翻譯表 window.SKYZH 有對應）中文括號。缺則只顯示英文。回傳 HTML。 */
+function nm(name) {
+  if (name == null) return '';
+  const zh = (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[name]) || null;
+  return escapeHtml(name) + (zh ? ` <span class="zh">(${escapeHtml(zh)})</span>` : '');
+}
+
 /* ---------- 重置時間 ---------- */
 function nextDailyReset(now) {
   const p = skyParts(now);
@@ -191,71 +198,44 @@ function shardDetailHTML(s, now) {
 }
 
 /* ---------- 渲染：復刻先祖 ---------- */
+// 由 skydata 的真實復刻歷史，查某到達日實際來的先祖（未公布則回 null）
+function tsSpiritOn(dateStr) {
+  const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.travelingSpirits) || [];
+  for (const t of list) if (t.date === dateStr) return t.spirit;
+  return null;
+}
 function renderSpirits(now) {
   // 狀態
   const cur = tsArrival(tsCurrentK(now));
-  const log = Store.get('ts_log', {});
   let statusHTML;
   if (now.getTime() < cur.departInst.getTime()) {
-    statusHTML = `<span class="badge live">先祖在場中</span> ${log[dateKey(cur.cal)] ? '· ' + escapeHtml(log[dateKey(cur.cal)]) : ''}
+    const who = tsSpiritOn(dateKey(cur.cal));
+    statusHTML = `<span class="badge live">先祖在場中</span> ${who ? '· ' + nm(who) : ''}
       <div class="kv"><span class="k">本次到達</span><span class="v">${dateKey(cur.cal)}（週${WD_ZH[skyWeekday(cur.cal.y, cur.cal.mo, cur.cal.d)]}）</span></div>
       <div class="kv"><span class="k">離開倒數</span><span class="v big">${cd(cur.departInst.getTime())}</span></div>`;
   } else {
     const next = tsArrival(cur.k + 1);
+    const who = tsSpiritOn(dateKey(next.cal));
     statusHTML = `<div class="kv"><span class="k">下次到達</span><span class="v">${dateKey(next.cal)}（週${WD_ZH[skyWeekday(next.cal.y, next.cal.mo, next.cal.d)]}）</span></div>
+      ${who ? `<div class="kv"><span class="k">先祖</span><span class="v">${nm(who)}</span></div>` : ''}
       <div class="kv"><span class="k">到達倒數</span><span class="v big">${cd(next.arrivalInst.getTime())}</span></div>`;
   }
   $('#ts-status .card-body').innerHTML = statusHTML;
 
-  // 行事曆
+  // 行事曆（自動帶入實際先祖；未公布的標「待官方公布」）
   let list = '';
   for (let i = -1; i <= 6; i++) {
     const t = tsArrival(cur.k + i);
     const past = now.getTime() >= t.departInst.getTime();
     const live = now.getTime() >= t.arrivalInst.getTime() && now.getTime() < t.departInst.getTime();
     const dep = addDays(t.cal.y, t.cal.mo, t.cal.d, 3); // 週日
+    const who = tsSpiritOn(dateKey(t.cal));
     list += `<div class="shard-day">
       <span class="d-date">${dateKey(t.cal)} ~ ${pad(dep.mo)}/${pad(dep.d)}</span>
-      <span class="d-loc">${live ? '<span class="badge live">在場</span>' : past ? '<span class="badge none">已過</span>' : '<span class="badge black">即將</span>'} ${log[dateKey(t.cal)] ? escapeHtml(log[dateKey(t.cal)]) : '<span class="muted">（未紀錄）</span>'}</span>
+      <span class="d-loc">${live ? '<span class="badge live">在場</span>' : past ? '<span class="badge none">已過</span>' : '<span class="badge black">即將</span>'} ${who ? nm(who) : '<span class="muted">（待官方公布）</span>'}</span>
       </div>`;
   }
   $('#ts-list').innerHTML = list;
-}
-
-/* 復刻先祖紀錄輸入框：與 reRenderDay 解耦，僅在週期翻頁/開分頁時重建，並保留焦點與未存輸入 */
-let lastTsK = null;
-function renderTsLog(now) {
-  const log = Store.get('ts_log', {});
-  const cur = tsArrival(tsCurrentK(now));
-  const ae = document.activeElement; // 保存目前焦點/游標/未存值
-  const focusKey = (ae && ae.dataset && ae.dataset.tslog) ? ae.dataset.tslog : null;
-  const selStart = focusKey ? ae.selectionStart : null;
-  const selEnd = focusKey ? ae.selectionEnd : null;
-  const liveVal = focusKey ? ae.value : null;
-  let logHTML = '';
-  for (let i = -3; i <= 4; i++) {
-    const t = tsArrival(cur.k + i);
-    const key = dateKey(t.cal);
-    const val = key === focusKey ? liveVal : (log[key] || '');
-    logHTML += `<div class="row"><span class="d-date" style="min-width:120px">${key}</span>
-      <input type="text" data-tslog="${key}" value="${escapeHtml(val)}" aria-label="${key} 復刻先祖紀錄" placeholder="這次來的先祖…" /></div>`;
-  }
-  $('#ts-log').innerHTML = logHTML;
-  $$('#ts-log input[data-tslog]').forEach(inp => {
-    const save = () => {
-      const l = Store.get('ts_log', {});
-      const v = inp.value.trim();
-      if (v) l[inp.dataset.tslog] = v; else delete l[inp.dataset.tslog];
-      Store.set('ts_log', l);
-    };
-    inp.addEventListener('input', save); // 即時存，避免未失焦就被重建而遺失
-    inp.addEventListener('change', save);
-  });
-  if (focusKey) { // 還原焦點與游標
-    const again = $(`#ts-log input[data-tslog="${focusKey}"]`);
-    if (again) { again.focus(); try { again.setSelectionRange(selStart, selEnd); } catch (_) {} }
-  }
-  lastTsK = cur.k;
 }
 
 /* ---------- 渲染：蠟燭預算 ---------- */
@@ -363,7 +343,7 @@ function showTab(name) {
   const now = new Date();
   if (name === 'overview') renderOverview(now);
   if (name === 'shards') renderShards(now);
-  if (name === 'spirits') { renderSpirits(now); renderTsLog(now); }
+  if (name === 'spirits') renderSpirits(now);
   if (name === 'candles') bindCandles();
   if (name === 'dex') renderDex();
   if (name === 'wiki') renderWiki();
@@ -389,7 +369,6 @@ function reRenderDay(now) {
   renderOverview(now);
   renderShards(now);
   renderSpirits(now);
-  if (tsCurrentK(now) !== lastTsK) renderTsLog(now); // 僅先祖週期翻頁才重建輸入框，碎石場次邊界不牽連
   lastDayKey = dateKey(skyParts(now));
   computeNextFlip(now);
   updateCountdowns(now);
