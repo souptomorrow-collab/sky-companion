@@ -346,6 +346,7 @@ function showTab(name) {
   if (name === 'spirits') renderSpirits(now);
   if (name === 'candles') bindCandles();
   if (name === 'dex') renderDex();
+  if (name === 'map') renderMap();
   if (name === 'wiki') renderWiki();
   updateCountdowns(now);
 }

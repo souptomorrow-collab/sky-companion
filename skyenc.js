@@ -201,14 +201,20 @@ function wikiWinged() {
   return `<p class="note">共 ${wls.length} 個光之翼。地圖為示意位置：滑過亮點看位置說明、點亮點開教學影片（影片來源 sky-planner.com）。</p>
     <div class="wl-map-wrap">${svg}</div>${list}`;
 }
+// 地圖分頁（光之翼），獨立於最上層導覽
+function renderMap() {
+  const root = $('#map-root');
+  if (root) root.innerHTML = wikiWinged();
+}
 function renderWiki() {
   const root = $('#wiki-root');
   if (!root) return;
-  const subs = [['seasons', '季節'], ['realms', '國度'], ['winged', '光之翼'], ['events', '活動'], ['currencies', '貨幣'], ['shards', '碎石'], ['daily', '每日攻略']];
-  const body = {
-    seasons: wikiSeasons, realms: wikiRealms, winged: wikiWinged, events: wikiEvents,
+  const subs = [['seasons', '季節'], ['realms', '國度'], ['events', '活動'], ['currencies', '貨幣'], ['shards', '碎石'], ['daily', '每日攻略']];
+  const fn = {
+    seasons: wikiSeasons, realms: wikiRealms, events: wikiEvents,
     currencies: wikiCurrencies, shards: wikiShards, daily: wikiDaily,
-  }[wikiTab]();
+  }[wikiTab] || wikiSeasons;
+  const body = fn();
   root.innerHTML = `
     <div class="chips wiki-nav">${subs.map(s => `<button class="chip ${wikiTab === s[0] ? 'on' : ''}" data-wiki="${s[0]}">${s[1]}</button>`).join('')}</div>
     <div class="wiki-body">${body}</div>`;
