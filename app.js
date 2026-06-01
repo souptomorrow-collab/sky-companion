@@ -102,6 +102,31 @@ function renderOverview(now) {
   renderQuests(now);
 }
 
+// 每日任務標題即時中譯（標題為 SkyHelper 英文、每天變動，用常見詞字典轉換；離線可用）
+const QUEST_ZH = [
+  [/Daily Quest Guide/gi, '每日任務總覽圖'],
+  [/Meditation Quest Guide|Meditation Quest/gi, '冥想任務'],
+  [/Coloured? Light Quest|Color Light Quest/gi, '彩光任務'],
+  [/Propose a kite design/gi, '提出風箏設計'], [/Catch the light/gi, '接光'], [/Collect/gi, '收集'],
+  [/Meditate at|Meditate in|Meditate by|Meditate/gi, '冥想於'], [/video guide/gi, '影片攻略'],
+  [/Vault of Knowledge/gi, '禁閣'], [/Daylight Prairie/gi, '雲野'], [/Hidden Forest/gi, '雨林'],
+  [/Valley of Triumph/gi, '霞谷'], [/Golden Wasteland/gi, '暮土'], [/Isle of Dawn/gi, '晨島'],
+  [/Eye of Eden/gi, '伊甸之眼'], [/Aviary Village/gi, '鳥族村'],
+  [/Prairie Heights/gi, '雲頂'], [/Sanctuary Islands?/gi, '聖島'], [/Butterfly Fields?/gi, '蝴蝶原野'],
+  [/Bird['’]?s? Nest/gi, '鳥巢'], [/Koi Pond/gi, '錦鯉池'], [/Vault Entrance/gi, '禁閣入口'], [/Spirit Mantas?/gi, '蝠鱝精靈'],
+  [/Purple Light/gi, '紫光'], [/Green Light/gi, '綠光'], [/Blue Light/gi, '藍光'], [/Red Light/gi, '紅光'],
+  [/Yellow Light/gi, '黃光'], [/Orange Light/gi, '橙光'], [/White Light/gi, '白光'],
+  [/\bPrairie\b/gi, '雲野'], [/\bForest\b/gi, '雨林'], [/\bValley\b/gi, '霞谷'],
+  [/\bWasteland\b/gi, '暮土'], [/\bVault\b/gi, '禁閣'], [/\bIsle\b/gi, '晨島'],
+  [/a\.k\.a\.?/gi, '又名'], [/\bEntrance\b/gi, '入口'], [/\bcave\b/gi, '洞穴'], [/\bshrine\b/gi, '神壇'],
+  [/\bGuide\b/gi, '攻略'], [/\bLight\b/gi, '光'], [/\bin\b/gi, '於'], [/\bat\b/gi, '於'], [/\bby\b/gi, '在'],
+];
+function qZh(s) {
+  let out = s || '';
+  for (const [re, zh] of QUEST_ZH) out = out.replace(re, zh);
+  return out.replace(/\s*[-–]\s*/g, ' · ').replace(/\s{2,}/g, ' ').trim();
+}
+
 // 今日任務即時資料（來源：SkyHelper API，CORS 開放、每日重置後更新）
 let questState = { day: null, loaded: false, loading: false, error: false, data: null };
 function fetchQuests(dk) {
@@ -130,11 +155,13 @@ function renderQuests(now) {
     const upd = (questState.data.last_updated || '').slice(0, 10);
     const cnt = qs.filter((q, i) => done[i]).length;
     const rows = qs.map((q, i) => {
-      const title = escapeHtml((q.title || '').replace(/\s*[-–]\s*$/, '').trim() || ('任務 ' + (i + 1)));
+      const en = (q.title || '').replace(/\s*[-–]\s*$/, '').trim();
+      const zh = escapeHtml(qZh(en) || ('任務 ' + (i + 1)));
       const img = q.images && q.images[0] && q.images[0].url;
       return `<div class="wl-row">
-        <div class="wl-info"><label class="q-item"><input type="checkbox" data-q="${i}" ${done[i] ? 'checked' : ''}/> ${title}</label></div>
-        ${img ? `<img class="wl-thumb" src="${escapeHtml(img)}" data-full="${escapeHtml(img)}" data-cap="${title}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
+        <input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />
+        <span class="wl-info" title="${escapeHtml(en)}">${zh}</span>
+        ${img ? `<img class="wl-thumb" src="${escapeHtml(img)}" data-full="${escapeHtml(img)}" data-cap="${zh}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
       </div>`;
     }).join('');
     questsHtml = `<div class="q-prog">📍 今日任務 ${cnt}/${qs.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}`;
