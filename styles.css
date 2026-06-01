@@ -203,6 +203,12 @@ input:focus { outline: none; border-color: var(--accent); }
 .wl-map circle { cursor: pointer; transition: fill .1s; }
 .wl-map circle:hover { fill: #ffffff; }
 .wl-map text { pointer-events: none; font-weight: 700; }
+.wl-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+.wl-row:last-child { border-bottom: none; }
+.wl-info { flex: 1; font-size: 13.5px; line-height: 1.5; }
+.wl-thumb-link { flex: 0 0 auto; }
+.wl-thumb { width: 92px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; }
+.wl-thumb:hover { border-color: var(--gold); }
 
 /* mobile */
 @media (max-width: 560px) {

@@ -11,6 +11,9 @@ const get = k => (all[k] && all[k].items) || [];
 // 光之翼描述的繁中翻譯（由 sky-wl-translate workflow 產生，可選）
 let WL_DESC_ZH = {};
 try { WL_DESC_ZH = JSON.parse(fs.readFileSync(path.join(__dirname, 'wl-desc-zh.json'), 'utf8')); } catch (e) {}
+// 光之翼位置照片對應（order → {url,c}），由 sky-wl-photos workflow 產生，可選
+let WL_IMG = {};
+try { WL_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'wl-img.json'), 'utf8')); } catch (e) {}
 
 const itemsMap = new Map(get('items').map(x => [x.guid, x]));
 const nodesMap = new Map(get('nodes').map(x => [x.guid, x]));
@@ -128,6 +131,8 @@ const wingedLights = get('wingedLights').map(w => {
     order: w.order, desc: w.description || '',
     descZh: WL_DESC_ZH[w.description] || '',
     wiki: w._wiki ? w._wiki.href : null, // 連到 wiki 該地點（有實際位置照片）
+    img: (WL_IMG[w.order] && WL_IMG[w.order].url) || '', // wiki 位置照片縮圖
+    imgC: (WL_IMG[w.order] && WL_IMG[w.order].c) || '', // 配對信心 high/medium/low
     pos: (w.mapData && w.mapData.position) || null,
   };
 }).sort((a, b) => (a.order || 0) - (b.order || 0));
