@@ -181,13 +181,21 @@ function wikiWinged() {
   shapes.forEach(s => s.boundary.forEach(p => upd(p[0], p[1])));
   wls.forEach(w => upd(w.pos[0], w.pos[1]));
   const pad = 25; minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+  const ORDER = { 'Isle of Dawn': 1, 'Daylight Prairie': 2, 'Hidden Forest': 3, 'Valley of Triumph': 4, 'Golden Wasteland': 5, 'Vault of Knowledge': 6, 'Eye of Eden': 7 };
+  const circled = '①②③④⑤⑥⑦';
   const polys = shapes.map(s => {
     const pts = s.boundary.map(p => `${p[0]},${p[1]}`).join(' ');
     const lp = s.pos || s.boundary[0];
-    const label = zhOf(s.name) || zhOf(s.short) || s.short || s.name;
+    const zhLabel = zhOf(s.name) || zhOf(s.short) || s.short || s.name;
+    const label = (ORDER[s.name] ? circled[ORDER[s.name] - 1] + ' ' : '') + zhLabel;
     return `<polygon points="${pts}" fill="${s.color}22" stroke="${s.color}" stroke-width="1.5"/>
       <text x="${lp[0]}" y="${lp[1]}" fill="${s.color}" font-size="9" text-anchor="middle" paint-order="stroke" stroke="#0b1026" stroke-width="2.4">${escapeHtml(label)}</text>`;
   }).join('');
+  // 旅程順序連線（晨島①→…→伊甸之眼⑦）給地圖方向性
+  const orderNames = Object.keys(ORDER).sort((a, b) => ORDER[a] - ORDER[b]);
+  const pathPts = orderNames.map(n => { const s = shapes.find(x => x.name === n); return s ? (s.pos || (s.boundary && s.boundary[0])) : null; }).filter(Boolean);
+  const pathLine = pathPts.length > 1 ? `<polyline class="wl-path" points="${pathPts.map(p => p[0] + ',' + p[1]).join(' ')}" marker-mid="url(#arr)" marker-end="url(#arr)" />` : '';
+  const defs = `<defs><marker id="arr" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(243,210,122,.85)"/></marker></defs>`;
   // 各國度內的編號（與下方清單一致）
   const idxMap = {}; const _t = {};
   (SD.wingedLights || []).forEach(w => { _t[w.realm] = (_t[w.realm] || 0) + 1; idxMap[w.order] = _t[w.realm]; });
@@ -197,7 +205,7 @@ function wikiWinged() {
       <circle cx="${w.pos[0]}" cy="${w.pos[1]}" r="4"><title>${cap}</title></circle>
       <text x="${w.pos[0]}" y="${w.pos[1] + 1.4}" text-anchor="middle">${idxMap[w.order]}</text></g>`;
   }).join('');
-  const svg = `<svg viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" class="wl-map" role="img" aria-label="光之翼位置示意圖" preserveAspectRatio="xMidYMid meet">${polys}${dots}</svg>`;
+  const svg = `<svg viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" class="wl-map" role="img" aria-label="光之翼位置示意圖" preserveAspectRatio="xMidYMid meet">${defs}${polys}${pathLine}${dots}</svg>`;
   const byRealm = {};
   (SD.wingedLights || []).forEach(w => { (byRealm[w.realm] = byRealm[w.realm] || []).push(w); });
   const list = Object.keys(byRealm).map(rk => `<details class="wiki-card">
@@ -208,13 +216,76 @@ function wikiWinged() {
       ${w.img ? `<img class="wl-thumb" src="${escapeHtml(w.img)}" data-full="${escapeHtml(w.img)}" data-cap="${escapeHtml(w.realm + ' ' + idxMap[w.order] + '　' + (w.descZh || w.desc))}" loading="lazy" alt="位置照片" onerror="this.style.display='none'" />` : ''}
     </div>`).join('')}</div>
   </details>`).join('');
-  return `<p class="note">共 ${wls.length} 個光之翼。地圖上的編號點對應下方清單；<b>點任一個點（或清單照片）即可放大看該地點的實際照片</b>。同色區塊為同一國度。</p>
-    <div class="wl-map-wrap">${svg}</div>${list}`;
+  return `<p class="note">共 ${wls.length} 個光之翼。同色區塊為同一國度，虛線箭頭 ①→⑦ 是旅程順序（晨島→伊甸之眼）。<b>點任一個編號點看該地點實際照片</b>；滾輪／雙指或右上 ＋－ 可縮放，拖曳平移。</p>
+    <div class="wl-map-wrap">
+      <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
+      ${svg}
+    </div>${list}`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
 function renderMap() {
   const root = $('#map-root');
-  if (root) root.innerHTML = wikiWinged();
+  if (root) { root.innerHTML = wikiWinged(); setupMapZoom(); }
+}
+
+// 地圖縮放/平移：滾輪、拖曳、雙指、＋－⟲ 按鈕
+function setupMapZoom() {
+  const wrap = $('.wl-map-wrap');
+  const svg = wrap && wrap.querySelector('svg.wl-map');
+  if (!svg) return;
+  let scale = 1, tx = 0, ty = 0;
+  const pointers = new Map();
+  let lastDist = 0, moved = 0, panStart = null;
+  const apply = () => { svg.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`; };
+  function zoomAt(px, py, factor) {
+    const ns = Math.min(9, Math.max(1, scale * factor));
+    const k = ns / scale;
+    tx = px - (px - tx) * k; ty = py - (py - ty) * k; scale = ns;
+    if (scale <= 1.001) { scale = 1; tx = 0; ty = 0; }
+    apply();
+  }
+  const ctr = () => { const r = wrap.getBoundingClientRect(); return [r.width / 2, r.height / 2]; };
+
+  wrap.addEventListener('wheel', e => {
+    e.preventDefault();
+    const r = wrap.getBoundingClientRect();
+    zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.2 : 1 / 1.2);
+  }, { passive: false });
+
+  svg.addEventListener('pointerdown', e => {
+    svg.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    moved = 0;
+    if (pointers.size === 1) panStart = { x: e.clientX, y: e.clientY, tx, ty };
+    if (pointers.size === 2) { const p = [...pointers.values()]; lastDist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); }
+  });
+  svg.addEventListener('pointermove', e => {
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+      const p = [...pointers.values()];
+      const dist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
+      const r = wrap.getBoundingClientRect();
+      if (lastDist) zoomAt((p[0].x + p[1].x) / 2 - r.left, (p[0].y + p[1].y) / 2 - r.top, dist / lastDist);
+      lastDist = dist; moved += 20;
+    } else if (panStart && (e.buttons || e.pointerType === 'touch')) {
+      const dx = e.clientX - panStart.x, dy = e.clientY - panStart.y;
+      moved += Math.abs(dx) + Math.abs(dy);
+      tx = panStart.tx + dx; ty = panStart.ty + dy; apply();
+    }
+  });
+  const up = e => { pointers.delete(e.pointerId); if (pointers.size < 2) lastDist = 0; if (pointers.size === 0) panStart = null; };
+  svg.addEventListener('pointerup', up);
+  svg.addEventListener('pointercancel', up);
+  // 拖曳後不要誤觸點擊開照片
+  svg.addEventListener('click', e => { if (moved > 8) { e.stopPropagation(); e.preventDefault(); } }, true);
+
+  $$('.wl-zoom-ctrl button', wrap).forEach(b => b.addEventListener('click', () => {
+    const [cx, cy] = ctr();
+    if (b.dataset.z === 'in') zoomAt(cx, cy, 1.4);
+    else if (b.dataset.z === 'out') zoomAt(cx, cy, 1 / 1.4);
+    else { scale = 1; tx = 0; ty = 0; apply(); }
+  }));
 }
 function renderWiki() {
   const root = $('#wiki-root');

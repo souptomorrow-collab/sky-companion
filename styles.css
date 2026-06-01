@@ -198,8 +198,12 @@ input:focus { outline: none; border-color: var(--accent); }
 .tips li { margin: 4px 0; color: var(--muted); font-size: 13px; }
 
 /* 光之翼地圖 */
-.wl-map-wrap { background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 12px; padding: 8px; margin: 8px 0 14px; overflow: auto; }
-.wl-map { width: 100%; height: auto; max-height: 80vh; display: block; }
+.wl-map-wrap { position: relative; background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 12px; padding: 8px; margin: 8px 0 14px; overflow: hidden; }
+.wl-map { width: 100%; height: auto; max-height: 80vh; display: block; touch-action: none; transform-origin: 0 0; }
+.wl-zoom-ctrl { position: absolute; top: 12px; right: 12px; z-index: 3; display: flex; flex-direction: column; gap: 6px; }
+.wl-zoom-ctrl button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: rgba(16,22,46,.85); color: var(--text); font-size: 18px; cursor: pointer; line-height: 1; }
+.wl-zoom-ctrl button:hover { border-color: var(--accent); color: var(--gold-soft); }
+.wl-path { fill: none; stroke: rgba(243,210,122,.55); stroke-width: 1; stroke-dasharray: 3 3; }
 .wl-map text { pointer-events: none; font-weight: 700; }
 .wl-mark { cursor: pointer; }
 .wl-mark circle { fill: #ffe9b0; stroke: #1a1326; stroke-width: 0.5; transition: fill .1s; }
