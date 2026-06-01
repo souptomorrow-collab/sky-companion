@@ -37,3 +37,6 @@ _wl.json
 # 代理人暫存
 _*.txt
 _*.tmp
+shard_section.txt
+_*_section.txt
+_*_sec.txt
