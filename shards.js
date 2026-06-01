@@ -76,11 +76,15 @@ const SHARD = (function () {
     const weekday = skyWeekday(y, mo, d);
     const hasShard = !noShardWeekdays[time].includes(weekday);
 
+    // 只把「每日重置 00:00」錨到太平洋牆鐘一次，之後全部以「真實毫秒」相加。
+    // 遊戲計時器自 00:00 PT 重置後累加真實秒數，無法跳過/重複 DST 那一小時，
+    // 故 DST 轉換日（一年 2 天）也與 sky-shards / 遊戲一致；非 DST 日結果不變。
     const [h, mi] = time.split(':').map(Number);
+    const reset = skyWallToDate(y, mo, d, 0, 0, 0);
+    const first = new Date(reset.getTime() + (h * 60 + mi) * 60000); // 第一場 = 重置 + offset
     const eruptions = [];
     for (let i = 0; i < 3; i++) {
-      const total = h * 60 + mi + i * info.interval * 60;
-      const start = skyWallToDate(y, mo, d, Math.floor(total / 60), total % 60, 0);
+      const start = new Date(first.getTime() + i * info.interval * 3600 * 1000); // 第 i 場 = 第一場 + i*間隔
       const land = new Date(start.getTime() + (8 * 60 + 40) * 1000);
       const end = new Date(land.getTime() + 4 * 3600 * 1000);
       eruptions.push({ start, land, end });

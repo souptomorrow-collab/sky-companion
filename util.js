@@ -69,9 +69,9 @@ function fmtLocal(date) {
   });
 }
 
-/* 顯示 Sky 時間（太平洋） */
+/* 顯示 Sky 時間（太平洋）。用 en-GB：所有環境午夜皆為 00:00（en-US 在舊 ICU 會回 24:00） */
 function fmtSkyTime(date) {
-  return date.toLocaleString('en-US', {
+  return date.toLocaleString('en-GB', {
     timeZone: SKY_TZ, hour: '2-digit', minute: '2-digit', hour12: false,
   });
 }

@@ -30,18 +30,18 @@
     </div>
   </header>
 
-  <nav class="tabs" id="tabs">
-    <button class="tab active" data-tab="overview">總覽</button>
-    <button class="tab" data-tab="shards">碎石</button>
-    <button class="tab" data-tab="spirits">復刻先祖</button>
-    <button class="tab" data-tab="candles">蠟燭預算</button>
-    <button class="tab" data-tab="collection">圖鑑</button>
-    <button class="tab" data-tab="settings">設定</button>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="主要分頁">
+    <button class="tab active" id="tab-btn-overview" role="tab" aria-controls="tab-overview" aria-selected="true" data-tab="overview">總覽</button>
+    <button class="tab" id="tab-btn-shards" role="tab" aria-controls="tab-shards" aria-selected="false" tabindex="-1" data-tab="shards">碎石</button>
+    <button class="tab" id="tab-btn-spirits" role="tab" aria-controls="tab-spirits" aria-selected="false" tabindex="-1" data-tab="spirits">復刻先祖</button>
+    <button class="tab" id="tab-btn-candles" role="tab" aria-controls="tab-candles" aria-selected="false" tabindex="-1" data-tab="candles">蠟燭預算</button>
+    <button class="tab" id="tab-btn-collection" role="tab" aria-controls="tab-collection" aria-selected="false" tabindex="-1" data-tab="collection">圖鑑</button>
+    <button class="tab" id="tab-btn-settings" role="tab" aria-controls="tab-settings" aria-selected="false" tabindex="-1" data-tab="settings">設定</button>
   </nav>
 
   <main>
     <!-- 總覽 -->
-    <section id="tab-overview" class="tab-panel active">
+    <section id="tab-overview" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-overview">
       <div class="grid">
         <div class="card" id="ov-resets">
           <h2>⏳ 重置倒數</h2>
@@ -63,14 +63,14 @@
     </section>
 
     <!-- 碎石 -->
-    <section id="tab-shards" class="tab-panel">
+    <section id="tab-shards" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-shards">
       <div class="card" id="shard-today"><h2>今日碎石</h2><div class="card-body">載入中…</div></div>
       <div class="card"><h2>未來 7 天</h2><div class="card-body" id="shard-upcoming">載入中…</div></div>
       <p class="note">碎石為社群推算（PlutoyDev/sky-shards 演算法），非官方保證；時間以遊戲 Sky 時間（美國太平洋時區，含日光節約）為準，並換算成你的當地時間。</p>
     </section>
 
     <!-- 復刻先祖 -->
-    <section id="tab-spirits" class="tab-panel">
+    <section id="tab-spirits" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-spirits">
       <div class="card" id="ts-status"><h2>目前狀態</h2><div class="card-body">載入中…</div></div>
       <div class="card"><h2>行事曆（每 14 天，週四到週日）</h2><div class="card-body" id="ts-list">載入中…</div></div>
       <div class="card">
@@ -83,7 +83,7 @@
     </section>
 
     <!-- 蠟燭預算 -->
-    <section id="tab-candles" class="tab-panel">
+    <section id="tab-candles" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-candles">
       <div class="card">
         <h2>季節蠟燭預算試算</h2>
         <div class="card-body">
@@ -111,12 +111,12 @@
     </section>
 
     <!-- 圖鑑 -->
-    <section id="tab-collection" class="tab-panel">
+    <section id="tab-collection" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-collection">
       <div class="card">
         <h2>兌換 / 收集進度</h2>
         <div class="card-body">
           <div class="row">
-            <input type="text" id="new-cat" placeholder="新增分類（例如：永久先祖、復刻、季節）" />
+            <input type="text" id="new-cat" aria-label="新增分類名稱" placeholder="新增分類（例如：永久先祖、復刻、季節）" />
             <button class="btn" id="add-cat">＋ 分類</button>
           </div>
           <div id="collection-root"></div>
@@ -125,7 +125,7 @@
     </section>
 
     <!-- 設定 -->
-    <section id="tab-settings" class="tab-panel">
+    <section id="tab-settings" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-settings">
       <div class="card">
         <h2>復刻先祖錨點</h2>
         <div class="card-body">

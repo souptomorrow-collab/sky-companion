@@ -28,7 +28,9 @@ function nextWeeklyReset(now) { // 週日 00:00 太平洋
 
 /* ---------- 復刻先祖 ---------- */
 function tsAnchor() {
-  const [y, mo, d] = Store.get('ts_anchor', TS_ANCHOR_DEFAULT).split('-').map(Number);
+  const raw = Store.get('ts_anchor', TS_ANCHOR_DEFAULT);
+  const str = (typeof raw === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw)) ? raw : TS_ANCHOR_DEFAULT;
+  const [y, mo, d] = str.split('-').map(Number);
   return { y, mo, d };
 }
 function tsArrival(k) {
@@ -51,13 +53,13 @@ function tsCurrentK(now) {
 /* ---------- 倒數 span ---------- */
 function cd(targetMs, opts) {
   opts = opts || {};
-  return `<span class="cd" data-target="${targetMs}"${opts.prefix ? ` data-prefix="${opts.prefix}"` : ''}${opts.done ? ` data-done="${opts.done}"` : ''}>--:--:--</span>`;
+  return `<span class="cd" data-target="${targetMs}"${opts.done ? ` data-done="${opts.done}"` : ''}>--:--:--</span>`;
 }
 function updateCountdowns(now) {
   $$('.cd[data-target]').forEach(el => {
     const diff = +el.dataset.target - now.getTime();
     if (diff <= 0) { el.textContent = el.dataset.done || '進行中'; el.classList.add('done'); }
-    else { el.classList.remove('done'); el.textContent = (el.dataset.prefix || '') + fmtDuration(diff); }
+    else { el.classList.remove('done'); el.textContent = fmtDuration(diff); }
   });
 }
 
@@ -100,18 +102,18 @@ function shardSummaryHTML(s, now) {
   else cdHtml = `進行中，結束於 ${cd(next.end.getTime())}`;
   return `${typeBadge} ${s.realmZh.split(' ')[0]} · ${s.location[1]}
     <div class="kv"><span class="k">地圖</span><span class="v">${s.location[1]} (${s.location[0]})</span></div>
-    <div class="kv"><span class="k">${cdHtml ? '狀態' : ''}</span><span class="v">${cdHtml}</span></div>`;
+    <div class="kv"><span class="k">狀態</span><span class="v">${cdHtml}</span></div>`;
 }
 
 function tsSummaryHTML(now) {
   const cur = tsArrival(tsCurrentK(now));
   const logged = Store.get('ts_log', {})[dateKey(cur.cal)];
   if (now.getTime() < cur.departInst.getTime()) {
-    return `<span class="badge live">先祖在場中</span> ${logged ? '· ' + logged : ''}
+    return `<span class="badge live">先祖在場中</span> ${logged ? '· ' + escapeHtml(logged) : ''}
       <div class="kv"><span class="k">離開倒數</span><span class="v big">${cd(cur.departInst.getTime())}</span></div>`;
   }
   const next = tsArrival(cur.k + 1);
-  return `<div class="kv"><span class="k">下次到達</span><span class="v">${dateKey(next.cal)}（週四）</span></div>
+  return `<div class="kv"><span class="k">下次到達</span><span class="v">${dateKey(next.cal)}（週${WD_ZH[skyWeekday(next.cal.y, next.cal.mo, next.cal.d)]}）</span></div>
     <div class="kv"><span class="k">倒數</span><span class="v big">${cd(next.arrivalInst.getTime())}</span></div>`;
 }
 
@@ -122,8 +124,9 @@ function seasonSummaryHTML(now) {
   const [y, mo, d] = end.split('-').map(Number);
   const endInst = skyWallToDate(y, mo, d, 23, 59, 59);
   const p = skyParts(now);
-  const daysLeft = Math.max(0, Math.round((Date.UTC(y, mo - 1, d) - Date.UTC(p.year, p.month - 1, p.day)) / 86400000));
-  return `<div class="kv"><span class="k">${name || '本季'}</span><span class="v">${end} 結束</span></div>
+  const diff = Math.round((Date.UTC(y, mo - 1, d) - Date.UTC(p.year, p.month - 1, p.day)) / 86400000);
+  const daysLeft = Math.max(0, diff + 1); // 結束日當天 23:59:59 前仍可賺，故含結束日
+  return `<div class="kv"><span class="k">${name ? escapeHtml(name) : '本季'}</span><span class="v">${end} 結束</span></div>
     <div class="kv"><span class="k">剩餘天數</span><span class="v big">${daysLeft} 天</span></div>
     <p class="note">結束倒數：${cd(endInst.getTime(), { done: '已結束' })}</p>`;
 }
@@ -184,12 +187,12 @@ function renderSpirits(now) {
   const log = Store.get('ts_log', {});
   let statusHTML;
   if (now.getTime() < cur.departInst.getTime()) {
-    statusHTML = `<span class="badge live">先祖在場中</span> ${log[dateKey(cur.cal)] ? '· ' + log[dateKey(cur.cal)] : ''}
-      <div class="kv"><span class="k">本次到達</span><span class="v">${dateKey(cur.cal)}（週四）</span></div>
+    statusHTML = `<span class="badge live">先祖在場中</span> ${log[dateKey(cur.cal)] ? '· ' + escapeHtml(log[dateKey(cur.cal)]) : ''}
+      <div class="kv"><span class="k">本次到達</span><span class="v">${dateKey(cur.cal)}（週${WD_ZH[skyWeekday(cur.cal.y, cur.cal.mo, cur.cal.d)]}）</span></div>
       <div class="kv"><span class="k">離開倒數</span><span class="v big">${cd(cur.departInst.getTime())}</span></div>`;
   } else {
     const next = tsArrival(cur.k + 1);
-    statusHTML = `<div class="kv"><span class="k">下次到達</span><span class="v">${dateKey(next.cal)}（週四）</span></div>
+    statusHTML = `<div class="kv"><span class="k">下次到達</span><span class="v">${dateKey(next.cal)}（週${WD_ZH[skyWeekday(next.cal.y, next.cal.mo, next.cal.d)]}）</span></div>
       <div class="kv"><span class="k">到達倒數</span><span class="v big">${cd(next.arrivalInst.getTime())}</span></div>`;
   }
   $('#ts-status .card-body').innerHTML = statusHTML;
@@ -203,28 +206,46 @@ function renderSpirits(now) {
     const dep = addDays(t.cal.y, t.cal.mo, t.cal.d, 3); // 週日
     list += `<div class="shard-day">
       <span class="d-date">${dateKey(t.cal)} ~ ${pad(dep.mo)}/${pad(dep.d)}</span>
-      <span class="d-loc">${live ? '<span class="badge live">在場</span>' : past ? '<span class="badge none">已過</span>' : '<span class="badge black">即將</span>'} ${log[dateKey(t.cal)] || '<span class="muted">（未紀錄）</span>'}</span>
+      <span class="d-loc">${live ? '<span class="badge live">在場</span>' : past ? '<span class="badge none">已過</span>' : '<span class="badge black">即將</span>'} ${log[dateKey(t.cal)] ? escapeHtml(log[dateKey(t.cal)]) : '<span class="muted">（未紀錄）</span>'}</span>
       </div>`;
   }
   $('#ts-list').innerHTML = list;
+}
 
-  // 紀錄（含輸入框，僅在此渲染，避免每秒清空）
+/* 復刻先祖紀錄輸入框：與 reRenderDay 解耦，僅在週期翻頁/開分頁時重建，並保留焦點與未存輸入 */
+let lastTsK = null;
+function renderTsLog(now) {
+  const log = Store.get('ts_log', {});
+  const cur = tsArrival(tsCurrentK(now));
+  const ae = document.activeElement; // 保存目前焦點/游標/未存值
+  const focusKey = (ae && ae.dataset && ae.dataset.tslog) ? ae.dataset.tslog : null;
+  const selStart = focusKey ? ae.selectionStart : null;
+  const selEnd = focusKey ? ae.selectionEnd : null;
+  const liveVal = focusKey ? ae.value : null;
   let logHTML = '';
   for (let i = -3; i <= 4; i++) {
     const t = tsArrival(cur.k + i);
     const key = dateKey(t.cal);
+    const val = key === focusKey ? liveVal : (log[key] || '');
     logHTML += `<div class="row"><span class="d-date" style="min-width:120px">${key}</span>
-      <input type="text" data-tslog="${key}" value="${(log[key] || '').replace(/"/g, '&quot;')}" placeholder="這次來的先祖…" /></div>`;
+      <input type="text" data-tslog="${key}" value="${escapeHtml(val)}" aria-label="${key} 復刻先祖紀錄" placeholder="這次來的先祖…" /></div>`;
   }
   $('#ts-log').innerHTML = logHTML;
   $$('#ts-log input[data-tslog]').forEach(inp => {
-    inp.addEventListener('change', () => {
+    const save = () => {
       const l = Store.get('ts_log', {});
       const v = inp.value.trim();
       if (v) l[inp.dataset.tslog] = v; else delete l[inp.dataset.tslog];
       Store.set('ts_log', l);
-    });
+    };
+    inp.addEventListener('input', save); // 即時存，避免未失焦就被重建而遺失
+    inp.addEventListener('change', save);
   });
+  if (focusKey) { // 還原焦點與游標
+    const again = $(`#ts-log input[data-tslog="${focusKey}"]`);
+    if (again) { again.focus(); try { again.setSelectionRange(selStart, selEnd); } catch (_) {} }
+  }
+  lastTsK = cur.k;
 }
 
 /* ---------- 渲染：蠟燭預算 ---------- */
@@ -250,16 +271,19 @@ function computeCandles() {
   if (!end || target <= 0) { box.innerHTML = `<p class="muted">填入「季節結束日」與「目標所需」後即可試算。</p>`; return; }
   const [y, mo, d] = end.split('-').map(Number);
   const p = skyParts(new Date());
-  const daysLeft = Math.max(0, Math.round((Date.UTC(y, mo - 1, d) - Date.UTC(p.year, p.month - 1, p.day)) / 86400000));
+  const diff = Math.round((Date.UTC(y, mo - 1, d) - Date.UTC(p.year, p.month - 1, p.day)) / 86400000);
+  const daysLeft = Math.max(0, diff + 1); // 結束日當天仍可賺，故含結束日
   const obtainable = have + perDay * daysLeft;
   const need = Math.max(0, target - have);
   const ok = obtainable >= target;
   const perDayNeeded = daysLeft > 0 ? (need / daysLeft) : Infinity;
+  const perdayText = need <= 0 ? '已達成 ✓'
+    : (daysLeft > 0 ? `${perDayNeeded.toFixed(1)} 根` : '季節已結束，無法達成');
   box.innerHTML = `
-    <div class="kv"><span class="k">距離結束</span><span class="v">${daysLeft} 天</span></div>
+    <div class="kv"><span class="k">距離結束（含當天）</span><span class="v">${daysLeft} 天</span></div>
     <div class="kv"><span class="k">還需要</span><span class="v">${need} 根</span></div>
     <div class="kv"><span class="k">預計可獲得（含現有）</span><span class="v">${obtainable} 根</span></div>
-    <div class="kv"><span class="k">每天至少需</span><span class="v">${isFinite(perDayNeeded) ? perDayNeeded.toFixed(1) : '—'} 根</span></div>
+    <div class="kv"><span class="k">每天至少需</span><span class="v">${perdayText}</span></div>
     <p class="result ${ok ? 'ok' : 'bad'}" style="font-size:16px;margin-top:10px">
       ${ok ? `✓ 來得及！預計多出 ${obtainable - target} 根。` : `✗ 進度不足，照目前每日 ${perDay} 根會差 ${target - obtainable} 根。`}
     </p>`;
@@ -360,8 +384,12 @@ function importData(e) {
   const reader = new FileReader();
   reader.onload = () => {
     try {
-      const data = JSON.parse(reader.result);
-      Object.keys(data).forEach(k => { if (k.startsWith('sky_')) localStorage.setItem(k, data[k]); });
+      const data = JSON.parse(reader.result); // 先驗證/解析成功再清除，避免解析失敗就清空
+      if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('備份格式不符');
+      Store.allKeys().forEach(k => localStorage.removeItem(k)); // 清掉現有 sky_ 鍵，成為真正「還原」
+      Object.keys(data).forEach(k => {
+        if (k.startsWith('sky_') && typeof data[k] === 'string') localStorage.setItem(k, data[k]);
+      });
       alert('匯入完成！'); location.reload();
     } catch (err) { alert('檔案格式錯誤：' + err.message); }
   };
@@ -370,12 +398,17 @@ function importData(e) {
 
 /* ---------- 分頁切換 ---------- */
 function showTab(name) {
-  $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  $$('.tab').forEach(t => {
+    const on = t.dataset.tab === name;
+    t.classList.toggle('active', on);
+    t.setAttribute('aria-selected', String(on));
+    t.tabIndex = on ? 0 : -1; // roving tabindex
+  });
   $$('.tab-panel').forEach(s => s.classList.toggle('active', s.id === 'tab-' + name));
   const now = new Date();
   if (name === 'overview') renderOverview(now);
   if (name === 'shards') renderShards(now);
-  if (name === 'spirits') renderSpirits(now);
+  if (name === 'spirits') { renderSpirits(now); renderTsLog(now); }
   if (name === 'candles') bindCandles();
   if (name === 'collection') renderCollection();
   updateCountdowns(now);
@@ -400,6 +433,7 @@ function reRenderDay(now) {
   renderOverview(now);
   renderShards(now);
   renderSpirits(now);
+  if (tsCurrentK(now) !== lastTsK) renderTsLog(now); // 僅先祖週期翻頁才重建輸入框，碎石場次邊界不牽連
   lastDayKey = dateKey(skyParts(now));
   computeNextFlip(now);
   updateCountdowns(now);

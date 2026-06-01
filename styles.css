@@ -43,7 +43,8 @@ header, nav, main, footer { position: relative; z-index: 1; }
 /* Header */
 .app-header {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
-  gap: 16px; padding: 18px 20px; max-width: 1000px; margin: 0 auto;
+  gap: 16px; max-width: 1000px; margin: 0 auto;
+  padding: max(18px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) 18px max(20px, env(safe-area-inset-left));
 }
 .title { display: flex; align-items: center; gap: 12px; }
 .logo { font-size: 30px; color: var(--gold); filter: drop-shadow(0 0 8px rgba(243,210,122,.6)); }
@@ -127,7 +128,6 @@ input:focus { outline: none; border-color: var(--accent); }
 .btn:hover { border-color: var(--accent); transform: translateY(-1px); }
 .btn.danger { background: linear-gradient(180deg, #5a2330, #46202a); }
 .btn.small { padding: 4px 9px; font-size: 12px; }
-.btn.gold { background: linear-gradient(180deg, var(--gold-soft), var(--gold)); color: #1a1326; font-weight: 700; border: none; }
 
 .result { margin-top: 14px; }
 .result .ok { color: var(--green); }
@@ -151,11 +151,14 @@ input:focus { outline: none; border-color: var(--accent); }
 .about ul { margin: 8px 0; padding-left: 18px; }
 .about li { margin: 3px 0; color: var(--muted); }
 
-.app-footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
+.app-footer {
+  text-align: center; color: var(--muted); font-size: 12px;
+  padding: 20px max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+}
 
 /* mobile */
 @media (max-width: 560px) {
-  .app-header { padding: 14px; }
+  .app-header { padding: max(14px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) 14px max(14px, env(safe-area-inset-left)); }
   .clocks { gap: 12px; }
   .clock-value { font-size: 15px; }
   .app-header h1 { font-size: 19px; }
