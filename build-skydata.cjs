@@ -120,7 +120,6 @@ const realms = get('realms').map(r => {
 
 // ---------- 光之翼 + 國度輪廓（地圖用）----------
 const FOLDER_ZH = { aviary: '鳥族村', prairie: '雲野', forest: '雨林', valley: '霞谷', wasteland: '暮土', vault: '禁閣', isle: '晨島', dawn: '晨島', eden: '伊甸之眼', void: '星海', home: '家' };
-const WL_BASE = 'https://sky-planner.com/assets/game/winged-lights/';
 const wingedLights = get('wingedLights').map(w => {
   const v = w.mapData && w.mapData.videoUrl;
   const folder = v ? v.split('/')[0].toLowerCase() : null;
@@ -128,7 +127,7 @@ const wingedLights = get('wingedLights').map(w => {
     realm: folder ? (FOLDER_ZH[folder] || folder) : '其他',
     order: w.order, desc: w.description || '',
     descZh: WL_DESC_ZH[w.description] || '',
-    video: v ? WL_BASE + v : null,
+    wiki: w._wiki ? w._wiki.href : null, // 連到 wiki 該地點（有實際位置照片）
     pos: (w.mapData && w.mapData.position) || null,
   };
 }).sort((a, b) => (a.order || 0) - (b.order || 0));

@@ -196,9 +196,9 @@ function wikiWinged() {
   (SD.wingedLights || []).forEach(w => { (byRealm[w.realm] = byRealm[w.realm] || []).push(w); });
   const list = Object.keys(byRealm).map(rk => `<details class="wiki-card">
     <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${byRealm[rk].length}</span></summary>
-    <div class="sp-body">${byRealm[rk].map(w => `<div class="dex-item"><span>#${w.order} ${escapeHtml(w.descZh || w.desc)}</span></div>`).join('')}</div>
+    <div class="sp-body">${byRealm[rk].map(w => `<div class="dex-item"><span>#${w.order} ${escapeHtml(w.descZh || w.desc)}</span>${w.wiki ? `<a class="wiki-link" href="${w.wiki}" target="_blank" rel="noopener">位置圖↗</a>` : ''}</div>`).join('')}</div>
   </details>`).join('');
-  return `<p class="note">共 ${wls.length} 個光之翼。地圖為示意位置：把游標移到亮點（手機點一下）即可看位置說明。</p>
+  return `<p class="note">共 ${wls.length} 個光之翼。地圖為示意位置（滑過亮點看說明）；下方清單每個都有中文位置描述，點「位置圖↗」可看 wiki 上該地點的實際照片。</p>
     <div class="wl-map-wrap">${svg}</div>${list}`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
