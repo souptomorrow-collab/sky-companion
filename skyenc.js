@@ -176,25 +176,22 @@ function wikiDaily() {
 function wikiWinged() {
   const shapes = SD.realmShapes || [];
   const wls = (SD.wingedLights || []).filter(w => w.pos);
-  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
-  const upd = (x, y) => { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; };
-  shapes.forEach(s => s.boundary.forEach(p => upd(p[0], p[1])));
-  wls.forEach(w => upd(w.pos[0], w.pos[1]));
-  const pad = 25; minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+  // sky-planner 用 Leaflet CRS.Simple：position=[lat,lng]，底圖 540×540 覆蓋 lng 0..540 / -lat 0..540
+  const X = p => p[1], Y = p => -p[0];
   const ORDER = { 'Isle of Dawn': 1, 'Daylight Prairie': 2, 'Hidden Forest': 3, 'Valley of Triumph': 4, 'Golden Wasteland': 5, 'Vault of Knowledge': 6, 'Eye of Eden': 7 };
   const circled = '①②③④⑤⑥⑦';
   const polys = shapes.map(s => {
-    const pts = s.boundary.map(p => `${p[0]},${p[1]}`).join(' ');
+    const pts = s.boundary.map(p => `${X(p)},${Y(p)}`).join(' ');
     const lp = s.pos || s.boundary[0];
     const zhLabel = zhOf(s.name) || zhOf(s.short) || s.short || s.name;
     const label = (ORDER[s.name] ? circled[ORDER[s.name] - 1] + ' ' : '') + zhLabel;
-    return `<polygon points="${pts}" fill="${s.color}22" stroke="${s.color}" stroke-width="1.5"/>
-      <text x="${lp[0]}" y="${lp[1]}" fill="${s.color}" font-size="9" text-anchor="middle" paint-order="stroke" stroke="#0b1026" stroke-width="2.4">${escapeHtml(label)}</text>`;
+    return `<polygon points="${pts}" fill="none" stroke="${s.color}" stroke-width="1" opacity="0.75"/>
+      <text x="${X(lp)}" y="${Y(lp)}" fill="${s.color}" font-size="11" text-anchor="middle" paint-order="stroke" stroke="#0b1026" stroke-width="3.5">${escapeHtml(label)}</text>`;
   }).join('');
   // 旅程順序連線（晨島①→…→伊甸之眼⑦）給地圖方向性
   const orderNames = Object.keys(ORDER).sort((a, b) => ORDER[a] - ORDER[b]);
   const pathPts = orderNames.map(n => { const s = shapes.find(x => x.name === n); return s ? (s.pos || (s.boundary && s.boundary[0])) : null; }).filter(Boolean);
-  const pathLine = pathPts.length > 1 ? `<polyline class="wl-path" points="${pathPts.map(p => p[0] + ',' + p[1]).join(' ')}" marker-mid="url(#arr)" marker-end="url(#arr)" />` : '';
+  const pathLine = pathPts.length > 1 ? `<polyline class="wl-path" points="${pathPts.map(p => X(p) + ',' + Y(p)).join(' ')}" marker-mid="url(#arr)" marker-end="url(#arr)" />` : '';
   const defs = `<defs><marker id="arr" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(243,210,122,.85)"/></marker></defs>`;
   // 各國度內的編號（與下方清單一致）
   const idxMap = {}; const _t = {};
@@ -202,10 +199,14 @@ function wikiWinged() {
   const dots = wls.map(w => {
     const cap = escapeHtml(`${w.realm} ${idxMap[w.order]}　${w.descZh || w.desc}`);
     return `<g class="wl-mark"${w.img ? ` data-full="${escapeHtml(w.img)}" data-cap="${cap}"` : ''}>
-      <circle cx="${w.pos[0]}" cy="${w.pos[1]}" r="4"><title>${cap}</title></circle>
-      <text x="${w.pos[0]}" y="${w.pos[1] + 1.4}" text-anchor="middle">${idxMap[w.order]}</text></g>`;
+      <circle cx="${X(w.pos)}" cy="${Y(w.pos)}" r="4.5"><title>${cap}</title></circle>
+      <text x="${X(w.pos)}" y="${Y(w.pos) + 1.5}" text-anchor="middle">${idxMap[w.order]}</text></g>`;
   }).join('');
-  const svg = `<svg viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" class="wl-map" role="img" aria-label="光之翼位置示意圖" preserveAspectRatio="xMidYMid meet">${defs}${polys}${pathLine}${dots}</svg>`;
+  // 真實遊戲世界地圖底圖 + SVG 疊層（viewBox 對齊底圖 540×540 座標）
+  const svg = `<div class="wl-map">
+    <img class="wl-map-bg" src="img/map.webp" alt="光遇世界地圖" draggable="false" />
+    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${polys}${pathLine}${dots}</svg>
+  </div>`;
   const byRealm = {};
   (SD.wingedLights || []).forEach(w => { (byRealm[w.realm] = byRealm[w.realm] || []).push(w); });
   const list = Object.keys(byRealm).map(rk => `<details class="wiki-card">
@@ -231,7 +232,7 @@ function renderMap() {
 // 地圖縮放/平移：滾輪、拖曳、雙指、＋－⟲ 按鈕
 function setupMapZoom() {
   const wrap = $('.wl-map-wrap');
-  const svg = wrap && wrap.querySelector('svg.wl-map');
+  const svg = wrap && wrap.querySelector('.wl-map');
   if (!svg) return;
   let scale = 1, tx = 0, ty = 0;
   const pointers = new Map();
