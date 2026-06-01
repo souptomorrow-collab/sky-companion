@@ -33,3 +33,7 @@ ctx.pkl
 sky-companion-backup.json
 _descs.json
 _wl.json
+
+# 代理人暫存
+_*.txt
+_*.tmp
