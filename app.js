@@ -102,33 +102,60 @@ function renderOverview(now) {
   renderQuests(now);
 }
 
+// 今日任務即時資料（來源：SkyHelper API，CORS 開放、每日重置後更新）
+let questState = { day: null, loaded: false, loading: false, error: false, data: null };
+function fetchQuests(dk) {
+  if (questState.loading) return;
+  questState.loading = true; questState.error = false;
+  fetch('https://api.skyhelper.xyz/update/quests')
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => { questState = { day: dk, loaded: true, loading: false, error: false, data: d }; renderQuests(new Date()); })
+    .catch(() => { questState.loading = false; questState.error = true; renderQuests(new Date()); });
+}
 function renderQuests(now) {
   const box = $('#ov-quests .card-body');
   if (!box) return;
-  const dq = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.dailyQuests);
-  if (!dq) { box.innerHTML = '<p class="muted">—</p>'; return; }
+  const dq = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.dailyQuests) || null;
   const p = skyParts(now);
   const dk = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
-  const done = Store.get('quests_' + dk, [false, false, false, false]);
   const daily = nextDailyReset(now);
   const localT = daily.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
-  const cnt = done.filter(Boolean).length;
-  const typesHtml = dq.types.map((t, i) =>
-    `<label class="q-item"><input type="checkbox" data-q="${i}" ${done[i] ? 'checked' : ''}/> <b>${escapeHtml(t.name)}</b> <span class="muted">${escapeHtml(t.desc)}</span></label>`).join('');
-  const claimHtml = dq.claim.map(c =>
-    `<div class="q-claim"><img class="wl-thumb" src="${escapeHtml(c.img)}" data-full="${escapeHtml(c.img)}" data-cap="${escapeHtml(c.place + '：' + c.desc)}" loading="lazy" alt="${escapeHtml(c.place)}" onerror="this.style.display='none'" /><div><b>${escapeHtml(c.place)}</b><br><span class="muted">${escapeHtml(c.desc)}</span></div></div>`).join('');
-  box.innerHTML = `
-    <div class="kv"><span class="k">重置</span><span class="v">${cd(daily.getTime())} <span class="muted">· 太平洋 00:00（你的 ${localT}）</span></span></div>
-    <div class="q-prog">今日進度 ${cnt}/4 <span class="muted">· ${escapeHtml(dq.reward)}</span></div>
-    <div class="q-types">${typesHtml}</div>
-    <p class="note">領取地點（固定）：</p>
-    <div class="q-claims">${claimHtml}</div>
-    <p class="note">${escapeHtml(dq.note)}</p>
-    <p class="note">想查今天「實際是哪 4 個」+ 位置攻略：<a class="wiki-link" href="https://sky.dominicwild.com/" target="_blank" rel="noopener">社群每日任務追蹤器 ↗</a>（自己搜尋勾選今天遇到的任務）</p>`;
+  const resetLine = `<div class="kv"><span class="k">重置</span><span class="v">${cd(daily.getTime())} <span class="muted">· 太平洋 00:00（你的 ${localT}）</span></span></div>`;
+
+  if (questState.loaded && questState.day !== dk) { questState.loaded = false; questState.data = null; } // 跨日重抓
+  let questsHtml;
+  if (questState.loaded && questState.data && Array.isArray(questState.data.quests)) {
+    const qs = questState.data.quests.filter(q => q && ((q.images && q.images.length) || q.title));
+    const done = Store.get('quests_' + dk, {});
+    const upd = (questState.data.last_updated || '').slice(0, 10);
+    const cnt = qs.filter((q, i) => done[i]).length;
+    const rows = qs.map((q, i) => {
+      const title = escapeHtml((q.title || '').replace(/\s*[-–]\s*$/, '').trim() || ('任務 ' + (i + 1)));
+      const img = q.images && q.images[0] && q.images[0].url;
+      return `<div class="wl-row">
+        <div class="wl-info"><label class="q-item"><input type="checkbox" data-q="${i}" ${done[i] ? 'checked' : ''}/> ${title}</label></div>
+        ${img ? `<img class="wl-thumb" src="${escapeHtml(img)}" data-full="${escapeHtml(img)}" data-cap="${title}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
+      </div>`;
+    }).join('');
+    questsHtml = `<div class="q-prog">📍 今日任務 ${cnt}/${qs.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}`;
+  } else if (questState.error) {
+    questsHtml = `<p class="note">⚠️ 暫時無法取得今日任務（離線或來源連線失敗）。可改用 <a class="wiki-link" href="https://sky.dominicwild.com/" target="_blank" rel="noopener">社群追蹤器 ↗</a>。</p>`;
+  } else {
+    questsHtml = `<p class="muted">載入今日任務中…</p>`;
+    fetchQuests(dk);
+  }
+
+  const claimHtml = dq ? dq.claim.map(c =>
+    `<div class="q-claim"><img class="wl-thumb" src="${escapeHtml(c.img)}" data-full="${escapeHtml(c.img)}" data-cap="${escapeHtml(c.place + '：' + c.desc)}" loading="lazy" alt="${escapeHtml(c.place)}" onerror="this.style.display='none'" /><div><b>${escapeHtml(c.place)}</b><br><span class="muted">${escapeHtml(c.desc)}</span></div></div>`).join('') : '';
+
+  box.innerHTML = resetLine + questsHtml +
+    `<p class="note">領取地點（固定）：</p><div class="q-claims">${claimHtml}</div>` +
+    `<p class="note">今日任務來源：SkyHelper（每日重置後更新）；點任務圖看大圖。</p>`;
+
   $$('#ov-quests input[data-q]').forEach(inp => inp.addEventListener('change', () => {
-    const arr = Store.get('quests_' + dk, [false, false, false, false]);
-    arr[+inp.dataset.q] = inp.checked; Store.set('quests_' + dk, arr);
-    renderQuests(new Date());
+    const d = Store.get('quests_' + dk, {}); d[inp.dataset.q] = inp.checked; Store.set('quests_' + dk, d);
+    const prog = $('#ov-quests .q-prog'); const all = $$('#ov-quests input[data-q]');
+    if (prog) prog.innerHTML = prog.innerHTML.replace(/\d+\/\d+/, all.filter(x => x.checked).length + '/' + all.length);
   }));
 }
 
