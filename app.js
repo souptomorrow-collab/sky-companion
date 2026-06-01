@@ -289,68 +289,7 @@ function computeCandles() {
     </p>`;
 }
 
-/* ---------- 渲染：圖鑑 ---------- */
-function defaultCollection() {
-  return [
-    { name: '範例：永久先祖', items: [{ id: 1, label: '（點 ＋ 項目 新增你要收集的先祖）', done: false }] },
-  ];
-}
-function getCollection() { return Store.get('collection', defaultCollection()); }
-function saveCollection(c) { Store.set('collection', c); }
-
-function renderCollection() {
-  const data = getCollection();
-  const root = $('#collection-root');
-  let total = 0, done = 0;
-  let html = '';
-  data.forEach((cat, ci) => {
-    const dc = cat.items.filter(i => i.done).length;
-    total += cat.items.length; done += dc;
-    const pct = cat.items.length ? Math.round(dc / cat.items.length * 100) : 0;
-    html += `<div class="cat">
-      <div class="cat-head">
-        <span class="cat-name">${escapeHtml(cat.name)}</span>
-        <span class="muted">${dc}/${cat.items.length}</span>
-        <button class="btn small" data-additem="${ci}">＋ 項目</button>
-        <button class="btn small danger" data-delcat="${ci}">刪分類</button>
-      </div>
-      <div class="progress"><i style="width:${pct}%"></i></div>
-      <div class="cat-items">
-        ${cat.items.map((it, ii) => `<div class="item ${it.done ? 'done' : ''}">
-          <input type="checkbox" data-check="${ci}.${ii}" ${it.done ? 'checked' : ''} />
-          <span class="lbl" data-edit="${ci}.${ii}">${escapeHtml(it.label)}</span>
-          <span class="x" data-delitem="${ci}.${ii}">✕</span>
-        </div>`).join('')}
-      </div>
-    </div>`;
-  });
-  root.innerHTML = `<p class="note">總進度 ${done}/${total}（${total ? Math.round(done / total * 100) : 0}%）。點文字可改名。</p>` + html;
-
-  $$('[data-check]', root).forEach(el => el.addEventListener('change', () => {
-    const [ci, ii] = el.dataset.check.split('.').map(Number);
-    const c = getCollection(); c[ci].items[ii].done = el.checked; saveCollection(c); renderCollection();
-  }));
-  $$('[data-delitem]', root).forEach(el => el.addEventListener('click', () => {
-    const [ci, ii] = el.dataset.delitem.split('.').map(Number);
-    const c = getCollection(); c[ci].items.splice(ii, 1); saveCollection(c); renderCollection();
-  }));
-  $$('[data-delcat]', root).forEach(el => el.addEventListener('click', () => {
-    const ci = +el.dataset.delcat;
-    if (!confirm('刪除整個分類？')) return;
-    const c = getCollection(); c.splice(ci, 1); saveCollection(c); renderCollection();
-  }));
-  $$('[data-additem]', root).forEach(el => el.addEventListener('click', () => {
-    const ci = +el.dataset.additem;
-    const name = prompt('項目名稱（先祖 / 物品）：'); if (!name) return;
-    const c = getCollection(); c[ci].items.push({ id: Date.now(), label: name, done: false }); saveCollection(c); renderCollection();
-  }));
-  $$('[data-edit]', root).forEach(el => el.addEventListener('click', () => {
-    const [ci, ii] = el.dataset.edit.split('.').map(Number);
-    const c = getCollection(); const cur = c[ci].items[ii].label;
-    const name = prompt('改名：', cur); if (name == null) return;
-    c[ci].items[ii].label = name; saveCollection(c); renderCollection();
-  }));
-}
+/* 先祖圖鑑（先祖/物品/花費）已改為資料驅動，見 skyenc.js 的 renderDex()。 */
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
 
 /* ---------- 設定 ---------- */
@@ -410,7 +349,8 @@ function showTab(name) {
   if (name === 'shards') renderShards(now);
   if (name === 'spirits') { renderSpirits(now); renderTsLog(now); }
   if (name === 'candles') bindCandles();
-  if (name === 'collection') renderCollection();
+  if (name === 'dex') renderDex();
+  if (name === 'wiki') renderWiki();
   updateCountdowns(now);
 }
 
@@ -454,11 +394,6 @@ function tick() {
 function init() {
   $('#tabs').addEventListener('click', e => {
     const btn = e.target.closest('.tab'); if (btn) showTab(btn.dataset.tab);
-  });
-  $('#add-cat').addEventListener('click', () => {
-    const name = $('#new-cat').value.trim(); if (!name) return;
-    const c = getCollection(); c.push({ name, items: [] }); saveCollection(c);
-    $('#new-cat').value = ''; renderCollection();
   });
   bindSettings();
   reRenderDay(new Date());

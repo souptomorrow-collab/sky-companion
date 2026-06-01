@@ -35,7 +35,8 @@
     <button class="tab" id="tab-btn-shards" role="tab" aria-controls="tab-shards" aria-selected="false" tabindex="-1" data-tab="shards">碎石</button>
     <button class="tab" id="tab-btn-spirits" role="tab" aria-controls="tab-spirits" aria-selected="false" tabindex="-1" data-tab="spirits">復刻先祖</button>
     <button class="tab" id="tab-btn-candles" role="tab" aria-controls="tab-candles" aria-selected="false" tabindex="-1" data-tab="candles">蠟燭預算</button>
-    <button class="tab" id="tab-btn-collection" role="tab" aria-controls="tab-collection" aria-selected="false" tabindex="-1" data-tab="collection">圖鑑</button>
+    <button class="tab" id="tab-btn-dex" role="tab" aria-controls="tab-dex" aria-selected="false" tabindex="-1" data-tab="dex">先祖圖鑑</button>
+    <button class="tab" id="tab-btn-wiki" role="tab" aria-controls="tab-wiki" aria-selected="false" tabindex="-1" data-tab="wiki">百科</button>
     <button class="tab" id="tab-btn-settings" role="tab" aria-controls="tab-settings" aria-selected="false" tabindex="-1" data-tab="settings">設定</button>
   </nav>
 
@@ -110,16 +111,22 @@
       </div>
     </section>
 
-    <!-- 圖鑑 -->
-    <section id="tab-collection" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-collection">
+    <!-- 先祖圖鑑 -->
+    <section id="tab-dex" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-dex">
       <div class="card">
-        <h2>兌換 / 收集進度</h2>
+        <h2>先祖圖鑑 <span class="muted" style="font-size:13px">點 ☆ 標記已解鎖</span></h2>
         <div class="card-body">
-          <div class="row">
-            <input type="text" id="new-cat" aria-label="新增分類名稱" placeholder="新增分類（例如：永久先祖、復刻、季節）" />
-            <button class="btn" id="add-cat">＋ 分類</button>
-          </div>
-          <div id="collection-root"></div>
+          <div id="dex-root">載入中…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 百科 -->
+    <section id="tab-wiki" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-wiki">
+      <div class="card">
+        <h2>百科</h2>
+        <div class="card-body">
+          <div id="wiki-root">載入中…</div>
         </div>
       </div>
     </section>
@@ -153,6 +160,7 @@
           <p>本工具為<strong>外部參考工具</strong>，不與遊戲程式互動、不修改遊戲、不自動操作，僅做時間換算與資訊整理。</p>
           <ul>
             <li>碎石演算法：PlutoyDev/sky-shards（社群推算）</li>
+            <li>先祖 / 季節 / 國度 / 物品資料：Silverfeelin/SkyGame-Data（MIT 授權）</li>
             <li>重置時間：thatgamecompany 官方公告（每日 00:00 太平洋時間）</li>
             <li>復刻先祖：每 14 天，週四 00:00 PT 到週日</li>
           </ul>
@@ -168,6 +176,8 @@
 
   <script src="util.js"></script>
   <script src="shards.js"></script>
+  <script src="skydata.js"></script>
   <script src="app.js"></script>
+  <script src="skyenc.js"></script>
 </body>
 </html>

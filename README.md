@@ -12,7 +12,8 @@
 | **碎石** | 今日紅／黑石的區域、地圖、三場出現時間（Sky 時間＋你的當地時間）＋未來 7 天 |
 | **復刻先祖** | 每 14 天的到達／離開行事曆、倒數、可自行紀錄每次來的先祖 |
 | **蠟燭預算** | 依季節結束日、目標與每日產量，試算能不能集滿 |
-| **圖鑑** | 自訂分類的兌換／收集進度勾選表，含進度條 |
+| **先祖圖鑑** | 全部 255 位先祖，可搜尋／篩選；展開看每位的兌換物與花費（蠟燭/愛心/升華/季節蠟燭）；點 ☆ 標記已解鎖，含解鎖進度 |
+| **百科** | 季節（29 季時間軸與先祖）、國度（區域＋光之翼）、活動行事曆、貨幣說明、碎石獎勵、每日攻略 |
 | **設定** | 先祖錨點修正、資料匯出／匯入備份、清除 |
 
 資料只存在你這台裝置的瀏覽器（localStorage），互不外傳。換裝置前請到「設定」匯出備份。
@@ -35,9 +36,22 @@
 
 ## 資料來源與準確性
 
-- **碎石演算法**：[PlutoyDev/sky-shards](https://github.com/PlutoyDev/sky-shards)（社群推算，非官方保證）。已用官方站交叉驗證（2026-05-31 → 紅石·草原·Cave 吻合）。
+- **碎石演算法**：[PlutoyDev/sky-shards](https://github.com/PlutoyDev/sky-shards)（社群推算，非官方保證）。已用官方站交叉驗證（2026-05-31 → 紅石·草原·Cave 吻合），並修正日光節約轉換日的時間。
+- **先祖／季節／國度／物品／花費資料**：[Silverfeelin/SkyGame-Data](https://github.com/Silverfeelin/SkyGame-Data)（MIT 授權，sky-planner.com 後端資料）。
 - **重置時間**：thatgamecompany 官方公告 —— 每日 00:00 美國太平洋時間（含日光節約）。
 - **復刻先祖**：每 14 天，週四 00:00 PT 到達、週日離開。錨點 `2026-06-04`，可於設定修改。
+
+### 更新圖鑑資料（可選）
+先祖／季節等資料已處理成 `skydata.js` 一檔內建，平時不需更新。若遊戲有新季節要更新：
+
+```bash
+# 1. 下載最新資料集（鎖版本以利重現）
+curl -L https://unpkg.com/skygame-data@latest/assets/everything.json -o everything.json
+# 2. 重新產生 skydata.js
+node build-skydata.cjs
+```
+
+`everything.json` 等原始檔不入庫（見 `.gitignore`），只提交處理後的 `skydata.js`。
 
 ## 檔案結構
 

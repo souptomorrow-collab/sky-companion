@@ -7,8 +7,25 @@ desktop.ini
 
 # 暫存 / 測試
 _test.*
+_smoke.*
+_verify.*
 *.log
 node_modules/
+
+# 原始資料集（只提交處理後的 skydata.js；用 build-skydata.cjs 可重新產生）
+everything.json
+spirits.json
+seasons.json
+spirit-trees.json
+nodes.json
+items.json
+realms.json
+areas.json
+events.json
+event-instances.json
+wingedLights.json
+processed.json
+ctx.pkl
 
 # 個人備份匯出檔
 sky-companion-backup.json
