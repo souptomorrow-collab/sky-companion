@@ -123,7 +123,8 @@ function renderQuests(now) {
     <div class="q-types">${typesHtml}</div>
     <p class="note">領取地點（固定）：</p>
     <div class="q-claims">${claimHtml}</div>
-    <p class="note">${escapeHtml(dq.note)}</p>`;
+    <p class="note">${escapeHtml(dq.note)}</p>
+    <p class="note">想查今天「實際是哪 4 個」+ 位置攻略：<a class="wiki-link" href="https://sky.dominicwild.com/" target="_blank" rel="noopener">社群每日任務追蹤器 ↗</a>（自己搜尋勾選今天遇到的任務）</p>`;
   $$('#ov-quests input[data-q]').forEach(inp => inp.addEventListener('change', () => {
     const arr = Store.get('quests_' + dk, [false, false, false, false]);
     arr[+inp.dataset.q] = inp.checked; Store.set('quests_' + dk, arr);
