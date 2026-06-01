@@ -199,20 +199,24 @@ input:focus { outline: none; border-color: var(--accent); }
 
 /* 光之翼地圖 */
 .wl-map-wrap { background: rgba(0,0,0,.28); border: 1px solid var(--line); border-radius: 12px; padding: 8px; margin: 8px 0 14px; overflow: auto; }
-.wl-map { width: 100%; height: auto; max-height: 72vh; display: block; }
-.wl-map circle { cursor: pointer; transition: fill .1s; }
-.wl-map circle:hover { fill: #ffffff; }
+.wl-map { width: 100%; height: auto; max-height: 80vh; display: block; }
 .wl-map text { pointer-events: none; font-weight: 700; }
+.wl-mark { cursor: pointer; }
+.wl-mark circle { fill: #ffe9b0; stroke: #1a1326; stroke-width: 0.5; transition: fill .1s; }
+.wl-mark:hover circle { fill: #fff; stroke: var(--gold); stroke-width: 1; }
+.wl-mark text { fill: #1a1326; font-size: 3.6px; font-weight: 700; }
+.wl-n { display: inline-block; min-width: 20px; text-align: center; background: rgba(243,210,122,.18); color: var(--gold-soft); border-radius: 6px; padding: 0 5px; margin-right: 4px; }
 .wl-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
 .wl-row:last-child { border-bottom: none; }
 .wl-info { flex: 1; font-size: 13.5px; line-height: 1.5; }
 .wl-thumb { flex: 0 0 auto; width: 92px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; cursor: zoom-in; }
 .wl-thumb:hover { border-color: var(--gold); }
 
-/* 燈箱（點縮圖看大圖） */
-.lightbox { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.88); align-items: center; justify-content: center; cursor: zoom-out; padding: 16px; }
+/* 燈箱（點地圖點或縮圖看大圖 + 說明） */
+.lightbox { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.9); flex-direction: column; align-items: center; justify-content: center; gap: 14px; cursor: zoom-out; padding: 20px; }
 .lightbox.open { display: flex; }
-#lightbox-img { max-width: 94vw; max-height: 90vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+#lightbox-img { max-width: 94vw; max-height: 82vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+#lightbox-cap { color: #f3f5ff; font-size: 14px; text-align: center; max-width: 90vw; line-height: 1.5; }
 
 /* mobile */
 @media (max-width: 560px) {

@@ -188,21 +188,27 @@ function wikiWinged() {
     return `<polygon points="${pts}" fill="${s.color}22" stroke="${s.color}" stroke-width="1.5"/>
       <text x="${lp[0]}" y="${lp[1]}" fill="${s.color}" font-size="9" text-anchor="middle" paint-order="stroke" stroke="#0b1026" stroke-width="2.4">${escapeHtml(label)}</text>`;
   }).join('');
-  const dots = wls.map(w =>
-    `<circle cx="${w.pos[0]}" cy="${w.pos[1]}" r="2.6" fill="#ffe9b0" stroke="#1a1326" stroke-width="0.5"><title>${escapeHtml('#' + w.order + ' ' + (w.descZh || w.desc))}</title></circle>`
-  ).join('');
+  // 各國度內的編號（與下方清單一致）
+  const idxMap = {}; const _t = {};
+  (SD.wingedLights || []).forEach(w => { _t[w.realm] = (_t[w.realm] || 0) + 1; idxMap[w.order] = _t[w.realm]; });
+  const dots = wls.map(w => {
+    const cap = escapeHtml(`${w.realm} ${idxMap[w.order]}　${w.descZh || w.desc}`);
+    return `<g class="wl-mark"${w.img ? ` data-full="${escapeHtml(w.img)}" data-cap="${cap}"` : ''}>
+      <circle cx="${w.pos[0]}" cy="${w.pos[1]}" r="4"><title>${cap}</title></circle>
+      <text x="${w.pos[0]}" y="${w.pos[1] + 1.4}" text-anchor="middle">${idxMap[w.order]}</text></g>`;
+  }).join('');
   const svg = `<svg viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" class="wl-map" role="img" aria-label="光之翼位置示意圖" preserveAspectRatio="xMidYMid meet">${polys}${dots}</svg>`;
   const byRealm = {};
   (SD.wingedLights || []).forEach(w => { (byRealm[w.realm] = byRealm[w.realm] || []).push(w); });
   const list = Object.keys(byRealm).map(rk => `<details class="wiki-card">
     <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${byRealm[rk].length}</span></summary>
     <div class="sp-body">${byRealm[rk].map(w => `<div class="wl-row">
-      <div class="wl-info"><b>#${w.order}</b> ${escapeHtml(w.descZh || w.desc)}
+      <div class="wl-info"><b class="wl-n">${idxMap[w.order]}</b> ${escapeHtml(w.descZh || w.desc)}
         ${w.wiki ? `<a class="wiki-link" href="${w.wiki}" target="_blank" rel="noopener">位置圖↗</a>` : ''}${w.img && w.imgC === 'low' ? ' <span class="muted" style="font-size:11px">（照片自動比對，可能不準）</span>' : ''}</div>
-      ${w.img ? `<img class="wl-thumb" src="${escapeHtml(w.img)}" data-full="${escapeHtml(w.img)}" loading="lazy" alt="位置照片 #${w.order}" onerror="this.style.display='none'" />` : ''}
+      ${w.img ? `<img class="wl-thumb" src="${escapeHtml(w.img)}" data-full="${escapeHtml(w.img)}" data-cap="${escapeHtml(w.realm + ' ' + idxMap[w.order] + '　' + (w.descZh || w.desc))}" loading="lazy" alt="位置照片" onerror="this.style.display='none'" />` : ''}
     </div>`).join('')}</div>
   </details>`).join('');
-  return `<p class="note">共 ${wls.length} 個光之翼。地圖為示意位置（滑過亮點看說明）；下方清單每個都有中文位置描述，點「位置圖↗」可看 wiki 上該地點的實際照片。</p>
+  return `<p class="note">共 ${wls.length} 個光之翼。地圖上的編號點對應下方清單；<b>點任一個點（或清單照片）即可放大看該地點的實際照片</b>。同色區塊為同一國度。</p>
     <div class="wl-map-wrap">${svg}</div>${list}`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
