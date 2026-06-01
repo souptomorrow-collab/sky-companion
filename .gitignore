@@ -1,0 +1,14 @@
+# OS / 編輯器
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# 暫存 / 測試
+_test.*
+*.log
+node_modules/
+
+# 個人備份匯出檔
+sky-companion-backup.json

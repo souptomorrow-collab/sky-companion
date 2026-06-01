@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#10162e" />
+  <title>光遇助手 · Sky Companion</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+
+  <header class="app-header">
+    <div class="title">
+      <span class="logo">✦</span>
+      <div>
+        <h1>光遇助手</h1>
+        <p class="subtitle">Sky Companion · 打開即最新</p>
+      </div>
+    </div>
+    <div class="clocks">
+      <div class="clock">
+        <span class="clock-label">Sky 時間（太平洋）</span>
+        <span class="clock-value" id="clock-sky">--:--:--</span>
+      </div>
+      <div class="clock">
+        <span class="clock-label">你的時間</span>
+        <span class="clock-value" id="clock-local">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="overview">總覽</button>
+    <button class="tab" data-tab="shards">碎石</button>
+    <button class="tab" data-tab="spirits">復刻先祖</button>
+    <button class="tab" data-tab="candles">蠟燭預算</button>
+    <button class="tab" data-tab="collection">圖鑑</button>
+    <button class="tab" data-tab="settings">設定</button>
+  </nav>
+
+  <main>
+    <!-- 總覽 -->
+    <section id="tab-overview" class="tab-panel active">
+      <div class="grid">
+        <div class="card" id="ov-resets">
+          <h2>⏳ 重置倒數</h2>
+          <div class="card-body">載入中…</div>
+        </div>
+        <div class="card" id="ov-shard">
+          <h2>🌑 今日碎石</h2>
+          <div class="card-body">載入中…</div>
+        </div>
+        <div class="card" id="ov-ts">
+          <h2>🕊️ 復刻先祖</h2>
+          <div class="card-body">載入中…</div>
+        </div>
+        <div class="card" id="ov-season">
+          <h2>🕯️ 季節</h2>
+          <div class="card-body">載入中…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 碎石 -->
+    <section id="tab-shards" class="tab-panel">
+      <div class="card" id="shard-today"><h2>今日碎石</h2><div class="card-body">載入中…</div></div>
+      <div class="card"><h2>未來 7 天</h2><div class="card-body" id="shard-upcoming">載入中…</div></div>
+      <p class="note">碎石為社群推算（PlutoyDev/sky-shards 演算法），非官方保證；時間以遊戲 Sky 時間（美國太平洋時區，含日光節約）為準，並換算成你的當地時間。</p>
+    </section>
+
+    <!-- 復刻先祖 -->
+    <section id="tab-spirits" class="tab-panel">
+      <div class="card" id="ts-status"><h2>目前狀態</h2><div class="card-body">載入中…</div></div>
+      <div class="card"><h2>行事曆（每 14 天，週四到週日）</h2><div class="card-body" id="ts-list">載入中…</div></div>
+      <div class="card">
+        <h2>我的紀錄</h2>
+        <div class="card-body">
+          <p class="note">復刻先祖「是誰」由官方決定、無法預測；但「日期」固定每兩週。你可以在這裡記錄每次來的是哪位先祖。</p>
+          <div id="ts-log"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 蠟燭預算 -->
+    <section id="tab-candles" class="tab-panel">
+      <div class="card">
+        <h2>季節蠟燭預算試算</h2>
+        <div class="card-body">
+          <div class="form">
+            <label>季節名稱
+              <input type="text" id="c-season-name" placeholder="例如：夢想季" />
+            </label>
+            <label>季節結束日期
+              <input type="date" id="c-season-end" />
+            </label>
+            <label>目前持有季節蠟燭
+              <input type="number" id="c-have" min="0" value="0" />
+            </label>
+            <label>目標所需季節蠟燭
+              <input type="number" id="c-target" min="0" value="0" />
+            </label>
+            <label>每日可獲得季節蠟燭
+              <input type="number" id="c-perday" min="0" step="0.5" value="6" />
+            </label>
+          </div>
+          <p class="note">參考：完成每日季節任務約可得 5～6 根；持季卡（季票）通常較多。數值依你的實際遊玩調整。</p>
+          <div id="candle-result" class="result"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 圖鑑 -->
+    <section id="tab-collection" class="tab-panel">
+      <div class="card">
+        <h2>兌換 / 收集進度</h2>
+        <div class="card-body">
+          <div class="row">
+            <input type="text" id="new-cat" placeholder="新增分類（例如：永久先祖、復刻、季節）" />
+            <button class="btn" id="add-cat">＋ 分類</button>
+          </div>
+          <div id="collection-root"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 設定 -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="card">
+        <h2>復刻先祖錨點</h2>
+        <div class="card-body">
+          <label>已知的某次先祖到達日（週四）
+            <input type="date" id="ts-anchor" />
+          </label>
+          <p class="note">預設 2026-06-04。若官方有調整、發現偏差，改這裡即可（系統以 14 天循環推算所有日期）。</p>
+        </div>
+      </div>
+      <div class="card">
+        <h2>資料備份</h2>
+        <div class="card-body">
+          <p class="note">所有紀錄只存在這台裝置的瀏覽器（localStorage）。換裝置或清快取前，請先匯出。</p>
+          <div class="row">
+            <button class="btn" id="export-data">⬇ 匯出資料</button>
+            <button class="btn" id="import-data">⬆ 匯入資料</button>
+            <button class="btn danger" id="reset-data">🗑 清除全部</button>
+          </div>
+          <input type="file" id="import-file" accept="application/json" hidden />
+        </div>
+      </div>
+      <div class="card">
+        <h2>關於 / 資料來源</h2>
+        <div class="card-body about">
+          <p>本工具為<strong>外部參考工具</strong>，不與遊戲程式互動、不修改遊戲、不自動操作，僅做時間換算與資訊整理。</p>
+          <ul>
+            <li>碎石演算法：PlutoyDev/sky-shards（社群推算）</li>
+            <li>重置時間：thatgamecompany 官方公告（每日 00:00 太平洋時間）</li>
+            <li>復刻先祖：每 14 天，週四 00:00 PT 到週日</li>
+          </ul>
+          <p class="note">《光遇 / Sky: Children of the Light》為 thatgamecompany 之作品，本工具與其無官方關聯。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <span id="footer-date">--</span> · 資料即時依你的裝置時鐘計算
+  </footer>
+
+  <script src="util.js"></script>
+  <script src="shards.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
