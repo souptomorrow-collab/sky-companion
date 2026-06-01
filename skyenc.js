@@ -188,18 +188,17 @@ function wikiWinged() {
     return `<polygon points="${pts}" fill="${s.color}22" stroke="${s.color}" stroke-width="1.5"/>
       <text x="${lp[0]}" y="${lp[1]}" fill="${s.color}" font-size="9" text-anchor="middle" paint-order="stroke" stroke="#0b1026" stroke-width="2.4">${escapeHtml(label)}</text>`;
   }).join('');
-  const dots = wls.map(w => {
-    const dot = `<circle cx="${w.pos[0]}" cy="${w.pos[1]}" r="2.6" fill="#ffe9b0" stroke="#1a1326" stroke-width="0.5"><title>${escapeHtml('#' + w.order + ' ' + (w.descZh || w.desc))}</title></circle>`;
-    return w.video ? `<a href="${w.video}" target="_blank" rel="noopener">${dot}</a>` : dot;
-  }).join('');
+  const dots = wls.map(w =>
+    `<circle cx="${w.pos[0]}" cy="${w.pos[1]}" r="2.6" fill="#ffe9b0" stroke="#1a1326" stroke-width="0.5"><title>${escapeHtml('#' + w.order + ' ' + (w.descZh || w.desc))}</title></circle>`
+  ).join('');
   const svg = `<svg viewBox="${minX} ${minY} ${maxX - minX} ${maxY - minY}" class="wl-map" role="img" aria-label="光之翼位置示意圖" preserveAspectRatio="xMidYMid meet">${polys}${dots}</svg>`;
   const byRealm = {};
   (SD.wingedLights || []).forEach(w => { (byRealm[w.realm] = byRealm[w.realm] || []).push(w); });
   const list = Object.keys(byRealm).map(rk => `<details class="wiki-card">
     <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${byRealm[rk].length}</span></summary>
-    <div class="sp-body">${byRealm[rk].map(w => `<div class="dex-item"><span>#${w.order} ${escapeHtml(w.descZh || w.desc)}</span>${w.video ? `<a class="wiki-link" href="${w.video}" target="_blank" rel="noopener">影片↗</a>` : ''}</div>`).join('')}</div>
+    <div class="sp-body">${byRealm[rk].map(w => `<div class="dex-item"><span>#${w.order} ${escapeHtml(w.descZh || w.desc)}</span></div>`).join('')}</div>
   </details>`).join('');
-  return `<p class="note">共 ${wls.length} 個光之翼。地圖為示意位置：滑過亮點看位置說明、點亮點開教學影片（影片來源 sky-planner.com）。</p>
+  return `<p class="note">共 ${wls.length} 個光之翼。地圖為示意位置：把游標移到亮點（手機點一下）即可看位置說明。</p>
     <div class="wl-map-wrap">${svg}</div>${list}`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
