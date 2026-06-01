@@ -1,0 +1,119 @@
+==[[Hidden Forest]] ({{#var:forest}})<span id="Forest"><span id="Hidden Forest"></span></span>==
+===Forest Courtyard ({{#var:forest_courtyard}})<span id="Clearing"><span id="Forest Clearing"><span id="Walled Areas"><span id="Forest Courtyard"></span></span></span></span>===
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarForest1.jpg|Forest WL 1 (Far)
+StarForest01.jpg|Forest WL 1
+StarForest2.jpg|Forest WL 2 (Far)
+StarForest02.jpg|Forest WL 2
+</gallery>
+
+*'''Forest WL 1''': The Child of Light can be caught seeing when flying down into the Forest from the Forest Rest. It is on a platform in the trees on the right, above the stone gate (utilize the clouds to recharge cape energy, need some practice to land).
+*'''Forest WL 2''': The Child of Light is standing in front of the gate to the Forest Brook at the end of Forest Courtyard.
+
+===Forest Brook ({{#var:forest_brook}})<span id="Forest Brook"><span id="Brook"></span></span>===
+This is the area with stone gazebos and a river through the middle.
+
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarForest3.jpg|Forest WL 3 (Far)
+StarForest03.jpeg|Forest WL 3
+StarForest4.jpeg|Forest WL 4 (Far)
+StarForest04.jpeg|Forest WL 4
+StarForest5.jpg|Forest WL 5 (Far)
+StarForest05.jpg|Forest WL 5
+StarForest6.jpeg|Forest WL 6 (Far)
+StarForest06.jpeg|Forest WL 6
+</gallery>
+
+*'''Forest WL 3''': Go to the first gazebo ahead. The tree to the right of it has glowing [[Flora,_Minerals_and_Elements_of_Sky#Light_Bloom | Light Blooms]] growing on it. Use them as a ladder to reach a treehouse platform with a Child of Light in it.
+*'''Forest WL 4''': From the Forest WL 3 location, look to the left; the Child of Light will be visibly standing on a platform on a tree. fly towards it or use the Light Blooms on the tree nearby to reach it.
+*'''Forest WL 5''': From the first gazebo, to the left, go to the next gazebo behind the hill of [[The Treehouse]] door, where [[Blushing Prospector]] can be found. There's a cave nearby on the wall in the hillside blocked by a [[Darkness Plant]] at front, pointed by the ramp (Sightly longer than other with no path on it). Clear the Darkness to find the Child of Light.
+*'''Forest WL 6''': Follow the course of the river to the end of Forest Brook, The Child of Light standing right before the exit to the next area.
+
+===Boneyard ({{#var:boneyard}})<span id="Tree Tunnels"><span id="Boneyard"><span id="Broken Bridges"></span></span></span>===
+To reach the Boneyard area, cross the Forest Brook and follow the course of the river to a split in the rocks. This area has a large tunnel/pipe at the beginning and a large lake with a broken bridge at its end.
+
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarForest10.jpg|Forest WL 7 - Big Tree Entrance
+StarForest0010.jpg|Forest WL 7 - Big Tree Entrance
+StarForest010.jpg|Forest WL 7
+StarForest9.jpg|Forest WL 8 (Far)
+StarForest09.jpg|Forest WL 8
+StarForest11.jpg|Forest WL 9 (Far)
+StarForest011.jpg|Forest WL 9
+</gallery>
+
+*'''Forest WL 7''': Fly on top of the first big pipe at the beginning of the area. From the middle of the pipe on the right a hollow tree can be found with the Child of Light inside it.
+*'''Forest WL 8''': Go to the stump on the left, other way of the first big pipe. A tall tower with two floors can be seen far away. At least 4 Ancestor Spirits from the Forest need to be found to enter, but this Child of Light can also be collected from outside the Spirit Gate.
+*'''Forest WL 9''': Continue the main course. At the stilted temples with golden spires standing in the water, light the buttons in each of these to raise the bridge or fly to the last one that will have The Child of Light in it.
+
+===Elevated Clearing ({{#var:elevated_clearing}})<span id="Elevated Clearing"></span>===
+To reach the Elevated Clearing, go to the right of the first gazebo in the Forest Brook area or through a gate under the roots of a large tree on the right to the large lake in the Boneyard. Both entrances require the player to have found all eight Ancestor Spirits in the Hidden Forest.
+
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarForest7.jpg|Forest WL 10 (Far)
+StarForest07.jpg|Forest WL 10
+StarForest8.jpg|Forest WL 11 (Far)
+StarForest08.jpg|Forest WL 11
+</gallery>
+
+*'''Forest WL 10''': Go through the first gazebo, cross the lake and the Child of Light is on the platform on the left.
+*'''Forest WL 11''': The hollow tree on the right of the lake has a platform around it. Fly up, cross the rope bridge and find a Child of Light at the end of the platform.
+
+===Blue Bird Theater ({{#var:blue_bird_theater}})<span id="Blue Bird Theater"></span>===
+A Seasonal Area for the [[Season of the Blue Bird]] accessible via a meditation circle located in the Elevated Clearing.
+
+<section begin="BlueBirdTheater Children" /><gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+Blue-Bird-Winged-Light-Location.jpg|Forest WL 12
+</gallery>
+
+*'''Forest WL 12''': Found between the Map Shrine and Return Shrine across from the stage; turn around after entering the area.<section end="BlueBirdTheater Children" />
+
+===Forest Cavern ({{#var:forest_cavern}})<span id="Underground Cavern"><span id="Forest Cavern"></span></span>===
+An area of the Hidden Forest accessible from the Elevated Clearing or the Wind Paths. The Elevated Clearing entrance requires two players to enter, but all the Children of Light in this area can be collected without assistance from other players.
+
+<section begin="UndergroundCaverns Children" /><gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+Foreststar9far.JPG|Forest WL 13 (Far)
+Caverns star1.jpg|Forest WL 13
+Foreststar10far.JPG|Forest WL 14 (Far)
+Caverns star3.jpg|Forest WL 14
+Foreststar11far.jpg|Forest WL 15 (Far)
+Caverns star2.jpg|Forest WL 15
+Underground Cavern WL 15 (Far).jpg|Forest WL 16 (Far)
+Caverns star4.jpg|Forest WL 16
+</gallery>
+
+*'''Forest WL 13''': From the entrance, this is the second cave to the left, after the cave where Forest WL 14 is found. The first Child of Light is located high up in this cave above plenty butterfly jars. As with the entrance to the Forest Cavern, this Child of Light can be accessed after burning the lid on the large butterfly jar hidden behind a [[Darkness Plant]] at the back of the cave, then release a [[Deep Call]] to receive a lift from the released Butterflies; the Child of Light is not reachable otherwise.
+*'''Forest WL 14''': This Child of Light is located in a gated area to the bottom right of the entrance.
+*'''Forest WL 15''': To the left of the entrance, the exit to the Wind Paths is located - recognized by the birds streaming from this area down into the Forest Cavern. At the very top there is a gated structure, which so far leads nowhere. There is a Child of Light standing on a pillar in front of it. For new players and those low on flight energy it can be quite hard to reach, though it may help to start from a glowing [[Flora,_Minerals_and_Elements_of_Sky#Light_Bloom | Light Bloom]] across from the opening. Additionally, the birds streaming down will recharge the cape's energy.
+*'''Forest WL 16''': The Child of Light stands by the Forest Cavern exit, which is accessible at the top of the large hollow structure. Utilize the streams of Birds to recharge the cape's energy in order to fly up the structure.
+<section end="UndergroundCaverns Children" />
+
+===Sacred Pond ({{#var:sacred_pond}})<span id="Forest End"><span id="End"><span id="Sacred Pond"></span></span></span>===
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarForest12.jpg|Forest WL 17
+StarForest012.jpg|Forest WL 17
+</gallery>
+
+*'''Forest WL 17''': After watching the cutscene in the Temple, the gates will open and lead to the Sacred Pond, a dry and sunny area of the forest ending with a pond. On the left of the gates exit, the Child of Light will be seen standing on top of a tree stump.
+
+===The Treehouse ({{#var:treehouse}})<span id="The Treehouse"><span id="Treehouse"></span></span>===
+<section begin="Treehouse Children" /><gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+Treehouse WL 17 (Entrance).jpg|Entrance to Forest WL 18
+SOA-Winglight-2.jpg|Forest WL 18
+Treehouse WL 18 (Far).jpg|Forest WL 19 (Far)
+SOA-Winglight-1.jpg|Forest WL 19
+</gallery>
+
+*'''Forest WL 18''': This Child of Light is found in the basement of the Assembly Treehouse. It can be accessed from within the Assembly Treehouse's main floor through a dark tunnel to the right of the staircase.
+*'''Forest WL 19''': When entering the Assembly Treehouse area, go to the right and look up. The Child of Light will be high up in a hole in the trunk of a tree.<section end="Treehouse Children" />
+
+===The Wind Paths ({{#var:wind_paths}})<span id="The Wind Paths"><span id="Wind Paths"></span></span>===
+<section begin="WindPath Children" /><gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+SOF-Winglight-1.png|Forest WL 20 (Auto-collection)
+SOF-Winglight-2.png|Forest WL 20 (Auto-collection)
+Migration-WingedLight-in-Windpath.png|Forest WL 21 (Far)
+</gallery>
+
+*'''Forest WL 20''': This Child of Light is located in a tunnel just to the left of the Flight Guide in The Wind Paths. Strong winds prevent players from getting near and in order to capture it, players must enter the entrance tunnel on the farthest right, located under the main island. the tunnel will pull the player in upon successful entry.
+*'''Forest WL 21''': On the back side of the main island, on a ledge near the very top, under the gate.<section end="WindPath Children" />
+

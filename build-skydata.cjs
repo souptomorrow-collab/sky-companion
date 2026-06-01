@@ -131,7 +131,7 @@ const wingedLights = get('wingedLights').map(w => {
     order: w.order, desc: w.description || '',
     descZh: WL_DESC_ZH[w.description] || '',
     wiki: w._wiki ? w._wiki.href : null, // 連到 wiki 該地點（有實際位置照片）
-    img: (WL_IMG[w.order] && WL_IMG[w.order].url) || '', // wiki 位置照片縮圖
+    img: WL_IMG[w.order] ? ('img/wl/' + w.order + '.webp') : '', // 自 host 的位置照片（避免 wikia 防盜連、可離線）
     imgC: (WL_IMG[w.order] && WL_IMG[w.order].c) || '', // 配對信心 high/medium/low
     pos: (w.mapData && w.mapData.position) || null,
   };

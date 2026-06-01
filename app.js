@@ -391,6 +391,16 @@ function init() {
   $('#tabs').addEventListener('click', e => {
     const btn = e.target.closest('.tab'); if (btn) showTab(btn.dataset.tab);
   });
+  // 光之翼縮圖 → 點擊跳出燈箱大圖（點任意處或 Esc 關閉）
+  const lb = $('#lightbox'), lbImg = $('#lightbox-img');
+  document.addEventListener('click', e => {
+    const th = e.target.closest && e.target.closest('.wl-thumb');
+    if (th && th.dataset.full) { lbImg.src = th.dataset.full; lb.classList.add('open'); }
+    else if (lb.classList.contains('open')) { lb.classList.remove('open'); lbImg.removeAttribute('src'); }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && lb.classList.contains('open')) { lb.classList.remove('open'); lbImg.removeAttribute('src'); }
+  });
   bindSettings();
   reRenderDay(new Date());
   setInterval(tick, 1000);

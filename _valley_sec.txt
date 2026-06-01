@@ -1,0 +1,110 @@
+
+To collect every Winged Light, players need to play the level twice as there are two different ways to the bottom.
+
+Note: ''On a Winged Light run, slide down the Lower Valley Race until the Child of Light is collected, teleport Home, then meditate to return to Valley. Then back out of the Lower Valley Race room and return to the Frozen Lake, and head to the Citadel and Upper Valley Race.''
+
+===Valley Rest ({{#var:valley_rest}})<span id="Valley Rest"></span>===
+At the exit from the Valley Rest area, a large slope will stretch down and offer several sliding paths.
+
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarValley1.jpg|Valley WL 1 (Auto-collection)
+StarValley01.jpg|Valley WL 1 (Auto-collection)
+</gallery>
+
+*'''Valley WL 1''': As soon as the slide starts, aim for the roofed area on the left. The Child of Light is standing in the tunnel. Unlike Children of Light in other realms, this one will be collected automatically by sliding through or near it.
+
+===Frozen Lake ({{#var:frozen_lake}})<span id="First Slope"><span id="Icerink"><span id="Frozen Lake"></span></span></span>===
+Taking any path on the large slope from the Valley Rest will lead to the Frozen Lake area.
+
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarValley2.jpg|Valley WL 2
+StarValley02.jpg|Valley WL 2
+StarValley3.jpg|Valley WL 3 - Under ice
+StarValley03.jpg|Valley WL 3 - Under ice
+</gallery>
+
+*'''Valley WL 2''': The Child of Light is standing on the platform in the middle of the Frozen Lake.
+*'''Valley WL 3''': Slide into one of the frozen-over holes in the ice to get beneath the rink. The Child of Light is standing on a hill by a sunken boat, near where the light shines in from above.
+
+===Lower Valley Track ({{#var:lower_valley_track}})<span id="Sliding Race"><span id="Lower Valley Track"></span></span>===
+Through the Frozen Lake, take the exit with the red banners that doesn't have a bridge connected to it. This exit leads to the Lower Valley Track.
+
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarValley9.jpeg|Valley WL 4 (Auto-collection)
+StarValley09.jpg|Valley WL 4 (Auto-collection)
+</gallery>
+
+*'''Valley WL 4''': The Child of Light is located near the end of the first section of the track, standing in the center on a snowy ramp. Like the Child of Light during the slide from the Valley Rest, it is auto-collected by sliding through or near it.
+
+=== The Citadel ({{#var:the_citadel}})<span id="Citadel"><span id="The Citadel"></span></span>===
+The Citadel can be reached through the Spirit Gate to the left of the Frozen Lake that is connected to the platform by a bridge. The player is required to have found two Ancestor Spirits in the Valley of Triumph to enter.
+
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarValley4.jpg|Valley WL 5
+StarValley04.jpg|Valley WL 5
+StarValley5.jpeg|Valley WL 6 (Auto-collection)
+StarValley05.jpeg|Valley WL 6 (Auto-collection)
+</gallery>
+
+*'''Valley WL 5''': Fly to the highest tower on the left, behind the golden rings. The Child of Light is standing in the leftmost tower.
+*'''Valley WL 6''': From Valley WL 5's location, cross the bridge to the other high tower on the right. Jump out of the window facing away from the golden rings and descend. on the wall of the tower there are four alcoves, and the Child of Light is standing in the lowest one. This Child of light is auto-collected upon contact.
+
+===Upper Valley Track ({{#var:upper_valley_track}})<span id="Flying Race"><span id="Upper Valley Track"></span></span>===
+To get to the Upper Valley Track, leave the Citadel through the building at the back of the area.
+
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarValley6.jpeg|Valley WL 7 (Auto-collection)
+StarValley06.jpg|Valley WL 7 (Auto-collection)
+StarValley07.jpeg|Valley WL 8 (Auto-collection)
+StarValley7.jpeg|Valley WL 8 (Auto-collection)
+</gallery>
+
+*'''Valley WL 7''': Behind the bridge past the cloud tunnel, fly through the right hand gallery of the building to automatically pick up the Child of Light. 
+*'''Valley WL 8''': Later on in the track there is an area obscured by floating rocks and debris. Keep to the right, the Child of Light is standing on top of a golden spire on a floating temple.
+
+===The Coliseum ({{#var:the_coliseum}})<span id="Coliseum"><span id="The Coliseum"></span></span>===
+Both the Lower and Upper Valley Tracks end in the same home stretch and the Coliseum area.
+
+<gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+StarValley8.jpeg|Valley WL 9 (Auto-collection)
+StarValley08.jpg|Valley WL 9 (Auto-collection)
+Screenshot 20201223-184359 Sky.jpg|Valley WL 10
+Entrance to WL 11 hidden room.jpg|Entrance to Valley WL 11
+Temple WL 11.jpg|Valley WL 11
+</gallery>
+
+*'''Valley WL 9''': Just before entering the Coliseum, the Child of Light is standing in the middle of the path. This Child of Light is auto-collected on contact.
+*'''Valley WL 10''': In the Coliseum, fly to the top of the big golden statue's shoulder on the left side of the Temple entrance.
+*'''Valley WL 11''': Inside the Coliseum Temple, there are two entrances to the Coliseum Maze on the left wall. The upper entrance will lead to a large room where the Child of Light is found standing at the base of a ladder on the left side.
+
+===Village of Dreams ({{#var:village_of_dreams}})<span id="Village of Dreams"></span>===
+<section begin="VoDreams Children" /><gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+WL 12 Mountain.jpeg|Mountain to Valley WL 12
+Cave Leading to WL 12.jpg|Cave Leading to Valley WL 12
+SKY 20210105 115647 .jpg|Valley WL 12
+WL 13 from Below.jpg|Cave Leading to Valley WL 13
+Valley Wl 13.jpg|Valley WL 13
+WL 14.jpg|Valley WL 14
+</gallery>
+
+*'''Valley WL 12''': When sliding down the entrance to the village via the Valley Rest, a large mountain can be seen ahead. Around the middle of the mountain, there is a Child of Light in a small cave.
+*'''Valley WL 13''': The Child of Light is in a small opening in the mountain near the village where the Bearhug Hermit's spirit quest travels. Look up the ski slope toward Valley WL 14. To the left of the main slope, head up the staircase in the rock, then fly to the left. The Child of Light is in a small cave.
+*'''Valley WL 14''': By going up the ski slopes that are closer to the Hermit's Valley, there is a Child of Light standing on the very top of a building.<section end="VoDreams Children" />
+
+===Hermit Valley ({{#var:hermit_valley}})<span id="Hermit Valley"></span>===
+<section begin="HermitValley Children" /><gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+WingLight4.jpg|Valley WL 15
+WingLight5.jpg|Cave Leading to Valley WL 16
+Hermit Valley WL 16.jpg|Valley WL 16
+</gallery>
+
+*'''Valley WL 15''': The Child of Light is located behind the Hermit's cave, on a window sill.
+*'''Valley WL 16''': Turn around and return to where you docked the ski lift ride. Looking down into the Valley, fly alongside the mountain on the right. The Child of Light is inside a cave in the side of the mountain.<section end="HermitValley Children" />
+
+===Village Theater ({{#var:village_theater}})<span id="Village Theater"></span>===
+<section begin="VillageTheater Children" /><gallery widths="125" spacing="small" captionalign="center" orientation="landscape" hideaddbutton="true" mode="nolines">
+Village Theater WL 17 (Entrance).jpg|Entrance to Valley WL 17
+Season of Performance - WingedLight.png|Valley WL 17
+</gallery>
+
+*'''Valley WL 17''': The Child of Light is in a cave beside the stage in the back area, hidden by some stacked boxes.<section end="VillageTheater Children" />
