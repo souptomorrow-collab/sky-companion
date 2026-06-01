@@ -229,6 +229,16 @@ function renderMap() {
   if (root) { root.innerHTML = wikiWinged(); setupMapZoom(); }
 }
 
+// 直接開啟燈箱（供地圖點 pointerup 使用，繞過被 pointer capture 打斷的 click）
+function openLightboxFromEl(el) {
+  const lb = document.getElementById('lightbox');
+  if (!lb) return;
+  const img = document.getElementById('lightbox-img'), cap = document.getElementById('lightbox-cap');
+  if (img) img.src = el.dataset.full;
+  if (cap) cap.textContent = el.dataset.cap || '';
+  lb.classList.add('open');
+}
+
 // 地圖縮放/平移：滾輪、拖曳、雙指、＋－⟲ 按鈕
 function setupMapZoom() {
   const wrap = $('.wl-map-wrap');
@@ -236,7 +246,7 @@ function setupMapZoom() {
   if (!svg) return;
   let scale = 1, tx = 0, ty = 0;
   const pointers = new Map();
-  let lastDist = 0, moved = 0, panStart = null;
+  let lastDist = 0, moved = 0, panStart = null, downTarget = null;
   const apply = () => { svg.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`; };
   function zoomAt(px, py, factor) {
     const ns = Math.min(9, Math.max(1, scale * factor));
@@ -256,7 +266,7 @@ function setupMapZoom() {
   svg.addEventListener('pointerdown', e => {
     svg.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    moved = 0;
+    moved = 0; downTarget = e.target;
     if (pointers.size === 1) panStart = { x: e.clientX, y: e.clientY, tx, ty };
     if (pointers.size === 2) { const p = [...pointers.values()]; lastDist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); }
   });
@@ -276,9 +286,16 @@ function setupMapZoom() {
     }
   });
   const up = e => { pointers.delete(e.pointerId); if (pointers.size < 2) lastDist = 0; if (pointers.size === 0) panStart = null; };
-  svg.addEventListener('pointerup', up);
+  svg.addEventListener('pointerup', e => {
+    // 輕點某個編號點 → 直接開燈箱（setPointerCapture 會打斷一般 click 委派，故在此處理）
+    if (moved <= 8 && downTarget && downTarget.closest) {
+      const mark = downTarget.closest('[data-full]');
+      if (mark && mark.dataset.full) openLightboxFromEl(mark);
+    }
+    up(e);
+  });
   svg.addEventListener('pointercancel', up);
-  // 拖曳後不要誤觸點擊開照片
+  // 拖曳後不要誤觸一般 click 委派開照片
   svg.addEventListener('click', e => { if (moved > 8) { e.stopPropagation(); e.preventDefault(); } }, true);
 
   $$('.wl-zoom-ctrl button', wrap).forEach(b => b.addEventListener('click', () => {
