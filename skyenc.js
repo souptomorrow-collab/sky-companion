@@ -228,9 +228,8 @@ function wikiWinged() {
   const total = wls.length, gotN = wls.filter(w => got[w.order]).length;
   const dots = wls.filter(w => !(wlOnlyTodo && got[w.order])).map(w => {
     const cap = escapeHtml(`${w.realm} ${idxMap[w.order]}　${w.descZh || w.desc}`);
-    return `<g class="wl-mark${got[w.order] ? ' wl-got' : ''}" data-order="${w.order}"${w.img ? ` data-full="${escapeHtml(w.img)}" data-cap="${cap}"` : ''}>
-      <circle class="wl-hit" cx="${X(w.pos)}" cy="${Y(w.pos)}" r="11"><title>${cap}</title></circle>
-      <circle cx="${X(w.pos)}" cy="${Y(w.pos)}" r="4.5"></circle>
+    return `<g class="wl-mark${got[w.order] ? ' wl-got' : ''}" data-order="${w.order}" data-x="${X(w.pos)}" data-y="${Y(w.pos)}"${w.img ? ` data-full="${escapeHtml(w.img)}" data-cap="${cap}"` : ''}>
+      <circle cx="${X(w.pos)}" cy="${Y(w.pos)}" r="4.5"><title>${cap}</title></circle>
       <text x="${X(w.pos)}" y="${Y(w.pos) + 1.5}" text-anchor="middle">${idxMap[w.order]}</text></g>`;
   }).join('');
   // 真實遊戲世界地圖底圖 + SVG 疊層（viewBox 對齊底圖 540×540 座標）
@@ -347,13 +346,26 @@ function setupMapZoom(wrap) {
   const up = e => { pointers.delete(e.pointerId); if (pointers.size < 2) lastDist = 0; if (pointers.size === 0) panStart = null; };
   svg.addEventListener('pointerup', up);
   svg.addEventListener('pointercancel', up);
-  // 點某個編號點 → 開照片。用 e.target 找被點的點（沒有 capture 改寫才抓得到）；
-  // 拖曳或縮放過(dragged)就取消。stopPropagation 避免 document 委派把剛開的燈箱關掉。
+  // 點地圖 → 開「離點擊位置最近」的那個點的照片（解決密集點互相擋住、點不到的問題）。
+  // 把螢幕座標換算成 SVG viewBox 座標(含縮放/平移)，再找最近的可見點；拖曳/縮放過(dragged)則取消。
+  const inner = svg.querySelector('.wl-map-svg');
   svg.addEventListener('click', e => {
     e.stopPropagation();
-    if (dragged) { e.preventDefault(); return; }
-    const mark = e.target.closest && e.target.closest('[data-full]');
-    if (mark && mark.dataset.full) openLightboxFromEl(mark);
+    if (dragged || !inner || !inner.getScreenCTM) return;
+    const m = inner.getScreenCTM();
+    if (!m) return;
+    let loc;
+    try { loc = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); }
+    catch (_) { const p = inner.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; loc = p.matrixTransform(m.inverse()); }
+    let best = null, bestD = Infinity;
+    inner.querySelectorAll('.wl-mark').forEach(g => {
+      if (g.style.display === 'none') return;
+      const dx = loc.x - (+g.dataset.x), dy = loc.y - (+g.dataset.y);
+      const d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = g; }
+    });
+    // 12 個 viewBox 單位內才算點到；最近的那顆勝出，所以密集區放大後點靠近想要的那顆即可
+    if (best && bestD <= 12 * 12 && best.dataset.full) openLightboxFromEl(best);
   });
 
   $$('.wl-zoom-ctrl button', wrap).forEach(b => b.addEventListener('click', () => {
