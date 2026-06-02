@@ -230,6 +230,13 @@ input:focus { outline: none; border-color: var(--accent); }
 /* 各分頁圖片尺寸 */
 .shard-photo-wrap, .realm-photo-wrap, .sp-portrait-wrap, .ts-portrait-wrap { margin: 6px 0 10px; }
 .wl-thumb.shard-photo, .wl-thumb.realm-photo { width: 100%; max-width: 340px; height: auto; }
+.shard-media { display: flex; flex-wrap: wrap; gap: 14px; margin: 6px 0 10px; }
+.shard-media > div { flex: 1 1 270px; margin: 0; }
+.shard-map { position: relative; width: 100%; max-width: 340px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: rgba(0,0,0,.35); }
+.shard-day-x > summary { list-style: none; cursor: pointer; }
+.shard-day-x > summary::-webkit-details-marker { display: none; }
+.shard-day-x > summary:hover { background: rgba(255,255,255,.04); border-radius: 8px; }
+.shard-day-x[open] > summary .d-date::after { content: ' ▾'; color: var(--muted); }
 .wl-thumb.sp-portrait { width: auto; height: 130px; max-width: 100%; object-fit: contain; background: rgba(0,0,0,.18); }
 .wl-thumb.ts-portrait { width: 56px; height: 56px; object-fit: contain; background: rgba(0,0,0,.2); }
 .wl-thumb.season-icon { width: 24px; height: 24px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 6px; border: none; cursor: zoom-in; }

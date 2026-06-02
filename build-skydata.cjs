@@ -17,6 +17,9 @@ try { WL_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'wl-img.json'), '
 // 碎石地點區域照片（英文地點名 → 本地路徑），可選
 let SHARD_IMG = {};
 try { SHARD_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'shard-img.json'), 'utf8')); } catch (e) {}
+// 碎石地點在世界地圖的座標（英文地點名 → [lat,lng]），可選
+let SHARD_POS = {};
+try { SHARD_POS = JSON.parse(fs.readFileSync(path.join(__dirname, 'shard-pos.json'), 'utf8')); } catch (e) {}
 // 國度實景圖（國度名 → 本地路徑），可選
 let REALM_IMG = {};
 try { REALM_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'realm-img.json'), 'utf8')); } catch (e) {}
@@ -212,7 +215,7 @@ const SKYDATA = {
     counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length, wingedLights: wingedLights.length },
   },
   seasons, spirits, realms, events, travelingSpirits, currencies, shards, daily, dailyQuests,
-  wingedLights, realmShapes, shardImages: SHARD_IMG,
+  wingedLights, realmShapes, shardImages: SHARD_IMG, shardPos: SHARD_POS,
 };
 
 const outPath = path.join(__dirname, 'skydata.js');

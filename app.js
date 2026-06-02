@@ -25,6 +25,18 @@ function imgThumb(url, cap, cls) {
   return `<img class="wl-thumb ${cls || ''}" src="${escapeHtml(url)}" data-full="${escapeHtml(url)}" data-cap="${escapeHtml(cap || '')}" loading="lazy" referrerpolicy="no-referrer" alt="${escapeHtml(cap || '照片')}" onerror="this.style.display='none'" />`;
 }
 function shardImg(loc) { return (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.shardImages && window.SKYDATA.shardImages[loc]) || ''; }
+function shardMiniMap(loc) {
+  const pos = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.shardPos && window.SKYDATA.shardPos[loc]);
+  if (!pos) return '';
+  const x = pos[1], y = -pos[0]; // Leaflet CRS.Simple：x=lng, y=-lat
+  return `<div class="shard-map">
+    <img class="wl-map-bg" src="img/map.webp" alt="世界地圖" draggable="false" loading="lazy" />
+    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" aria-label="碎石位置">
+      <circle cx="${x}" cy="${y}" r="8" fill="none" stroke="#ff5a5a" stroke-width="2"><animate attributeName="r" values="6;14;6" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.2;1" dur="1.5s" repeatCount="indefinite"/></circle>
+      <circle cx="${x}" cy="${y}" r="4.5" fill="#ff5a5a" stroke="#fff" stroke-width="1.2"/>
+    </svg>
+  </div>`;
+}
 function tsImgOn(dateStr) {
   const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.travelingSpirits) || [];
   for (const t of list) if (t.date === dateStr) return t.img || '';
@@ -262,10 +274,15 @@ function renderShards(now) {
       rows += `<div class="shard-day"><span class="d-date">${pad(c.mo)}/${pad(c.d)} 週${wd}</span><span class="d-loc"><span class="badge none">無碎石</span></span></div>`;
     } else {
       const badge = sd.type === 'red' ? `<span class="badge red">紅</span>` : `<span class="badge black">黑</span>`;
-      rows += `<div class="shard-day"><span class="d-date">${pad(c.mo)}/${pad(c.d)} 週${wd}</span>
-        <span class="d-loc">${badge} ${sd.realmZh.split(' ')[0]} · ${sd.location[1]}</span>
-        <span class="muted" title="Sky ${fmtSkyTime(sd.eruptions[0].start)}（太平洋）">${fmtLocalTime(sd.eruptions[0].start)}</span>
-        ${imgThumb(shardImg(sd.location[0]), sd.realmZh.split(' ')[0] + ' · ' + sd.location[1])}</div>`;
+      const lname = sd.realmZh.split(' ')[0] + ' · ' + sd.location[1];
+      rows += `<details class="shard-day-x"><summary class="shard-day">
+        <span class="d-date">${pad(c.mo)}/${pad(c.d)} 週${wd}</span>
+        <span class="d-loc">${badge} ${lname}</span>
+        <span class="muted" title="Sky ${fmtSkyTime(sd.eruptions[0].start)}（太平洋）">${fmtLocalTime(sd.eruptions[0].start)}</span></summary>
+        <div class="shard-media" style="padding:8px 4px 2px">
+          <div class="shard-photo-wrap">${imgThumb(shardImg(sd.location[0]), lname, 'shard-photo')}</div>
+          <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 確切位置：</p>${shardMiniMap(sd.location[0])}</div>
+        </div></details>`;
     }
   }
   $('#shard-upcoming').innerHTML = rows;
@@ -290,7 +307,10 @@ function shardDetailHTML(s, now) {
       <span>${status}</span></div>`;
   });
   return `${badge}
-    <div class="shard-photo-wrap">${imgThumb(shardImg(s.location[0]), s.realmZh.split(' ')[0] + ' · ' + s.location[1], 'shard-photo')}</div>
+    <div class="shard-media">
+      <div class="shard-photo-wrap">${imgThumb(shardImg(s.location[0]), s.realmZh.split(' ')[0] + ' · ' + s.location[1], 'shard-photo')}</div>
+      <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 確切位置：</p>${shardMiniMap(s.location[0])}</div>
+    </div>
     <div class="kv"><span class="k">區域</span><span class="v">${s.realmZh}</span></div>
     <div class="kv"><span class="k">地圖</span><span class="v">${s.location[1]}（${s.location[0]}）</span></div>
     <div class="kv"><span class="k">首次出現</span><span class="v">${s.time}（每 ${s.type === 'red' ? 6 : 8} 小時，共 3 場）</span></div>
