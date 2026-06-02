@@ -23,8 +23,10 @@
  * 還沒填（保留 PASTE_...）時，帳號功能會自動停用，不影響其他功能。
  */
 window.FIREBASE_CONFIG = {
-  apiKey: "PASTE_YOUR_API_KEY",
-  authDomain: "PASTE_PROJECT.firebaseapp.com",
-  projectId: "PASTE_PROJECT_ID",
-  appId: "PASTE_APP_ID",
+  apiKey: "AIzaSyBJ1iW-RsQ2RiwHMZOCeJ1-qanhCQXXyd0",
+  authDomain: "skyaccount-6cbdf.firebaseapp.com",
+  projectId: "skyaccount-6cbdf",
+  storageBucket: "skyaccount-6cbdf.firebasestorage.app",
+  messagingSenderId: "949629824569",
+  appId: "1:949629824569:web:7345c68dfcf2a43eae67e8",
 };
