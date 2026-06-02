@@ -211,7 +211,8 @@ function clearQuestsRetry() { if (questsRetry) { clearTimeout(questsRetry); ques
 function fetchQuests(dk) {
   if (questState.loading) return;
   questState.loading = true; questState.error = false;
-  fetch('https://api.skyhelper.xyz/update/quests')
+  // 加時間戳 + no-store，避免瀏覽器回傳快取舊資料（否則來源更新了也抓不到，看似「沒自動更新」）
+  fetch('https://api.skyhelper.xyz/update/quests?_=' + Date.now(), { cache: 'no-store' })
     .then(r => r.ok ? r.json() : Promise.reject(r.status))
     .then(d => { questState = { day: dk, loaded: true, loading: false, error: false, data: d }; renderQuests(new Date()); })
     .catch(() => { questState.loading = false; questState.error = true; renderQuests(new Date()); });
