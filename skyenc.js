@@ -303,7 +303,7 @@ function setupMapZoom(wrap) {
   if (!svg) return;
   let scale = 1, tx = 0, ty = 0;
   const pointers = new Map();
-  let lastDist = 0, panStart = null, downTarget = null, downX = 0, downY = 0, isPinch = false, dragged = false;
+  let lastDist = 0, panStart = null, dragged = false;
   const apply = () => { svg.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`; };
   function zoomAt(px, py, factor) {
     const ns = Math.min(9, Math.max(1, scale * factor));
@@ -320,12 +320,14 @@ function setupMapZoom(wrap) {
     zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.2 : 1 / 1.2);
   }, { passive: false });
 
+  // 刻意「不用 setPointerCapture」：capture 會把後續 click 的 target 改寫成整張地圖，
+  // 導致抓不到被點的那個點（Android 觸控尤其明顯）。改用 pointer 事件只做平移/縮放，
+  // 開照片交給下方的 click 委派（click 的 target 才是真正被點到的點）。
   svg.addEventListener('pointerdown', e => {
-    svg.setPointerCapture(e.pointerId);
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    downTarget = e.target; downX = e.clientX; downY = e.clientY; dragged = false;
-    if (pointers.size === 1) { panStart = { x: e.clientX, y: e.clientY, tx, ty }; isPinch = false; }
-    if (pointers.size === 2) { isPinch = true; const p = [...pointers.values()]; lastDist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); }
+    dragged = false;
+    if (pointers.size === 1) panStart = { x: e.clientX, y: e.clientY, tx, ty };
+    if (pointers.size === 2) { const p = [...pointers.values()]; lastDist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y); }
   });
   svg.addEventListener('pointermove', e => {
     if (!pointers.has(e.pointerId)) return;
@@ -335,28 +337,24 @@ function setupMapZoom(wrap) {
       const dist = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y);
       const r = wrap.getBoundingClientRect();
       if (lastDist) zoomAt((p[0].x + p[1].x) / 2 - r.left, (p[0].y + p[1].y) / 2 - r.top, dist / lastDist);
-      lastDist = dist; isPinch = true; dragged = true;
+      lastDist = dist; dragged = true;
     } else if (panStart && (e.buttons || e.pointerType === 'touch')) {
       const dx = e.clientX - panStart.x, dy = e.clientY - panStart.y;
-      if (Math.hypot(dx, dy) > 10) dragged = true;
+      if (Math.abs(dx) + Math.abs(dy) > 8) dragged = true;
       tx = panStart.tx + dx; ty = panStart.ty + dy; apply();
     }
   });
   const up = e => { pointers.delete(e.pointerId); if (pointers.size < 2) lastDist = 0; if (pointers.size === 0) panStart = null; };
-  svg.addEventListener('pointerup', e => {
-    // 輕點某個編號點 → 直接開燈箱（用「按下到放開的位移」判定點擊，觸控更可靠；setPointerCapture 會打斷一般 click 委派）
-    const dist = Math.hypot(e.clientX - downX, e.clientY - downY);
-    const tap = !isPinch && dist <= 14;
-    if (tap && downTarget && downTarget.closest) {
-      const mark = downTarget.closest('[data-full]');
-      if (mark && mark.dataset.full) openLightboxFromEl(mark);
-    } else { dragged = true; }
-    up(e);
-  });
+  svg.addEventListener('pointerup', up);
   svg.addEventListener('pointercancel', up);
-  // 地圖內的 click 一律不傳到 document：地圖點由上面的 pointerup 開照片，
-  // 否則 click 會走到 document 委派的 else 分支，把剛開的燈箱立刻關掉（看似沒反應）。
-  svg.addEventListener('click', e => { e.stopPropagation(); if (dragged) e.preventDefault(); }, true);
+  // 點某個編號點 → 開照片。用 e.target 找被點的點（沒有 capture 改寫才抓得到）；
+  // 拖曳或縮放過(dragged)就取消。stopPropagation 避免 document 委派把剛開的燈箱關掉。
+  svg.addEventListener('click', e => {
+    e.stopPropagation();
+    if (dragged) { e.preventDefault(); return; }
+    const mark = e.target.closest && e.target.closest('[data-full]');
+    if (mark && mark.dataset.full) openLightboxFromEl(mark);
+  });
 
   $$('.wl-zoom-ctrl button', wrap).forEach(b => b.addEventListener('click', () => {
     const [cx, cy] = ctr();

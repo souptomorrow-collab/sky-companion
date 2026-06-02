@@ -213,7 +213,7 @@ input:focus { outline: none; border-color: var(--accent); }
 .wl-map text { pointer-events: none; font-weight: 700; }
 .wl-mark { cursor: pointer; }
 .wl-mark circle { fill: #ffe9b0; stroke: #1a1326; stroke-width: 0.5; transition: fill .1s; }
-.wl-mark .wl-hit { fill: #fff; opacity: 0; stroke: none; }
+.wl-mark .wl-hit { fill: #fff; opacity: 0; stroke: none; pointer-events: all; }
 .wl-mark:hover circle { fill: #fff; stroke: var(--gold); stroke-width: 1; }
 .wl-mark text { fill: #1a1326; font-size: 5px; font-weight: 700; }
 .wl-mark.wl-got circle { fill: #495680; stroke: #20263f; }
