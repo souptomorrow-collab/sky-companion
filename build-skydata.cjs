@@ -14,6 +14,12 @@ try { WL_DESC_ZH = JSON.parse(fs.readFileSync(path.join(__dirname, 'wl-desc-zh.j
 // 光之翼位置照片對應（order → {url,c}），由 sky-wl-photos workflow 產生，可選
 let WL_IMG = {};
 try { WL_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'wl-img.json'), 'utf8')); } catch (e) {}
+// 碎石地點區域照片（英文地點名 → 本地路徑），可選
+let SHARD_IMG = {};
+try { SHARD_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'shard-img.json'), 'utf8')); } catch (e) {}
+// 國度實景圖（國度名 → 本地路徑），可選
+let REALM_IMG = {};
+try { REALM_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'realm-img.json'), 'utf8')); } catch (e) {}
 
 const itemsMap = new Map(get('items').map(x => [x.guid, x]));
 const nodesMap = new Map(get('nodes').map(x => [x.guid, x]));
@@ -21,6 +27,7 @@ const treesMap = new Map(get('spiritTrees').map(x => [x.guid, x]));
 const areasMap = new Map(get('areas').map(x => [x.guid, x]));
 const eventInst = new Map(get('eventInstances').map(x => [x.guid, x]));
 const spiritName = new Map(get('spirits').map(x => [x.guid, x.name]));
+const spiritImgG = new Map(get('spirits').map(x => [x.guid, x.imageUrl || '']));
 
 // 先祖 → 季節 shortName
 const spiritSeason = new Map();
@@ -99,7 +106,7 @@ const spirits = get('spirits')
 
 // ---------- 季節 ----------
 const seasons = get('seasons').map(s => ({
-  name: s.name, short: s.shortName, year: s.year, start: s.date, end: s.endDate,
+  name: s.name, short: s.shortName, year: s.year, start: s.date, end: s.endDate, icon: s.iconUrl || '',
   spirits: (s.spirits || []).map(g => spiritName.get(g)).filter(Boolean),
   wiki: s._wiki ? s._wiki.href : null,
 })).sort((a, b) => (a.start || '').localeCompare(b.start || ''));
@@ -115,6 +122,7 @@ const realms = get('realms').map(r => {
   const f = folderOf(r.imageUrl) || (r.shortName || '').toLowerCase();
   return {
     name: r.name, short: r.shortName,
+    img: REALM_IMG[r.name] || '',
     areas: (r.areas || []).map(g => areasMap.get(g) && areasMap.get(g).name).filter(Boolean),
     wingedLight: wlByFolder[f] || 0,
     wiki: r._wiki ? r._wiki.href : null,
@@ -143,14 +151,14 @@ const realmShapes = get('realms').filter(r => r.mapData && r.mapData.boundary).m
 
 // ---------- 活動 ----------
 const events = get('events').map(e => ({
-  name: e.name, short: e.shortName, recurring: !!e.recurring,
+  name: e.name, short: e.shortName, recurring: !!e.recurring, img: e.imageUrl || '',
   instances: (e.instances || []).map(g => { const i = eventInst.get(g); return i ? { date: i.date, end: i.endDate } : null; }).filter(Boolean),
   wiki: e._wiki ? e._wiki.href : null,
 }));
 
 // ---------- 復刻先祖歷史 ----------
 const travelingSpirits = get('travelingSpirits')
-  .map(t => ({ date: t.date, spirit: spiritName.get(t.spirit) || null }))
+  .map(t => ({ date: t.date, spirit: spiritName.get(t.spirit) || null, img: spiritImgG.get(t.spirit) || '' }))
   .filter(t => t.spirit)
   .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
@@ -204,7 +212,7 @@ const SKYDATA = {
     counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length, wingedLights: wingedLights.length },
   },
   seasons, spirits, realms, events, travelingSpirits, currencies, shards, daily, dailyQuests,
-  wingedLights, realmShapes,
+  wingedLights, realmShapes, shardImages: SHARD_IMG,
 };
 
 const outPath = path.join(__dirname, 'skydata.js');

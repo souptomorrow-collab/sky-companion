@@ -19,6 +19,18 @@ function nm(name) {
   return escapeHtml(name) + (zh ? ` <span class="zh">(${escapeHtml(zh)})</span>` : '');
 }
 
+/* 圖片縮圖（點開燈箱）。wikia 圖用 no-referrer 避開防盜連；載入失敗自動隱藏。 */
+function imgThumb(url, cap, cls) {
+  if (!url) return '';
+  return `<img class="wl-thumb ${cls || ''}" src="${escapeHtml(url)}" data-full="${escapeHtml(url)}" data-cap="${escapeHtml(cap || '')}" loading="lazy" referrerpolicy="no-referrer" alt="${escapeHtml(cap || '照片')}" onerror="this.style.display='none'" />`;
+}
+function shardImg(loc) { return (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.shardImages && window.SKYDATA.shardImages[loc]) || ''; }
+function tsImgOn(dateStr) {
+  const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.travelingSpirits) || [];
+  for (const t of list) if (t.date === dateStr) return t.img || '';
+  return '';
+}
+
 /* ---------- 重置時間 ---------- */
 function nextDailyReset(now) {
   const p = skyParts(now);
@@ -252,7 +264,8 @@ function renderShards(now) {
       const badge = sd.type === 'red' ? `<span class="badge red">紅</span>` : `<span class="badge black">黑</span>`;
       rows += `<div class="shard-day"><span class="d-date">${pad(c.mo)}/${pad(c.d)} 週${wd}</span>
         <span class="d-loc">${badge} ${sd.realmZh.split(' ')[0]} · ${sd.location[1]}</span>
-        <span class="muted">${fmtSkyTime(sd.eruptions[0].start)}</span></div>`;
+        <span class="muted">${fmtSkyTime(sd.eruptions[0].start)}</span>
+        ${imgThumb(shardImg(sd.location[0]), sd.realmZh.split(' ')[0] + ' · ' + sd.location[1])}</div>`;
     }
   }
   $('#shard-upcoming').innerHTML = rows;
@@ -277,6 +290,7 @@ function shardDetailHTML(s, now) {
       <span>${status}</span></div>`;
   });
   return `${badge}
+    <div class="shard-photo-wrap">${imgThumb(shardImg(s.location[0]), s.realmZh.split(' ')[0] + ' · ' + s.location[1], 'shard-photo')}</div>
     <div class="kv"><span class="k">區域</span><span class="v">${s.realmZh}</span></div>
     <div class="kv"><span class="k">地圖</span><span class="v">${s.location[1]}（${s.location[0]}）</span></div>
     <div class="kv"><span class="k">首次出現</span><span class="v">${s.time}（每 ${s.type === 'red' ? 6 : 8} 小時，共 3 場）</span></div>
@@ -298,6 +312,7 @@ function renderSpirits(now) {
   if (now.getTime() < cur.departInst.getTime()) {
     const who = tsSpiritOn(dateKey(cur.cal));
     statusHTML = `<span class="badge live">先祖在場中</span> ${who ? '· ' + nm(who) : ''}
+      ${who ? `<div class="ts-portrait-wrap">${imgThumb(tsImgOn(dateKey(cur.cal)), who, 'shard-photo')}</div>` : ''}
       <div class="kv"><span class="k">本次到達</span><span class="v">${dateKey(cur.cal)}（週${WD_ZH[skyWeekday(cur.cal.y, cur.cal.mo, cur.cal.d)]}）</span></div>
       <div class="kv"><span class="k">離開倒數</span><span class="v big">${cd(cur.departInst.getTime())}</span></div>`;
   } else {
@@ -320,7 +335,7 @@ function renderSpirits(now) {
     list += `<div class="shard-day">
       <span class="d-date">${dateKey(t.cal)} ~ ${pad(dep.mo)}/${pad(dep.d)}</span>
       <span class="d-loc">${live ? '<span class="badge live">在場</span>' : past ? '<span class="badge none">已過</span>' : '<span class="badge black">即將</span>'} ${who ? nm(who) : '<span class="muted">（待官方公布）</span>'}</span>
-      </div>`;
+      ${who ? imgThumb(tsImgOn(dateKey(t.cal)), who, 'ts-portrait') : ''}</div>`;
   }
   $('#ts-list').innerHTML = list;
 }

@@ -7,6 +7,7 @@ const SD = (typeof window !== 'undefined' && window.SKYDATA) || { spirits: [], s
 // 名稱顯示：優先用 app.js 的 nm()（英文+中文括號），無則退回 escapeHtml
 function NM(x) { return (typeof nm === 'function') ? nm(x) : escapeHtml(x == null ? '' : x); }
 function zhOf(name) { return (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[name]) || ''; }
+function IMGT(url, cap, cls) { return (typeof imgThumb === 'function') ? imgThumb(url, cap, cls) : ''; }
 
 const COST_LABEL = {
   c: ['🕯️', '蠟燭'], h: ['❤️', '愛心'], ac: ['✨', '升華'],
@@ -58,7 +59,8 @@ function spiritBody(sp) {
   const traveled = sp.traveled && sp.traveled.length
     ? `<p class="note">復刻 ${sp.traveled.length} 次：${sp.traveled.slice(-3).join('、')}${sp.traveled.length > 3 ? ' …' : ''}</p>` : '';
   const wiki = sp.wiki ? `<a class="wiki-link" href="${sp.wiki}" target="_blank" rel="noopener">Wiki ↗</a>` : '';
-  return itemsHtml + traveled + wiki;
+  const portrait = sp.img ? `<div class="sp-portrait-wrap">${IMGT(sp.img, sp.name, 'sp-portrait')}</div>` : '';
+  return portrait + itemsHtml + traveled + wiki;
 }
 // 摘要先渲染，明細在展開時才填（懶載入，列表才不會一次塞數百張完整卡）
 function spiritCard(sp) {
@@ -118,7 +120,7 @@ function todayISO() {
 }
 function wikiSeasons() {
   return SD.seasons.map(s => `<details class="wiki-card">
-    <summary><b>${NM(s.name)}</b> <span class="muted">${s.start || ''} ~ ${s.end || ''}</span> <span class="badge none">${s.spirits.length} 位</span></summary>
+    <summary>${s.icon ? IMGT(s.icon, s.name, 'season-icon') : ''}<b>${NM(s.name)}</b> <span class="muted">${s.start || ''} ~ ${s.end || ''}</span> <span class="badge none">${s.spirits.length} 位</span></summary>
     <div class="sp-body">${s.spirits.map(n => `<span class="pill">${NM(n)}</span>`).join(' ') || '<span class="muted">—</span>'}
       ${s.wiki ? `<div><a class="wiki-link" href="${s.wiki}" target="_blank" rel="noopener">Wiki ↗</a></div>` : ''}</div>
   </details>`).join('');
@@ -126,7 +128,7 @@ function wikiSeasons() {
 function wikiRealms() {
   return SD.realms.map(r => `<div class="wiki-card open">
     <div class="wc-head"><b>${NM(r.name)}</b> ${r.wingedLight ? `<span class="badge none">✦ 光之翼 ${r.wingedLight}</span>` : ''}</div>
-    <div class="sp-body">${r.areas.map(a => `<span class="pill">${NM(a)}</span>`).join(' ')}
+    <div class="sp-body">${r.img ? `<div class="realm-photo-wrap">${IMGT(r.img, zhOf(r.name) || r.name, 'realm-photo')}</div>` : ''}${r.areas.map(a => `<span class="pill">${NM(a)}</span>`).join(' ')}
       ${r.wiki ? `<div><a class="wiki-link" href="${r.wiki}" target="_blank" rel="noopener">Wiki ↗</a></div>` : ''}</div>
   </div>`).join('');
 }
@@ -141,7 +143,7 @@ function wikiEvents() {
     }).join('');
     return `<details class="wiki-card"${next ? ' open' : ''}>
       <summary><b>${NM(e.name)}</b> ${e.recurring ? '<span class="badge season-b">每年</span>' : ''}</summary>
-      <div class="sp-body">${lines || '<span class="muted">—</span>'}
+      <div class="sp-body">${e.img ? `<div class="realm-photo-wrap">${IMGT(e.img, e.name, 'realm-photo')}</div>` : ''}${lines || '<span class="muted">—</span>'}
         ${e.wiki ? `<div><a class="wiki-link" href="${e.wiki}" target="_blank" rel="noopener">Wiki ↗</a></div>` : ''}</div>
     </details>`;
   }).join('');
