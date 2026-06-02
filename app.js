@@ -192,6 +192,18 @@ function qZh(s) {
 
 // 今日任務即時資料（來源：SkyHelper API，CORS 開放、每日重置後更新）
 let questState = { day: null, loaded: false, loading: false, error: false, data: null };
+let questsRetry = null; // 來源尚未發布當日任務時，定時自動重抓直到拿到當日資料
+// 判斷抓回的資料是否為「當日」（last_updated 的太平洋日期 >= 今天）
+function questsFresh(data, dk) {
+  if (!data || !data.last_updated) return true; // 無時間戳就不重試，避免空轉
+  try { const p = skyParts(new Date(data.last_updated)); return `${p.year}-${pad(p.month)}-${pad(p.day)}` >= dk; }
+  catch (e) { return true; }
+}
+function scheduleQuestsRetry() {
+  if (questsRetry) return;
+  questsRetry = setTimeout(() => { questsRetry = null; questState.loaded = false; questState.data = null; renderQuests(new Date()); }, 5 * 60 * 1000);
+}
+function clearQuestsRetry() { if (questsRetry) { clearTimeout(questsRetry); questsRetry = null; } }
 function fetchQuests(dk) {
   if (questState.loading) return;
   questState.loading = true; questState.error = false;
@@ -214,20 +226,29 @@ function renderQuests(now) {
   let questsHtml;
   if (questState.loaded && questState.data && Array.isArray(questState.data.quests)) {
     const qs = questState.data.quests.filter(q => q && ((q.images && q.images.length) || q.title));
-    const done = Store.get('quests_' + dk, {});
     const upd = (questState.data.last_updated || '').slice(0, 10);
-    const cnt = qs.filter((q, i) => done[i]).length;
-    const rows = qs.map((q, i) => {
+    const questRow = (q, i, withCheck, done) => {
       const en = (q.title || '').replace(/\s*[-–]\s*$/, '').trim();
       const zh = escapeHtml(qZh(en) || ('任務 ' + (i + 1)));
       const img = q.images && q.images[0] && q.images[0].url;
       return `<div class="wl-row">
-        <input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />
+        ${withCheck ? `<input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />` : ''}
         <span class="wl-info" title="${escapeHtml(en)}">${zh}</span>
         ${img ? `<img class="wl-thumb" src="${escapeHtml(img)}" data-full="${escapeHtml(img)}" data-cap="${zh}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
       </div>`;
-    }).join('');
-    questsHtml = `<div class="q-prog">📍 今日任務 ${cnt}/${qs.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}`;
+    };
+    if (questsFresh(questState.data, dk)) {
+      clearQuestsRetry();
+      const done = Store.get('quests_' + dk, {});
+      const cnt = qs.filter((q, i) => done[i]).length;
+      const rows = qs.map((q, i) => questRow(q, i, true, done)).join('');
+      questsHtml = `<div class="q-prog">📍 今日任務 ${cnt}/${qs.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}`;
+    } else {
+      scheduleQuestsRetry(); // 來源還沒發布今日任務，定時自動重抓，發布後自動換上
+      const prev = qs.map((q, i) => questRow(q, i, false)).join('');
+      questsHtml = `<p class="note">⏳ 今日（${dk}）任務尚未由來源（SkyHelper）發布（剛過重置）。每 5 分鐘自動重抓，發布後會自動顯示，<b>不用手動刷新</b>。</p>
+        <details><summary class="muted" style="cursor:pointer">上一日任務（更新 ${escapeHtml(upd)}，僅供參考）</summary><div style="margin-top:6px">${prev}</div></details>`;
+    }
   } else if (questState.error) {
     questsHtml = `<p class="note">⚠️ 暫時無法取得今日任務（離線或來源連線失敗）。可改用 <a class="wiki-link" href="https://sky.dominicwild.com/" target="_blank" rel="noopener">社群追蹤器 ↗</a>。</p>`;
   } else {
