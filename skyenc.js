@@ -64,12 +64,14 @@ function spiritBody(sp) {
     ? `<p class="note">復刻 ${sp.traveled.length} 次：${sp.traveled.slice(-3).join('、')}${sp.traveled.length > 3 ? ' …' : ''}</p>` : '';
   const wiki = sp.wiki ? `<a class="wiki-link" href="${sp.wiki}" target="_blank" rel="noopener">Wiki ↗</a>` : '';
   const portrait = sp.img ? `<div class="sp-portrait-wrap">${IMGT(sp.img, sp.name, 'sp-portrait')}</div>` : '';
-  // 確切地點：國度 · 區域 + 可放大世界地圖紅點
+  // 確切地點：國度 · 區域 + 該地點實景照片 + 可放大世界地圖紅點
   let locHtml = '';
   if (sp.loc && sp.loc.pos) {
     const lt = (typeof locText === 'function') ? locText(sp.loc) : (sp.loc.area || '');
     const tip = sp.type === 'Season' ? '（季節先祖：此為其季節原本所在的地點）' : '';
-    locHtml = `<div class="sp-loc"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(lt)}${tip}</p>${(typeof posMiniMap === 'function') ? posMiniMap(sp.loc.pos, lt) : ''}</div>`;
+    const photo = sp.loc.img ? `<div class="shard-photo-wrap">${IMGT(sp.loc.img, lt, 'shard-photo')}</div>` : '';
+    const map = (typeof posMiniMap === 'function') ? posMiniMap(sp.loc.pos, lt, sp.loc.img) : '';
+    locHtml = `<div class="sp-loc"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(lt)}${tip}</p><div class="shard-media">${photo}<div class="shard-map-wrap">${map}</div></div></div>`;
   } else if (sp.type === 'Event') {
     locHtml = `<p class="note">📍 活動限定，無固定地點</p>`;
   }
@@ -140,18 +142,18 @@ function wikiSeasons() {
 }
 function wikiRealms() {
   return SD.realms.map(r => {
-    const posOf = {}; (r.areaLocs || []).forEach(a => { posOf[a.name] = a.pos; });
+    const locOf = {}; (r.areaLocs || []).forEach(a => { locOf[a.name] = a; });
     const rz = zhOf(r.name) || r.name;
-    const hasLoc = Object.keys(posOf).length > 0;
+    const hasLoc = Object.keys(locOf).length > 0;
     const pills = r.areas.map(a => {
-      const p = posOf[a];
-      if (p) return `<span class="pill pill-loc" data-mappos="${p[0]},${p[1]}" data-mapcap="${escapeHtml(rz + ' · ' + (zhOf(a) || a))}" role="button" tabindex="0" title="點看世界地圖位置">${NM(a)} 📍</span>`;
+      const L = locOf[a];
+      if (L && L.pos) return `<span class="pill pill-loc" data-mappos="${L.pos[0]},${L.pos[1]}" data-mapcap="${escapeHtml(rz + ' · ' + (zhOf(a) || a))}"${L.img ? ` data-mapimg="${escapeHtml(L.img)}"` : ''} role="button" tabindex="0" title="點看世界地圖位置與照片">${NM(a)} 📍</span>`;
       return `<span class="pill">${NM(a)}</span>`;
     }).join(' ');
     return `<div class="wiki-card open">
       <div class="wc-head"><b>${NM(r.name)}</b> ${r.wingedLight ? `<span class="badge none">✦ 光之翼 ${r.wingedLight}</span>` : ''}</div>
       <div class="sp-body">${r.img ? `<div class="realm-photo-wrap">${IMGT(r.img, rz, 'realm-photo')}</div>` : ''}
-        ${hasLoc ? '<p class="note" style="margin:4px 0">點有 📍 的區域名，看它在世界地圖上的確切位置（可放大）：</p>' : ''}${pills}
+        ${hasLoc ? '<p class="note" style="margin:4px 0">點有 📍 的區域名，看它的實景照片＋在世界地圖上的確切位置（可放大）：</p>' : ''}${pills}
         ${r.wiki ? `<div><a class="wiki-link" href="${r.wiki}" target="_blank" rel="noopener">Wiki ↗</a></div>` : ''}</div>
     </div>`;
   }).join('');

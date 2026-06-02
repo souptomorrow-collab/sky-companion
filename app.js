@@ -25,11 +25,11 @@ function imgThumb(url, cap, cls) {
   return `<img class="wl-thumb ${cls || ''}" src="${escapeHtml(url)}" data-full="${escapeHtml(url)}" data-cap="${escapeHtml(cap || '')}" loading="lazy" referrerpolicy="no-referrer" alt="${escapeHtml(cap || '照片')}" onerror="this.style.display='none'" />`;
 }
 function shardImg(loc) { return (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.shardImages && window.SKYDATA.shardImages[loc]) || ''; }
-// 世界地圖小圖 + 脈動紅點（pos=[lat,lng]）。整塊可點擊 → 開全螢幕可縮放地圖。
-function posMiniMap(pos, cap) {
+// 世界地圖小圖 + 脈動紅點（pos=[lat,lng]）。整塊可點擊 → 開全螢幕可縮放地圖（含該地點實景照片）。
+function posMiniMap(pos, cap, img) {
   if (!pos || pos.length < 2) return '';
   const x = pos[1], y = -pos[0]; // Leaflet CRS.Simple：x=lng, y=-lat
-  return `<div class="shard-map mini-map" data-mappos="${pos[0]},${pos[1]}" data-mapcap="${escapeHtml(cap || '')}" role="button" tabindex="0" title="點擊放大查看">
+  return `<div class="shard-map mini-map" data-mappos="${pos[0]},${pos[1]}" data-mapcap="${escapeHtml(cap || '')}"${img ? ` data-mapimg="${escapeHtml(img)}"` : ''} role="button" tabindex="0" title="點擊放大查看">
     <img class="wl-map-bg" src="img/map.webp" alt="世界地圖" draggable="false" loading="lazy" />
     <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" aria-label="位置">
       <circle cx="${x}" cy="${y}" r="8" fill="none" stroke="#ff5a5a" stroke-width="2"><animate attributeName="r" values="6;14;6" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.2;1" dur="1.5s" repeatCount="indefinite"/></circle>
@@ -43,13 +43,14 @@ function shardMiniMap(loc, cap) {
   if (!pos) return '';
   return posMiniMap(pos, cap || loc);
 }
-// 全螢幕可縮放地圖（重用 skyenc.js 的 setupMapZoom）。每次重建內容→不殘留舊監聽。
-function openMapZoom(pos, cap) {
+// 全螢幕可縮放地圖（重用 skyenc.js 的 setupMapZoom）。每次重建內容→不殘留舊監聽。含該地點實景照片。
+function openMapZoom(pos, cap, img) {
   const lb = document.getElementById('map-lightbox');
   const host = document.getElementById('map-lightbox-host');
   if (!lb || !host || !pos) return;
   const x = pos[1], y = -pos[0];
-  host.innerHTML = `<div class="wl-map-wrap">
+  host.innerHTML = `${img ? `<img class="ml-photo" src="${escapeHtml(img)}" referrerpolicy="no-referrer" alt="${escapeHtml(cap || '地點照片')}" onerror="this.style.display='none'" />` : ''}
+    <div class="wl-map-wrap">
     <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
     <div class="wl-map">
       <img class="wl-map-bg" src="img/map.webp" alt="世界地圖" draggable="false" />
@@ -375,7 +376,11 @@ function renderSpirits(now) {
       <div class="kv"><span class="k">本次到達</span><span class="v">${dateKey(cur.cal)}（週${WD_ZH[skyWeekday(cur.cal.y, cur.cal.mo, cur.cal.d)]}）</span></div>
       <div class="kv"><span class="k">離開倒數</span><span class="v big">${cd(cur.departInst.getTime())}</span></div>
       ${loc && loc.pos ? `<div class="kv"><span class="k">原所在</span><span class="v">${escapeHtml(locText(loc))}</span></div>
-        <div class="shard-map-wrap"><p class="note" style="margin:6px 0 4px">📍 此先祖原本所在地點（復刻先祖本身每場都在固定的「復刻先祖」傳送點現身，點地圖可放大）：</p>${posMiniMap(loc.pos, locText(loc))}</div>` : ''}`;
+        <p class="note" style="margin:6px 0 4px">📍 此先祖原本所在地點（復刻先祖本身每場都在固定的「復刻先祖」傳送點現身；點照片看大圖、點地圖可放大）：</p>
+        <div class="shard-media">
+          ${loc.img ? `<div class="shard-photo-wrap">${imgThumb(loc.img, locText(loc), 'shard-photo')}</div>` : ''}
+          <div class="shard-map-wrap">${posMiniMap(loc.pos, locText(loc), loc.img)}</div>
+        </div>` : ''}`;
   } else {
     const next = tsArrival(cur.k + 1);
     const who = tsSpiritOn(dateKey(next.cal));
@@ -563,7 +568,7 @@ function init() {
     const mapEl = e.target.closest && e.target.closest('[data-mappos]');
     if (mapEl && mapEl.dataset.mappos) {
       const pos = mapEl.dataset.mappos.split(',').map(Number);
-      openMapZoom(pos, mapEl.dataset.mapcap || '');
+      openMapZoom(pos, mapEl.dataset.mapcap || '', mapEl.dataset.mapimg || '');
       return;
     }
     // 放大地圖開啟時：點地圖與縮放鈕（皆在 .wl-map-wrap 內）不關，點外圍背景或 ✕ 才關

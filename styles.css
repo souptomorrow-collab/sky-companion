@@ -247,12 +247,13 @@ input:focus { outline: none; border-color: var(--accent); }
 #lightbox-img { max-width: 94vw; max-height: 82vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
 #lightbox-cap { color: #f3f5ff; font-size: 14px; text-align: center; max-width: 90vw; line-height: 1.5; }
 
-/* 可縮放地圖放大層（碎石 / 先祖 / 區域 位置點地圖後開啟） */
-.map-lightbox { display: none; position: fixed; inset: 0; z-index: 110; background: rgba(0,0,0,.92); flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; }
+/* 可縮放地圖放大層（碎石 / 先祖 / 區域 位置點地圖後開啟，含實景照片） */
+.map-lightbox { display: none; position: fixed; inset: 0; z-index: 110; background: rgba(0,0,0,.92); flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; overflow-y: auto; }
 .map-lightbox.open { display: flex; }
 .map-lightbox .ml-cap { color: #f3f5ff; font-size: 14px; text-align: center; max-width: 92vw; line-height: 1.5; }
-.map-lightbox .ml-host { width: 100%; display: flex; justify-content: center; }
-.map-lightbox .wl-map-wrap { width: min(92vw, 78vh); max-width: 700px; margin: 0; }
+.map-lightbox .ml-host { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.map-lightbox .ml-photo { display: block; width: auto; max-width: min(92vw, 640px); max-height: 30vh; height: auto; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,.55); }
+.map-lightbox .wl-map-wrap { width: min(92vw, 58vh); max-width: 640px; margin: 0; }
 .ml-close { position: absolute; top: 14px; right: 16px; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: rgba(16,22,46,.9); color: var(--text); font-size: 20px; cursor: pointer; z-index: 3; line-height: 1; }
 .ml-close:hover { border-color: var(--accent); color: var(--gold-soft); }
 /* 小地圖：可點放大提示 */

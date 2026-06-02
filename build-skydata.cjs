@@ -23,6 +23,9 @@ try { SHARD_POS = JSON.parse(fs.readFileSync(path.join(__dirname, 'shard-pos.jso
 // 國度實景圖（國度名 → 本地路徑），可選
 let REALM_IMG = {};
 try { REALM_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'realm-img.json'), 'utf8')); } catch (e) {}
+// 區域實景照片（area guid → 本地路徑 img/area/*.webp，來源 sky-planner），可選
+let AREA_IMG = {};
+try { AREA_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'area-img.json'), 'utf8')); } catch (e) {}
 
 const itemsMap = new Map(get('items').map(x => [x.guid, x]));
 const nodesMap = new Map(get('nodes').map(x => [x.guid, x]));
@@ -54,7 +57,7 @@ get('realms').forEach(r => (r.areas || []).forEach(ag => areaRealmName.set(ag, r
 function spiritLoc(guid) {
   const a = spiritArea.get(guid);
   if (!a) return null;
-  return { realm: areaRealmName.get(a.guid) || null, area: a.name, pos: (a.mapData && a.mapData.position) || null };
+  return { realm: areaRealmName.get(a.guid) || null, area: a.name, pos: (a.mapData && a.mapData.position) || null, img: AREA_IMG[a.guid] || '' };
 }
 
 // 先祖 → 復刻(旅行)日期
@@ -140,7 +143,7 @@ const realms = get('realms').map(r => {
     name: r.name, short: r.shortName,
     img: REALM_IMG[r.name] || '',
     areas: (r.areas || []).map(g => areasMap.get(g) && areasMap.get(g).name).filter(Boolean),
-    areaLocs: (r.areas || []).map(g => { const a = areasMap.get(g); return a && a.mapData && a.mapData.position ? { name: a.name, pos: a.mapData.position } : null; }).filter(Boolean),
+    areaLocs: (r.areas || []).map(g => { const a = areasMap.get(g); return a && a.mapData && a.mapData.position ? { name: a.name, pos: a.mapData.position, img: AREA_IMG[g] || '' } : null; }).filter(Boolean),
     wingedLight: wlByFolder[f] || 0,
     wiki: r._wiki ? r._wiki.href : null,
   };
