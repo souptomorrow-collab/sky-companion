@@ -76,6 +76,10 @@ main { max-width: 1000px; margin: 0 auto; padding: 16px; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
 
+/* 總覽橫幅圖 */
+.ov-banner { text-align: center; margin: 0 0 14px; }
+.ov-trophy { height: 200px; max-width: 92%; width: auto; object-fit: contain; cursor: zoom-in; border-radius: 12px; }
+
 /* Cards */
 .card {
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
