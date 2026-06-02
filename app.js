@@ -170,7 +170,10 @@ const QUEST_ZH = [
   [/Daily Quest Guide/gi, '每日任務總覽圖'],
   [/Meditation Quest Guide|Meditation Quest/gi, '冥想任務'],
   [/Coloured? Light Quest|Color Light Quest/gi, '彩光任務'],
+  [/Catch The Light Quest/gi, '接光任務'],
   [/Propose a kite design/gi, '提出風箏設計'], [/Catch the light/gi, '接光'], [/Collect/gi, '收集'],
+  [/Meet up with/gi, '前往會合'], [/Read a book together with|Read a book together|Read a book/gi, '一起讀書'],
+  [/Relieve a spirit['’]?s memory/gi, '喚回先祖的記憶'], [/Flight Guide/gi, '飛行季嚮導'],
   [/Meditate at|Meditate in|Meditate by|Meditate/gi, '冥想於'], [/video guide/gi, '影片攻略'],
   [/Vault of Knowledge/gi, '禁閣'], [/Daylight Prairie/gi, '雲野'], [/Hidden Forest/gi, '雨林'],
   [/Valley of Triumph/gi, '霞谷'], [/Golden Wasteland/gi, '暮土'], [/Isle of Dawn/gi, '晨島'],
@@ -182,7 +185,8 @@ const QUEST_ZH = [
   [/\bPrairie\b/gi, '雲野'], [/\bForest\b/gi, '雨林'], [/\bValley\b/gi, '霞谷'],
   [/\bWasteland\b/gi, '暮土'], [/\bVault\b/gi, '禁閣'], [/\bIsle\b/gi, '晨島'],
   [/a\.k\.a\.?/gi, '又名'], [/\bEntrance\b/gi, '入口'], [/\bcave\b/gi, '洞穴'], [/\bshrine\b/gi, '神壇'],
-  [/\bGuide\b/gi, '攻略'], [/\bLight\b/gi, '光'], [/\bin\b/gi, '於'], [/\bat\b/gi, '於'], [/\bby\b/gi, '在'],
+  [/\bGuide\b/gi, '攻略'], [/\bLight\b/gi, '光'], [/\bQuest\b/gi, '任務'],
+  [/\bin\b/gi, '於'], [/\bat\b/gi, '於'], [/\bby\b/gi, '在'],
 ];
 function qZh(s) {
   let out = s || '';
@@ -228,7 +232,7 @@ function renderQuests(now) {
     const qs = questState.data.quests.filter(q => q && ((q.images && q.images.length) || q.title));
     const upd = (questState.data.last_updated || '').slice(0, 10);
     const questRow = (q, i, withCheck, done) => {
-      const en = (q.title || '').replace(/\s*[-–]\s*$/, '').trim();
+      const en = (q.title || '').replace(/\s*[-–]\s*video guide\s*$/i, '').replace(/\s*[-–]\s*$/, '').trim();
       const zh = escapeHtml(qZh(en) || ('任務 ' + (i + 1)));
       const img = q.images && q.images[0] && q.images[0].url;
       return `<div class="wl-row">
@@ -238,11 +242,18 @@ function renderQuests(now) {
       </div>`;
     };
     if (questsFresh(questState.data, dk)) {
-      clearQuestsRetry();
+      // 把「Daily Quest Guide」總覽圖抽出來（它是所有任務位置的合圖，不是單一任務）
+      const isGuide = q => /daily quest guide/i.test(q.title || '');
+      const guideImg = (qs.find(q => isGuide(q) && q.images && q.images[0] && q.images[0].url) || {}).images;
+      const tasks = qs.filter(q => !isGuide(q));
+      if (tasks.length >= 4) clearQuestsRetry(); else scheduleQuestsRetry(); // 不足 4 個＝來源還在補，續抓
       const done = Store.get('quests_' + dk, {});
-      const cnt = qs.filter((q, i) => done[i]).length;
-      const rows = qs.map((q, i) => questRow(q, i, true, done)).join('');
-      questsHtml = `<div class="q-prog">📍 今日任務 ${cnt}/${qs.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}`;
+      const cnt = tasks.filter((q, i) => done[i]).length;
+      const rows = tasks.map((q, i) => questRow(q, i, true, done)).join('');
+      const moreNote = tasks.length < 4 ? `<p class="note">⏳ SkyHelper 仍在補今天的任務（目前 ${tasks.length} 個），稍後自動更新。</p>` : '';
+      const gUrl = guideImg && guideImg[0] && guideImg[0].url;
+      const guideHtml = gUrl ? `<p class="note" style="margin:10px 0 4px">📋 今日任務總覽圖（所有任務位置；點看大圖）</p><img class="wl-thumb shard-photo" src="${escapeHtml(gUrl)}" data-full="${escapeHtml(gUrl)}" data-cap="今日任務總覽圖" loading="lazy" referrerpolicy="no-referrer" alt="今日任務總覽圖" onerror="this.style.display='none'" />` : '';
+      questsHtml = `<div class="q-prog">📍 今日任務 ${cnt}/${tasks.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}${moreNote}${guideHtml}`;
     } else {
       scheduleQuestsRetry(); // 來源還沒發布今日任務，定時自動重抓，發布後自動換上
       const prev = qs.map((q, i) => questRow(q, i, false)).join('');
