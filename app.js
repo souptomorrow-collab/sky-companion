@@ -235,30 +235,34 @@ function renderQuests(now) {
     const questRow = (q, i, withCheck, done) => {
       const en = (q.title || '').replace(/\s*[-–]\s*video guide\s*$/i, '').replace(/\s*[-–]\s*$/, '').trim();
       const zh = escapeHtml(qZh(en) || ('任務 ' + (i + 1)));
-      const img = q.images && q.images[0] && q.images[0].url;
+      const media = q.images && q.images[0] && q.images[0].url;
+      const isVid = media && /\.(mov|mp4|webm)(\?|$)/i.test(media); // 有些任務附的是影片，不能當 <img>
       return `<div class="wl-row">
         ${withCheck ? `<input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />` : ''}
-        <span class="wl-info" title="${escapeHtml(en)}">${zh}</span>
-        ${img ? `<img class="wl-thumb" src="${escapeHtml(img)}" data-full="${escapeHtml(img)}" data-cap="${zh}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
+        <span class="wl-info" title="${escapeHtml(en)}">${zh}${isVid ? ` <a class="wiki-link" href="${escapeHtml(media)}" target="_blank" rel="noopener">🎬 影片攻略↗</a>` : ''}</span>
+        ${media && !isVid ? `<img class="wl-thumb" src="${escapeHtml(media)}" data-full="${escapeHtml(media)}" data-cap="${zh}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
       </div>`;
     };
+    // 其他來源對照連結（SkyHelper 慢/不全時可一鍵去別家看）
+    const altLinks = '<p class="note" style="margin-top:8px">其他來源對照：<a class="wiki-link" href="https://thatskyapplication.com/daily-guides" target="_blank" rel="noopener">That Sky App ↗</a>　<a class="wiki-link" href="https://sky.dominicwild.com/" target="_blank" rel="noopener">dominicwild ↗</a>　<a class="wiki-link" href="https://sky-children-of-the-light.fandom.com/wiki/Quests" target="_blank" rel="noopener">Wiki ↗</a></p>';
     if (questsFresh(questState.data, dk)) {
-      // 把「Daily Quest Guide」總覽圖抽出來（它是所有任務位置的合圖，不是單一任務）
+      // 「Daily Quest Guide」是含全部任務的完整合圖(3000x3000) → 當主角放最上面；
+      // 文字版列下面（SkyHelper 常只解析到部分，所以「補齊」靠這張完整圖）
       const isGuide = q => /daily quest guide/i.test(q.title || '');
       const guideImg = (qs.find(q => isGuide(q) && q.images && q.images[0] && q.images[0].url) || {}).images;
       const tasks = qs.filter(q => !isGuide(q));
-      if (tasks.length >= 4) clearQuestsRetry(); else scheduleQuestsRetry(); // 不足 4 個＝來源還在補，續抓
+      if (tasks.length >= 4) clearQuestsRetry(); else scheduleQuestsRetry(); // 文字不足 4 個＝來源還在補，續抓
       const done = Store.get('quests_' + dk, {});
       const cnt = tasks.filter((q, i) => done[i]).length;
       const rows = tasks.map((q, i) => questRow(q, i, true, done)).join('');
-      const moreNote = tasks.length < 4 ? `<p class="note">⏳ SkyHelper 仍在補今天的任務（目前 ${tasks.length} 個），稍後自動更新。</p>` : '';
       const gUrl = guideImg && guideImg[0] && guideImg[0].url;
-      const guideHtml = gUrl ? `<p class="note" style="margin:10px 0 4px">📋 今日任務總覽圖（所有任務位置；點看大圖）</p><img class="wl-thumb shard-photo" src="${escapeHtml(gUrl)}" data-full="${escapeHtml(gUrl)}" data-cap="今日任務總覽圖" loading="lazy" referrerpolicy="no-referrer" alt="今日任務總覽圖" onerror="this.style.display='none'" />` : '';
-      questsHtml = `<div class="q-prog">📍 今日任務 ${cnt}/${tasks.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}${moreNote}${guideHtml}`;
+      const guideHtml = gUrl ? `<p class="q-prog" style="margin:2px 0 4px">📋 今日任務總覽圖 <span class="muted" style="font-weight:400">· 完整 4 個都在這張，點看大圖</span></p><img class="wl-thumb shard-photo" src="${escapeHtml(gUrl)}" data-full="${escapeHtml(gUrl)}" data-cap="今日任務總覽圖" loading="lazy" referrerpolicy="no-referrer" alt="今日任務總覽圖" onerror="this.style.display='none'" />` : '';
+      const partial = tasks.length < 4 ? '<p class="note">⚠️ 下方文字版是 SkyHelper 自動解析、可能不全；<b>完整以上方總覽圖為準</b>（文字會自動補抓）。</p>' : '';
+      questsHtml = `${guideHtml}<div class="q-prog" style="margin-top:12px">📝 文字版 ${cnt}/${tasks.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}${partial}${altLinks}`;
     } else {
       scheduleQuestsRetry(); // 來源還沒發布今日任務，定時自動重抓，發布後自動換上
       const prev = qs.map((q, i) => questRow(q, i, false)).join('');
-      questsHtml = `<p class="note">⏳ 今日（${dk}）任務尚未由來源（SkyHelper）發布（剛過重置）。每 5 分鐘自動重抓，發布後會自動顯示，<b>不用手動刷新</b>。</p>
+      questsHtml = `<p class="note">⏳ 今日（${dk}）任務尚未由來源（SkyHelper）發布（剛過重置）。每 5 分鐘自動重抓，發布後會自動顯示，<b>不用手動刷新</b>。可先到其他來源看：</p>${altLinks}
         <details><summary class="muted" style="cursor:pointer">上一日任務（更新 ${escapeHtml(upd)}，僅供參考）</summary><div style="margin-top:6px">${prev}</div></details>`;
     }
   } else if (questState.error) {
