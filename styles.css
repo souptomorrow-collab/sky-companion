@@ -247,6 +247,21 @@ input:focus { outline: none; border-color: var(--accent); }
 #lightbox-img { max-width: 94vw; max-height: 82vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
 #lightbox-cap { color: #f3f5ff; font-size: 14px; text-align: center; max-width: 90vw; line-height: 1.5; }
 
+/* 可縮放地圖放大層（碎石 / 先祖 / 區域 位置點地圖後開啟） */
+.map-lightbox { display: none; position: fixed; inset: 0; z-index: 110; background: rgba(0,0,0,.92); flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; }
+.map-lightbox.open { display: flex; }
+.map-lightbox .ml-cap { color: #f3f5ff; font-size: 14px; text-align: center; max-width: 92vw; line-height: 1.5; }
+.map-lightbox .ml-host { width: 100%; display: flex; justify-content: center; }
+.map-lightbox .wl-map-wrap { width: min(92vw, 78vh); max-width: 700px; margin: 0; }
+.ml-close { position: absolute; top: 14px; right: 16px; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: rgba(16,22,46,.9); color: var(--text); font-size: 20px; cursor: pointer; z-index: 3; line-height: 1; }
+.ml-close:hover { border-color: var(--accent); color: var(--gold-soft); }
+/* 小地圖：可點放大提示 */
+.mini-map { cursor: zoom-in; }
+.mini-map-hint { position: absolute; right: 6px; bottom: 6px; background: rgba(0,0,0,.62); color: #fff; font-size: 11px; padding: 2px 7px; border-radius: 999px; pointer-events: none; }
+.sp-loc { margin: 4px 0 10px; }
+.pill-loc { cursor: pointer; }
+.pill-loc:hover { border-color: var(--accent); color: var(--gold-soft); }
+
 /* 每日任務卡 */
 .q-prog { margin: 8px 0 6px; font-weight: 600; color: var(--gold-soft); font-size: 14px; }
 .q-types { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }

@@ -25,17 +25,55 @@ function imgThumb(url, cap, cls) {
   return `<img class="wl-thumb ${cls || ''}" src="${escapeHtml(url)}" data-full="${escapeHtml(url)}" data-cap="${escapeHtml(cap || '')}" loading="lazy" referrerpolicy="no-referrer" alt="${escapeHtml(cap || '照片')}" onerror="this.style.display='none'" />`;
 }
 function shardImg(loc) { return (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.shardImages && window.SKYDATA.shardImages[loc]) || ''; }
-function shardMiniMap(loc) {
-  const pos = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.shardPos && window.SKYDATA.shardPos[loc]);
-  if (!pos) return '';
+// 世界地圖小圖 + 脈動紅點（pos=[lat,lng]）。整塊可點擊 → 開全螢幕可縮放地圖。
+function posMiniMap(pos, cap) {
+  if (!pos || pos.length < 2) return '';
   const x = pos[1], y = -pos[0]; // Leaflet CRS.Simple：x=lng, y=-lat
-  return `<div class="shard-map">
+  return `<div class="shard-map mini-map" data-mappos="${pos[0]},${pos[1]}" data-mapcap="${escapeHtml(cap || '')}" role="button" tabindex="0" title="點擊放大查看">
     <img class="wl-map-bg" src="img/map.webp" alt="世界地圖" draggable="false" loading="lazy" />
-    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" aria-label="碎石位置">
+    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" aria-label="位置">
       <circle cx="${x}" cy="${y}" r="8" fill="none" stroke="#ff5a5a" stroke-width="2"><animate attributeName="r" values="6;14;6" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.2;1" dur="1.5s" repeatCount="indefinite"/></circle>
       <circle cx="${x}" cy="${y}" r="4.5" fill="#ff5a5a" stroke="#fff" stroke-width="1.2"/>
     </svg>
+    <span class="mini-map-hint">🔍 放大</span>
   </div>`;
+}
+function shardMiniMap(loc, cap) {
+  const pos = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.shardPos && window.SKYDATA.shardPos[loc]);
+  if (!pos) return '';
+  return posMiniMap(pos, cap || loc);
+}
+// 全螢幕可縮放地圖（重用 skyenc.js 的 setupMapZoom）。每次重建內容→不殘留舊監聽。
+function openMapZoom(pos, cap) {
+  const lb = document.getElementById('map-lightbox');
+  const host = document.getElementById('map-lightbox-host');
+  if (!lb || !host || !pos) return;
+  const x = pos[1], y = -pos[0];
+  host.innerHTML = `<div class="wl-map-wrap">
+    <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
+    <div class="wl-map">
+      <img class="wl-map-bg" src="img/map.webp" alt="世界地圖" draggable="false" />
+      <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none">
+        <circle cx="${x}" cy="${y}" r="9" fill="none" stroke="#ff5a5a" stroke-width="2"><animate attributeName="r" values="7;17;7" dur="1.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;.2;1" dur="1.5s" repeatCount="indefinite"/></circle>
+        <circle cx="${x}" cy="${y}" r="5" fill="#ff5a5a" stroke="#fff" stroke-width="1.3"/>
+      </svg>
+    </div></div>`;
+  const cap2 = document.getElementById('map-lightbox-cap');
+  if (cap2) cap2.textContent = cap || '';
+  lb.classList.add('open');
+  if (typeof setupMapZoom === 'function') setupMapZoom(host.querySelector('.wl-map-wrap'));
+}
+// 依先祖名查所在地點 {realm,area,pos}（資料來自 skydata 的 spirits[].loc）
+function spLoc(name) {
+  const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.spirits) || [];
+  const s = list.find(x => x.name === name);
+  return (s && s.loc) || null;
+}
+// 地點文字（中文優先）："暮土 · 藏寶礁"
+function locText(loc) {
+  if (!loc) return '';
+  const zh = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
+  return [loc.realm && zh(loc.realm), loc.area && zh(loc.area)].filter(Boolean).join(' · ');
 }
 function tsImgOn(dateStr) {
   const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.travelingSpirits) || [];
@@ -281,7 +319,7 @@ function renderShards(now) {
         <span class="muted" title="Sky ${fmtSkyTime(sd.eruptions[0].start)}（太平洋）">${fmtLocalTime(sd.eruptions[0].start)}</span></summary>
         <div class="shard-media" style="padding:8px 4px 2px">
           <div class="shard-photo-wrap">${imgThumb(shardImg(sd.location[0]), lname, 'shard-photo')}</div>
-          <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 確切位置：</p>${shardMiniMap(sd.location[0])}</div>
+          <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 確切位置：</p>${shardMiniMap(sd.location[0], lname)}</div>
         </div></details>`;
     }
   }
@@ -309,7 +347,7 @@ function shardDetailHTML(s, now) {
   return `${badge}
     <div class="shard-media">
       <div class="shard-photo-wrap">${imgThumb(shardImg(s.location[0]), s.realmZh.split(' ')[0] + ' · ' + s.location[1], 'shard-photo')}</div>
-      <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 確切位置：</p>${shardMiniMap(s.location[0])}</div>
+      <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 確切位置：</p>${shardMiniMap(s.location[0], s.realmZh.split(' ')[0] + ' · ' + s.location[1])}</div>
     </div>
     <div class="kv"><span class="k">區域</span><span class="v">${s.realmZh}</span></div>
     <div class="kv"><span class="k">地圖</span><span class="v">${s.location[1]}（${s.location[0]}）</span></div>
@@ -331,10 +369,13 @@ function renderSpirits(now) {
   let statusHTML;
   if (now.getTime() < cur.departInst.getTime()) {
     const who = tsSpiritOn(dateKey(cur.cal));
+    const loc = who ? spLoc(who) : null;
     statusHTML = `<span class="badge live">先祖在場中</span> ${who ? '· ' + nm(who) : ''}
       ${who ? `<div class="ts-portrait-wrap">${imgThumb(tsImgOn(dateKey(cur.cal)), who, 'shard-photo')}</div>` : ''}
       <div class="kv"><span class="k">本次到達</span><span class="v">${dateKey(cur.cal)}（週${WD_ZH[skyWeekday(cur.cal.y, cur.cal.mo, cur.cal.d)]}）</span></div>
-      <div class="kv"><span class="k">離開倒數</span><span class="v big">${cd(cur.departInst.getTime())}</span></div>`;
+      <div class="kv"><span class="k">離開倒數</span><span class="v big">${cd(cur.departInst.getTime())}</span></div>
+      ${loc && loc.pos ? `<div class="kv"><span class="k">原所在</span><span class="v">${escapeHtml(locText(loc))}</span></div>
+        <div class="shard-map-wrap"><p class="note" style="margin:6px 0 4px">📍 此先祖原本所在地點（復刻先祖本身每場都在固定的「復刻先祖」傳送點現身，點地圖可放大）：</p>${posMiniMap(loc.pos, locText(loc))}</div>` : ''}`;
   } else {
     const next = tsArrival(cur.k + 1);
     const who = tsSpiritOn(dateKey(next.cal));
@@ -515,7 +556,22 @@ function init() {
   });
   // 光之翼地圖點 / 縮圖 → 點擊跳出燈箱大圖 + 說明（點任意處或 Esc 關閉）
   const lb = $('#lightbox'), lbImg = $('#lightbox-img'), lbCap = $('#lightbox-cap');
+  const mlb = $('#map-lightbox');
+  const closeMapLb = () => { if (mlb) mlb.classList.remove('open'); };
   document.addEventListener('click', e => {
+    // 小地圖紅點 → 開全螢幕可縮放地圖
+    const mapEl = e.target.closest && e.target.closest('[data-mappos]');
+    if (mapEl && mapEl.dataset.mappos) {
+      const pos = mapEl.dataset.mappos.split(',').map(Number);
+      openMapZoom(pos, mapEl.dataset.mapcap || '');
+      return;
+    }
+    // 放大地圖開啟時：點地圖與縮放鈕（皆在 .wl-map-wrap 內）不關，點外圍背景或 ✕ 才關
+    if (mlb && mlb.classList.contains('open')) {
+      if (!(e.target.closest && e.target.closest('.wl-map-wrap')) || (e.target.closest && e.target.closest('.ml-close'))) {
+        closeMapLb(); return;
+      }
+    }
     const el = e.target.closest && e.target.closest('[data-full]');
     if (el && el.dataset.full) {
       lbImg.src = el.dataset.full;
@@ -526,7 +582,9 @@ function init() {
     }
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && lb.classList.contains('open')) { lb.classList.remove('open'); lbImg.removeAttribute('src'); }
+    if (e.key !== 'Escape') return;
+    if (mlb && mlb.classList.contains('open')) { closeMapLb(); return; }
+    if (lb.classList.contains('open')) { lb.classList.remove('open'); lbImg.removeAttribute('src'); }
   });
   bindSettings();
   reRenderDay(new Date());

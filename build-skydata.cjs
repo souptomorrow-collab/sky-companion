@@ -45,6 +45,18 @@ get('constellations').forEach(c => {
   (c.icons || []).forEach(ic => { if (ic.spirit) spiritRealm.set(ic.spirit, REALM_FOLDER_ZH[rk] || rk); });
 });
 
+// 先祖 → 所在區域(area) → 國度，含世界地圖座標 [lat,lng]
+// areas[].spirits 列出該區域的先祖；realms[].areas 列出該國度的區域。
+const spiritArea = new Map();
+get('areas').forEach(a => (a.spirits || []).forEach(g => { if (!spiritArea.has(g)) spiritArea.set(g, a); }));
+const areaRealmName = new Map();
+get('realms').forEach(r => (r.areas || []).forEach(ag => areaRealmName.set(ag, r.name)));
+function spiritLoc(guid) {
+  const a = spiritArea.get(guid);
+  if (!a) return null;
+  return { realm: areaRealmName.get(a.guid) || null, area: a.name, pos: (a.mapData && a.mapData.position) || null };
+}
+
 // 先祖 → 復刻(旅行)日期
 const spiritTraveled = new Map();
 get('travelingSpirits').forEach(t => {
@@ -104,6 +116,7 @@ const spirits = get('spirits')
       totals,
       traveled: spiritTraveled.get(s.guid) || [],
       wiki: s._wiki ? s._wiki.href : null,
+      loc: spiritLoc(s.guid), // {realm,area,pos:[lat,lng]} 或 null（活動先祖等無固定點）
     };
   });
 
@@ -127,6 +140,7 @@ const realms = get('realms').map(r => {
     name: r.name, short: r.shortName,
     img: REALM_IMG[r.name] || '',
     areas: (r.areas || []).map(g => areasMap.get(g) && areasMap.get(g).name).filter(Boolean),
+    areaLocs: (r.areas || []).map(g => { const a = areasMap.get(g); return a && a.mapData && a.mapData.position ? { name: a.name, pos: a.mapData.position } : null; }).filter(Boolean),
     wingedLight: wlByFolder[f] || 0,
     wiki: r._wiki ? r._wiki.href : null,
   };
