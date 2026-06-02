@@ -246,19 +246,19 @@ function renderQuests(now) {
     // 其他來源對照連結（SkyHelper 慢/不全時可一鍵去別家看）
     const altLinks = '<p class="note" style="margin-top:8px">其他來源對照：<a class="wiki-link" href="https://thatskyapplication.com/daily-guides" target="_blank" rel="noopener">That Sky App ↗</a>　<a class="wiki-link" href="https://sky.dominicwild.com/" target="_blank" rel="noopener">dominicwild ↗</a>　<a class="wiki-link" href="https://sky-children-of-the-light.fandom.com/wiki/Quests" target="_blank" rel="noopener">Wiki ↗</a></p>';
     if (questsFresh(questState.data, dk)) {
-      // 「Daily Quest Guide」是含全部任務的完整合圖(3000x3000) → 當主角放最上面；
-      // 文字版列下面（SkyHelper 常只解析到部分，所以「補齊」靠這張完整圖）
+      // 「Daily Quest Guide」是 SkyHelper 附的「玩法圖解」(教某類任務怎麼做)，不一定是 4 任務總覽，
+      // 也不保證完整 → 老實標成「任務圖解」，不宣稱完整。實際任務以文字列 + 遊戲內為準。
       const isGuide = q => /daily quest guide/i.test(q.title || '');
       const guideImg = (qs.find(q => isGuide(q) && q.images && q.images[0] && q.images[0].url) || {}).images;
       const tasks = qs.filter(q => !isGuide(q));
-      if (tasks.length >= 4) clearQuestsRetry(); else scheduleQuestsRetry(); // 文字不足 4 個＝來源還在補，續抓
+      if (tasks.length >= 4) clearQuestsRetry(); else scheduleQuestsRetry(); // 不足 4 個＝來源還在補，續抓
       const done = Store.get('quests_' + dk, {});
       const cnt = tasks.filter((q, i) => done[i]).length;
       const rows = tasks.map((q, i) => questRow(q, i, true, done)).join('');
       const gUrl = guideImg && guideImg[0] && guideImg[0].url;
-      const guideHtml = gUrl ? `<p class="q-prog" style="margin:2px 0 4px">📋 今日任務總覽圖 <span class="muted" style="font-weight:400">· 完整 4 個都在這張，點看大圖</span></p><img class="wl-thumb shard-photo" src="${escapeHtml(gUrl)}" data-full="${escapeHtml(gUrl)}" data-cap="今日任務總覽圖" loading="lazy" referrerpolicy="no-referrer" alt="今日任務總覽圖" onerror="this.style.display='none'" />` : '';
-      const partial = tasks.length < 4 ? '<p class="note">⚠️ 下方文字版是 SkyHelper 自動解析、可能不全；<b>完整以上方總覽圖為準</b>（文字會自動補抓）。</p>' : '';
-      questsHtml = `${guideHtml}<div class="q-prog" style="margin-top:12px">📝 文字版 ${cnt}/${tasks.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}${partial}${altLinks}`;
+      const guideHtml = gUrl ? `<p class="note" style="margin:8px 0 4px">📋 任務玩法圖解（SkyHelper 提供，點看大圖）</p><img class="wl-thumb shard-photo" src="${escapeHtml(gUrl)}" data-full="${escapeHtml(gUrl)}" data-cap="任務玩法圖解" loading="lazy" referrerpolicy="no-referrer" alt="任務玩法圖解" onerror="this.style.display='none'" />` : '';
+      const partial = tasks.length < 4 ? `<p class="note">ℹ️ SkyHelper 今日只收錄到 ${tasks.length} 個任務（完整有 4 個），第 ${tasks.length + 1}~4 個它還沒補。<b>完整當日任務請以遊戲內（家的返回神像／地圖神像黃色圖示）為準</b>，或點下方其他來源對照。頁面會自動補抓。</p>` : '';
+      questsHtml = `<div class="q-prog">📝 今日任務 ${cnt}/${tasks.length}${tasks.length < 4 ? '（來源僅收錄此數）' : ''}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}${partial}${guideHtml}${altLinks}`;
     } else {
       scheduleQuestsRetry(); // 來源還沒發布今日任務，定時自動重抓，發布後自動換上
       const prev = qs.map((q, i) => questRow(q, i, false)).join('');
