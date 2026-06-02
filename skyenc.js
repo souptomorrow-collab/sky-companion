@@ -295,8 +295,9 @@ function setupMapZoom() {
     up(e);
   });
   svg.addEventListener('pointercancel', up);
-  // 拖曳後不要誤觸一般 click 委派開照片
-  svg.addEventListener('click', e => { if (moved > 8) { e.stopPropagation(); e.preventDefault(); } }, true);
+  // 地圖內的 click 一律不傳到 document：地圖點由上面的 pointerup 開照片，
+  // 否則 click 會走到 document 委派的 else 分支，把剛開的燈箱立刻關掉（看似沒反應）。
+  svg.addEventListener('click', e => { e.stopPropagation(); if (moved > 8) e.preventDefault(); }, true);
 
   $$('.wl-zoom-ctrl button', wrap).forEach(b => b.addEventListener('click', () => {
     const [cx, cy] = ctr();
