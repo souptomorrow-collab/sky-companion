@@ -264,7 +264,7 @@ function renderShards(now) {
       const badge = sd.type === 'red' ? `<span class="badge red">紅</span>` : `<span class="badge black">黑</span>`;
       rows += `<div class="shard-day"><span class="d-date">${pad(c.mo)}/${pad(c.d)} 週${wd}</span>
         <span class="d-loc">${badge} ${sd.realmZh.split(' ')[0]} · ${sd.location[1]}</span>
-        <span class="muted">${fmtSkyTime(sd.eruptions[0].start)}</span>
+        <span class="muted" title="Sky ${fmtSkyTime(sd.eruptions[0].start)}（太平洋）">${fmtLocalTime(sd.eruptions[0].start)}</span>
         ${imgThumb(shardImg(sd.location[0]), sd.realmZh.split(' ')[0] + ' · ' + sd.location[1])}</div>`;
     }
   }
@@ -286,7 +286,7 @@ function shardDetailHTML(s, now) {
     else if (now.getTime() < e.end.getTime()) status = `進行中 · 結束 ${cd(e.end.getTime())}`;
     else status = `<span class="muted">已結束</span>`;
     eruptHTML += `<div class="eruption${isNext ? ' next' : ''}">
-      <span class="when">第 ${i + 1} 場　Sky ${fmtSkyTime(e.start)}　你的 ${fmtLocal(e.start)}</span>
+      <span class="when">第 ${i + 1} 場　<b>${fmtLocal(e.start)}</b>（台灣）　<span class="muted">· Sky ${fmtSkyTime(e.start)}</span></span>
       <span>${status}</span></div>`;
   });
   return `${badge}

@@ -68,6 +68,10 @@ function fmtLocal(date) {
     month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false,
   });
 }
+/* 只顯示當地時:分 */
+function fmtLocalTime(date) {
+  return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
 
 /* 顯示 Sky 時間（太平洋）。用 en-GB：所有環境午夜皆為 00:00（en-US 在舊 ICU 會回 24:00） */
 function fmtSkyTime(date) {
