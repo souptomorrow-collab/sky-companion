@@ -211,6 +211,11 @@ input:focus { outline: none; border-color: var(--accent); }
 .wl-mark circle { fill: #ffe9b0; stroke: #1a1326; stroke-width: 0.5; transition: fill .1s; }
 .wl-mark:hover circle { fill: #fff; stroke: var(--gold); stroke-width: 1; }
 .wl-mark text { fill: #1a1326; font-size: 5px; font-weight: 700; }
+.wl-mark.wl-got circle { fill: #495680; stroke: #20263f; }
+.wl-mark.wl-got text { fill: #c5cbe4; }
+.wl-check { flex: 0 0 auto; width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; }
+.wl-row.got { opacity: 0.5; }
+.wl-row.got .wl-info { text-decoration: line-through; text-decoration-color: rgba(255,255,255,.35); }
 .wl-n { display: inline-block; min-width: 20px; text-align: center; background: rgba(243,210,122,.18); color: var(--gold-soft); border-radius: 6px; padding: 0 5px; margin-right: 4px; }
 .wl-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px dashed var(--line); text-align: left; }
 .q-check { flex: 0 0 auto; width: 18px; height: 18px; accent-color: var(--gold); }

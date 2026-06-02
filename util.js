@@ -84,7 +84,7 @@ const Store = {
     try { const v = localStorage.getItem('sky_' + key); return v == null ? def : JSON.parse(v); }
     catch (e) { return def; }
   },
-  set(key, val) { try { localStorage.setItem('sky_' + key, JSON.stringify(val)); } catch (e) {} },
+  set(key, val) { try { localStorage.setItem('sky_' + key, JSON.stringify(val)); if (typeof window !== 'undefined' && window.__onStoreChange) window.__onStoreChange(); } catch (e) {} },
   remove(key) { try { localStorage.removeItem('sky_' + key); } catch (e) {} },
   allKeys() { return Object.keys(localStorage).filter(k => k.startsWith('sky_')); },
 };

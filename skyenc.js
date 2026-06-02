@@ -8,6 +8,10 @@ const SD = (typeof window !== 'undefined' && window.SKYDATA) || { spirits: [], s
 function NM(x) { return (typeof nm === 'function') ? nm(x) : escapeHtml(x == null ? '' : x); }
 function zhOf(name) { return (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[name]) || ''; }
 function IMGT(url, cap, cls) { return (typeof imgThumb === 'function') ? imgThumb(url, cap, cls) : ''; }
+// 光之翼收集追蹤（存 localStorage 'sky_wl'；帳號登入後會一起雲端同步）
+let wlOnlyTodo = false;
+function wlGot() { return Store.get('wl', {}); }
+function wlToggle(order) { const g = wlGot(); if (g[order]) delete g[order]; else g[order] = 1; Store.set('wl', g); }
 
 const COST_LABEL = {
   c: ['🕯️', '蠟燭'], h: ['❤️', '愛心'], ac: ['✨', '升華'],
@@ -198,9 +202,11 @@ function wikiWinged() {
   // 各國度內的編號（與下方清單一致）
   const idxMap = {}; const _t = {};
   (SD.wingedLights || []).forEach(w => { _t[w.realm] = (_t[w.realm] || 0) + 1; idxMap[w.order] = _t[w.realm]; });
-  const dots = wls.map(w => {
+  const got = wlGot();
+  const total = wls.length, gotN = wls.filter(w => got[w.order]).length;
+  const dots = wls.filter(w => !(wlOnlyTodo && got[w.order])).map(w => {
     const cap = escapeHtml(`${w.realm} ${idxMap[w.order]}　${w.descZh || w.desc}`);
-    return `<g class="wl-mark"${w.img ? ` data-full="${escapeHtml(w.img)}" data-cap="${cap}"` : ''}>
+    return `<g class="wl-mark${got[w.order] ? ' wl-got' : ''}" data-order="${w.order}"${w.img ? ` data-full="${escapeHtml(w.img)}" data-cap="${cap}"` : ''}>
       <circle cx="${X(w.pos)}" cy="${Y(w.pos)}" r="4.5"><title>${cap}</title></circle>
       <text x="${X(w.pos)}" y="${Y(w.pos) + 1.5}" text-anchor="middle">${idxMap[w.order]}</text></g>`;
   }).join('');
@@ -211,15 +217,21 @@ function wikiWinged() {
   </div>`;
   const byRealm = {};
   (SD.wingedLights || []).forEach(w => { (byRealm[w.realm] = byRealm[w.realm] || []).push(w); });
-  const list = Object.keys(byRealm).map(rk => `<details class="wiki-card">
-    <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${byRealm[rk].length}</span></summary>
-    <div class="sp-body">${byRealm[rk].map(w => `<div class="wl-row">
+  const list = Object.keys(byRealm).map(rk => {
+    const arr = byRealm[rk];
+    const rgot = arr.filter(w => got[w.order]).length;
+    const rows = arr.filter(w => !(wlOnlyTodo && got[w.order])).map(w => `<div class="wl-row${got[w.order] ? ' got' : ''}">
+      <input type="checkbox" class="wl-check" data-wl="${w.order}" ${got[w.order] ? 'checked' : ''} aria-label="標記已拿" />
       <div class="wl-info"><b class="wl-n">${idxMap[w.order]}</b> ${escapeHtml(w.descZh || w.desc)}
         ${w.wiki ? `<a class="wiki-link" href="${w.wiki}" target="_blank" rel="noopener">位置圖↗</a>` : ''}${w.img && w.imgC === 'low' ? ' <span class="muted" style="font-size:11px">（照片自動比對，可能不準）</span>' : ''}</div>
       ${w.img ? `<img class="wl-thumb" src="${escapeHtml(w.img)}" data-full="${escapeHtml(w.img)}" data-cap="${escapeHtml(w.realm + ' ' + idxMap[w.order] + '　' + (w.descZh || w.desc))}" loading="lazy" alt="位置照片" onerror="this.style.display='none'" />` : ''}
-    </div>`).join('')}</div>
-  </details>`).join('');
-  return `<p class="note">共 ${wls.length} 個光之翼。同色區塊為同一國度，虛線箭頭 ①→⑦ 是旅程順序（晨島→伊甸之眼）。<b>點任一個編號點看該地點實際照片</b>；滾輪／雙指或右上 ＋－ 可縮放，拖曳平移。</p>
+    </div>`).join('');
+    return `<details class="wiki-card">
+      <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${rgot}/${arr.length}</span></summary>
+      <div class="sp-body">${rows || '<p class="muted">此國度已全部拿完 ✓</p>'}</div>
+    </details>`;
+  }).join('');
+  return `<p class="note">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>　·　<button class="chip ${wlOnlyTodo ? 'on' : ''}" data-wlfilter>只看未拿</button><br>勾選清單的核取方塊標記已拿；地圖上已拿的點會變暗。點編號點看實拍照片；滾輪／雙指或右上 ＋－ 可縮放、拖曳平移。</p>
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
@@ -228,7 +240,27 @@ function wikiWinged() {
 // 地圖分頁（光之翼），獨立於最上層導覽
 function renderMap() {
   const root = $('#map-root');
-  if (root) { root.innerHTML = wikiWinged(); setupMapZoom(); }
+  if (root) { root.innerHTML = wikiWinged(); setupMapZoom(); bindWlCollection(); }
+}
+function bindWlCollection() {
+  const root = $('#map-root');
+  if (!root) return;
+  const fb = root.querySelector('[data-wlfilter]');
+  if (fb) fb.addEventListener('click', () => { wlOnlyTodo = !wlOnlyTodo; renderMap(); });
+  $$('.wl-check', root).forEach(cb => cb.addEventListener('change', () => {
+    const order = cb.dataset.wl;
+    wlToggle(order);
+    const on = !!wlGot()[order];
+    const dot = root.querySelector(`.wl-mark[data-order="${order}"]`);
+    if (dot) dot.classList.toggle('wl-got', on);
+    const row = cb.closest('.wl-row'); if (row) row.classList.toggle('got', on);
+    const cnt = root.querySelector('#wl-count');
+    if (cnt) {
+      const g = wlGot(), all = (SD.wingedLights || []).filter(w => w.pos);
+      cnt.textContent = all.filter(w => g[w.order]).length + '/' + all.length;
+    }
+    if (wlOnlyTodo && on) { if (dot) dot.style.display = 'none'; if (row) row.style.display = 'none'; }
+  }));
 }
 
 // 直接開啟燈箱（供地圖點 pointerup 使用，繞過被 pointer capture 打斷的 click）
