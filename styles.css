@@ -20,6 +20,12 @@
 
 * { box-sizing: border-box; }
 
+/* 尊重系統「減少動態」設定（省電、減暈眩） */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+  .cinna-deco .pup { animation: none !important; }
+}
+
 html, body {
   margin: 0;
   padding: 0;

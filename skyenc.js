@@ -119,7 +119,7 @@ function renderDex() {
     <div class="dex-head">
       <input type="text" id="dex-q" placeholder="搜尋先祖 / 季節 / 國度…" aria-label="搜尋先祖" value="${escapeHtml(dexState.q)}" />
       <div class="chips">${chips.map(c => `<button class="chip ${dexState.filter === c[0] ? 'on' : ''}" data-filter="${c[0]}">${c[1]}</button>`).join('')}</div>
-      <p class="note">已解鎖 <b id="dex-got">${got}</b>/${total}　·　顯示 ${list.length} 位</p>
+      <p class="note">已解鎖 <b id="dex-got">${got}</b>/${total}　·　顯示 <b id="dex-shown">${list.length}</b> 位</p>
     </div>
     <div class="dex-list">${list.map(spiritCard).join('')}</div>`;
 
@@ -143,8 +143,12 @@ function renderDex() {
     star.textContent = on ? '★' : '☆';
     const gotEl = root.querySelector('#dex-got');
     if (gotEl) gotEl.textContent = SD.spirits.filter(s => dexCollected()[s.name]).length;
-    // 「未解鎖」篩選下，剛標為已解鎖的卡要移出視圖
-    if (dexState.filter === 'uncollected' && on) { const card = star.closest('.spirit'); if (card) card.remove(); }
+    // 「未解鎖」篩選下，剛標為已解鎖的卡要移出視圖，並更新「顯示 N 位」
+    if (dexState.filter === 'uncollected' && on) {
+      const card = star.closest('.spirit'); if (card) card.remove();
+      const shownEl = root.querySelector('#dex-shown');
+      if (shownEl) shownEl.textContent = $$('.dex-list .spirit', root).length;
+    }
   });
   listEl.addEventListener('toggle', e => { // 展開時才填入明細（toggle 不冒泡，用捕獲）
     const d = e.target;
