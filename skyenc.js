@@ -430,14 +430,18 @@ function openLightboxFromEl(el) {
 }
 
 // 地圖縮放/平移：滾輪、拖曳、雙指、＋－⟲ 按鈕
+let mapView = null; // 主地圖縮放/平移狀態，切換圖層後保留
 function setupMapZoom(wrap) {
   wrap = wrap || $('.wl-map-wrap');
   const svg = wrap && wrap.querySelector('.wl-map');
   if (!svg) return;
+  const persist = !!(wrap.closest && wrap.closest('#map-root')); // 只有主地圖保留視圖（燈箱地圖每次從頭）
   let scale = 1, tx = 0, ty = 0;
+  if (persist && mapView) { scale = mapView.scale; tx = mapView.tx; ty = mapView.ty; }
   const pointers = new Map();
   let lastDist = 0, panStart = null, dragged = false;
-  const apply = () => { svg.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`; };
+  const apply = () => { svg.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`; if (persist) mapView = { scale, tx, ty }; };
+  if (persist && mapView && scale !== 1) apply(); // 還原上次視圖
   function zoomAt(px, py, factor) {
     const ns = Math.min(9, Math.max(1, scale * factor));
     const k = ns / scale;
