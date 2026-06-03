@@ -391,7 +391,7 @@ function renderQuests(now) {
         } else if (QUEST_ANYWHERE.test(en)) {
           locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 不限地點（任何地方都可完成）</p>`;
         } else {
-          locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 地點未明確標示（請參考任務攻略圖／影片）</p>`;
+          locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 所有區域皆可（此任務不限定地點；如有攻略圖/影片可參考最省路線）</p>`;
         }
       }
       return `<div class="q-item">
