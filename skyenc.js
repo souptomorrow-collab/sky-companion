@@ -10,6 +10,7 @@ function zhOf(name) { return (typeof window !== 'undefined' && window.SKYZH && w
 function IMGT(url, cap, cls) { return (typeof imgThumb === 'function') ? imgThumb(url, cap, cls) : ''; }
 // 光之翼收集追蹤（存 localStorage 'sky_wl'；帳號登入後會一起雲端同步）
 let wlOnlyTodo = false;
+let showShrines = true; // 地圖上是否顯示「祭壇（地圖神像）」
 function wlGot() { return Store.get('wl', {}); }
 function wlToggle(order) { const g = wlGot(); if (g[order]) delete g[order]; else g[order] = 1; Store.set('wl', g); }
 
@@ -232,10 +233,20 @@ function wikiWinged() {
       <circle cx="${X(w.pos)}" cy="${Y(w.pos)}" r="4.5"><title>${cap}</title></circle>
       <text x="${X(w.pos)}" y="${Y(w.pos) + 1.5}" text-anchor="middle">${idxMap[w.order]}</text></g>`;
   }).join('');
+  // 祭壇（地圖神像）：點亮即開啟該區域地圖。青色菱形，與黃色光之翼點區別
+  const shrines = (SD.mapShrines || []).filter(s => s.pos);
+  const shrineDots = showShrines ? shrines.map(s => {
+    const rz = zhOf(s.realm) || s.realm || '';
+    const az = zhOf(s.area) || s.area || '';
+    const cap = escapeHtml(`🔥 祭壇（地圖神像）· ${[rz, az].filter(Boolean).join(' · ')}${s.desc ? '（' + s.desc + '）' : ''}`);
+    const x = X(s.pos), y = Y(s.pos);
+    return `<g class="shrine-mark" data-x="${x}" data-y="${y}"${s.img ? ` data-full="${escapeHtml(s.img)}" data-cap="${cap}"` : ''}>
+      <path d="M${x},${y - 4.4} L${x + 4.4},${y} L${x},${y + 4.4} L${x - 4.4},${y} Z"><title>${cap}</title></path></g>`;
+  }).join('') : '';
   // 真實遊戲世界地圖底圖 + SVG 疊層（viewBox 對齊底圖 540×540 座標）
   const svg = `<div class="wl-map">
     <img class="wl-map-bg" src="img/map.webp" alt="光遇世界地圖" draggable="false" />
-    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${polys}${pathLine}${dots}</svg>
+    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${polys}${pathLine}${shrineDots}${dots}</svg>
   </div>`;
   const byRealm = {};
   (SD.wingedLights || []).forEach(w => { (byRealm[w.realm] = byRealm[w.realm] || []).push(w); });
@@ -253,7 +264,7 @@ function wikiWinged() {
       <div class="sp-body">${rows || '<p class="muted">此國度已全部拿完 ✓</p>'}</div>
     </details>`;
   }).join('');
-  return `<p class="note">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>　·　<button class="chip ${wlOnlyTodo ? 'on' : ''}" data-wlfilter>只看未拿</button><br>勾選清單的核取方塊標記已拿；地圖上已拿的點會變暗。點編號點看實拍照片；滾輪／雙指或右上 ＋－ 可縮放、拖曳平移。</p>
+  return `<p class="note">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>　·　<button class="chip ${wlOnlyTodo ? 'on' : ''}" data-wlfilter>只看未拿</button>　<button class="chip ${showShrines ? 'on' : ''}" data-shrinetoggle>🔥 祭壇</button><br>黃點＝光之翼（點看實拍照片）；🔷 青色菱形＝祭壇／地圖神像（點亮即開啟該區域地圖，點看實景）。滾輪／雙指或右上 ＋－ 可縮放、拖曳平移。</p>
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
@@ -269,6 +280,8 @@ function bindWlCollection() {
   if (!root) return;
   const fb = root.querySelector('[data-wlfilter]');
   if (fb) fb.addEventListener('click', () => { wlOnlyTodo = !wlOnlyTodo; renderMap(); });
+  const sb = root.querySelector('[data-shrinetoggle]');
+  if (sb) sb.addEventListener('click', () => { showShrines = !showShrines; renderMap(); });
   $$('.wl-check', root).forEach(cb => cb.addEventListener('change', () => {
     const order = cb.dataset.wl;
     wlToggle(order);
@@ -358,7 +371,7 @@ function setupMapZoom(wrap) {
     try { loc = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); }
     catch (_) { const p = inner.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; loc = p.matrixTransform(m.inverse()); }
     let best = null, bestD = Infinity;
-    inner.querySelectorAll('.wl-mark').forEach(g => {
+    inner.querySelectorAll('.wl-mark, .shrine-mark').forEach(g => {
       if (g.style.display === 'none') return;
       const dx = loc.x - (+g.dataset.x), dy = loc.y - (+g.dataset.y);
       const d = dx * dx + dy * dy;

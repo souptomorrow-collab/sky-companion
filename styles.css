@@ -215,6 +215,9 @@ input:focus { outline: none; border-color: var(--accent); }
 .wl-mark circle { fill: #ffe9b0; stroke: #1a1326; stroke-width: 0.5; transition: fill .1s; }
 .wl-mark:hover circle { fill: #fff; stroke: var(--gold); stroke-width: 1; }
 .wl-mark text { fill: #1a1326; font-size: 5px; font-weight: 700; }
+.shrine-mark { cursor: pointer; }
+.shrine-mark path { fill: #46d4e0; stroke: #07313a; stroke-width: 0.5; transition: fill .1s; }
+.shrine-mark:hover path { fill: #c2f7ff; stroke: var(--gold); stroke-width: 1; }
 .wl-mark.wl-got circle { fill: #495680; stroke: #20263f; }
 .wl-mark.wl-got text { fill: #c5cbe4; }
 .wl-check { flex: 0 0 auto; width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; }

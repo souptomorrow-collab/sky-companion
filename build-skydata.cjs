@@ -26,6 +26,9 @@ try { REALM_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'realm-img.jso
 // 區域實景照片（area guid → 本地路徑 img/area/*.webp，來源 sky-planner），可選
 let AREA_IMG = {};
 try { AREA_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'area-img.json'), 'utf8')); } catch (e) {}
+// 地圖祭壇（神像）照片（shrine guid → 本地路徑 img/shrine/*.webp），可選
+let SHRINE_IMG = {};
+try { SHRINE_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'shrine-img.json'), 'utf8')); } catch (e) {}
 
 const itemsMap = new Map(get('items').map(x => [x.guid, x]));
 const nodesMap = new Map(get('nodes').map(x => [x.guid, x]));
@@ -149,6 +152,22 @@ const realms = get('realms').map(r => {
   };
 });
 
+// ---------- 地圖祭壇（神像）：點亮即開啟該區域地圖 ----------
+const shrineArea = new Map();
+get('areas').forEach(a => (a.mapShrines || []).forEach(sg => { if (!shrineArea.has(sg)) shrineArea.set(sg, a); }));
+const mapShrines = get('mapShrines')
+  .filter(s => s.mapData && s.mapData.position)
+  .map(s => {
+    const a = shrineArea.get(s.guid);
+    return {
+      pos: s.mapData.position,
+      area: a ? a.name : null,
+      realm: a ? (areaRealmName.get(a.guid) || null) : null,
+      img: SHRINE_IMG[s.guid] || '',
+      desc: s.description || '',
+    };
+  });
+
 // ---------- 光之翼 + 國度輪廓（地圖用）----------
 const FOLDER_ZH = { aviary: '鳥族村', prairie: '雲野', forest: '雨林', valley: '霞谷', wasteland: '暮土', vault: '禁閣', isle: '晨島', dawn: '晨島', eden: '伊甸之眼', void: '星海', home: '家' };
 const wingedLights = get('wingedLights').map(w => {
@@ -232,7 +251,7 @@ const SKYDATA = {
     counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length, wingedLights: wingedLights.length },
   },
   seasons, spirits, realms, events, travelingSpirits, currencies, shards, daily, dailyQuests,
-  wingedLights, realmShapes, shardImages: SHARD_IMG, shardPos: SHARD_POS,
+  wingedLights, realmShapes, mapShrines, shardImages: SHARD_IMG, shardPos: SHARD_POS,
 };
 
 const outPath = path.join(__dirname, 'skydata.js');
