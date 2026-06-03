@@ -145,6 +145,27 @@ function waxSummaryHTML(now) {
   }).join('');
   return rows + `<p class="note">每 2 小時一次（台灣時間），持續約 10 分鐘，可得大量燭光。地圖分頁可看位置。</p>`;
 }
+// 今日跑圖建議（整合大蠟/任務/定時蠟燭/碎石/季節，順序為一般建議）
+function dailyRouteHTML(now) {
+  const p = skyParts(now);
+  const wax = (typeof waxEventsInfo === 'function') ? waxEventsInfo(now) : [];
+  const waxLine = wax.map(w => `${w.emoji}${w.name} ${w.activeUntil ? '出現中' : fmtLocalTime(w.next)}`).join('、');
+  const s = SHARD.forDate(p.year, p.month, p.day);
+  const shardLine = s.hasShard
+    ? `${s.type === 'red' ? '🔴 紅石' : '⚫ 黑石'}　${s.realmZh.split(' ')[0]} · ${s.location[1]}　首次 ${fmtLocalTime(s.eruptions[0].start)}（台灣）`
+    : '今日無碎石';
+  const cur = currentSeason(now);
+  const li = h => `<li style="margin:5px 0">${h}</li>`;
+  return `<ol style="padding-left:20px;margin:6px 0;font-size:13.5px;line-height:1.6">
+    ${li('<b>趁「每日之光」收大蠟</b>：剛上線右上 3 個箭頭最多、鍛造最便宜，先清大蠟。經典路線 雲野 → 雨林（聖島地熱噴泉、奶奶）→ 當日加成國度。<a class="wiki-link" data-tab-link="map">看大蠟地圖↗</a>')}
+    ${li('<b>每日任務 ×4</b>：照上方「📋 每日任務」的地點順路做（每個 1 根蠟燭，季節期間給季節蠟燭）。')}
+    ${li(`<b>卡定時蠟燭</b>：${waxLine || '—'}（順路去燒，一次量大）。`)}
+    ${li(`<b>碎石</b>：${shardLine}（紅石給升華蠟燭、較值得特地去）。`)}
+    ${cur ? li('<b>季節任務</b>：做當季 4 個季節任務＋領「當日領域」的季節蠟燭叢（季末作廢，每天記得清）。') : ''}
+    ${li('<b>伊甸之眼</b>（每週日重置）：把光獻給沉淪雕像換升華蠟燭。')}
+  </ol>
+  <p class="note">順序為一般建議、非最佳化路徑；實際依你的進度與當天任務調整。</p>`;
+}
 function tsImgOn(dateStr) {
   const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.travelingSpirits) || [];
   for (const t of list) if (t.date === dateStr) return t.img || '';
@@ -232,6 +253,9 @@ function renderOverview(now) {
 
   // 定時蠟燭（饅頭/海膽）
   const ow = $('#ov-wax .card-body'); if (ow) ow.innerHTML = waxSummaryHTML(now);
+
+  // 今日跑圖建議
+  const orb = $('#ov-route-body'); if (orb) orb.innerHTML = dailyRouteHTML(now);
 
   // 每日任務參考卡
   renderQuests(now);
@@ -787,6 +811,9 @@ function init() {
   const mlb = $('#map-lightbox');
   const closeMapLb = () => { if (mlb) mlb.classList.remove('open'); };
   document.addEventListener('click', e => {
+    // 內部分頁連結（如「看大蠟地圖」）
+    const tl = e.target.closest && e.target.closest('[data-tab-link]');
+    if (tl && tl.dataset.tabLink) { e.preventDefault(); showTab(tl.dataset.tabLink); window.scrollTo(0, 0); return; }
     // 小地圖紅點 → 開全螢幕可縮放地圖
     const mapEl = e.target.closest && e.target.closest('[data-mappos]');
     if (mapEl && mapEl.dataset.mappos) {

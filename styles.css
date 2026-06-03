@@ -298,6 +298,12 @@ input:focus { outline: none; border-color: var(--accent); }
 .pill-loc { cursor: pointer; }
 .pill-loc:hover { border-color: var(--accent); color: var(--gold-soft); }
 
+/* 今日跑圖建議（收合卡） */
+.route-card > summary { list-style: none; cursor: pointer; font-size: 16px; font-weight: 600; color: var(--ink); }
+.route-card > summary::-webkit-details-marker { display: none; }
+.route-card[open] > summary { margin-bottom: 6px; }
+.route-card ol { color: var(--text); }
+
 /* 每日任務卡 */
 .q-prog { margin: 8px 0 6px; font-weight: 600; color: var(--gold-soft); font-size: 14px; }
 .q-types { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
