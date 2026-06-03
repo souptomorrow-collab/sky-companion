@@ -10,7 +10,11 @@ function zhOf(name) { return (typeof window !== 'undefined' && window.SKYZH && w
 function IMGT(url, cap, cls) { return (typeof imgThumb === 'function') ? imgThumb(url, cap, cls) : ''; }
 // 光之翼收集追蹤（存 localStorage 'sky_wl'；帳號登入後會一起雲端同步）
 let wlOnlyTodo = false;
-let showShrines = true; // 地圖上是否顯示「祭壇（地圖神像）」
+// 地圖圖層開關（哪些類別要顯示在地圖上）
+let showWL = true;       // 光之翼
+let showShrines = true;  // 祭壇（地圖神像）
+let showWax = true;      // 饅頭/海膽 定時蠟燭點
+let showBoundary = true; // 國度框線 + 標籤 + 旅程連線
 function wlGot() { return Store.get('wl', {}); }
 function wlToggle(order) { const g = wlGot(); if (g[order]) delete g[order]; else g[order] = 1; Store.set('wl', g); }
 
@@ -235,14 +239,14 @@ function wikiWinged() {
   }).join('');
   // 祭壇（地圖神像）：點亮即開啟該區域地圖。青色菱形，與黃色光之翼點區別
   const shrines = (SD.mapShrines || []).filter(s => s.pos);
-  const shrineDots = showShrines ? shrines.map(s => {
+  const shrineDots = shrines.map(s => {
     const rz = zhOf(s.realm) || s.realm || '';
     const az = zhOf(s.area) || s.area || '';
     const cap = escapeHtml(`🔥 祭壇（地圖神像）· ${[rz, az].filter(Boolean).join(' · ')}${s.desc ? '（' + s.desc + '）' : ''}`);
     const x = X(s.pos), y = Y(s.pos);
     return `<g class="shrine-mark" data-x="${x}" data-y="${y}"${s.img ? ` data-full="${escapeHtml(s.img)}" data-cap="${cap}"` : ''}>
       <path d="M${x},${y - 4.4} L${x + 4.4},${y} L${x},${y + 4.4} L${x - 4.4},${y} Z"><title>${cap}</title></path></g>`;
-  }).join('') : '';
+  }).join('');
   // 定時蠟燭點：饅頭（雨林團圓飯）/ 海膽（聖島污染噴泉），彩色圓點 + 中文字
   const wax = (typeof waxEventsInfo === 'function') ? waxEventsInfo(new Date()) : [];
   const waxMarks = wax.filter(w => w.pos).map(w => {
@@ -255,7 +259,7 @@ function wikiWinged() {
   // 真實遊戲世界地圖底圖 + SVG 疊層（viewBox 對齊底圖 540×540 座標）
   const svg = `<div class="wl-map">
     <img class="wl-map-bg" src="img/map.webp" alt="光遇世界地圖" draggable="false" />
-    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${polys}${pathLine}${shrineDots}${waxMarks}${dots}</svg>
+    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${showBoundary ? polys + pathLine : ''}${showShrines ? shrineDots : ''}${showWax ? waxMarks : ''}${showWL ? dots : ''}</svg>
   </div>`;
   // 定時蠟燭倒數面板（台灣時間 + 即時倒數；倒數用 .cd 由主迴圈每秒更新）
   const waxPanel = wax.length ? `<div class="wax-panel">${wax.map(w => {
@@ -282,8 +286,17 @@ function wikiWinged() {
       <div class="sp-body">${rows || '<p class="muted">此國度已全部拿完 ✓</p>'}</div>
     </details>`;
   }).join('');
-  return `<p class="note">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>　·　<button class="chip ${wlOnlyTodo ? 'on' : ''}" data-wlfilter>只看未拿</button>　<button class="chip ${showShrines ? 'on' : ''}" data-shrinetoggle>🔥 祭壇</button><br>黃點＝光之翼（點看實拍照片）；🔷 青色菱形＝祭壇／地圖神像（點亮即開啟該區域地圖）；🥟饅頭／🦔海膽＝定時蠟燭點。滾輪／雙指或右上 ＋－ 可縮放、拖曳平移。</p>
-    ${waxPanel}
+  const layerBar = `<div class="layer-bar"><span class="lb-label">顯示圖層</span>
+    <button class="chip ${showWL ? 'on' : ''}" data-layer="wl">✦ 光之翼</button>
+    <button class="chip ${showShrines ? 'on' : ''}" data-layer="shrine">🔷 祭壇</button>
+    <button class="chip ${showWax ? 'on' : ''}" data-layer="wax">🍬 蠟燭點</button>
+    <button class="chip ${showBoundary ? 'on' : ''}" data-layer="boundary">🗺️ 國度框線</button>
+    <span class="lb-sep"></span>
+    <button class="chip ${wlOnlyTodo ? 'on' : ''}" data-wlfilter>只看未拿翼</button>
+  </div>`;
+  return `<p class="note" style="margin-top:0">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>。黃點＝光之翼、🔷＝祭壇、🥟🦔＝蠟燭點，點標記看實景；滾輪／雙指或右上 ＋－ 縮放、拖曳平移。用下方開關勾選要顯示的圖層。</p>
+    ${layerBar}
+    ${showWax ? waxPanel : ''}
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
@@ -299,8 +312,14 @@ function bindWlCollection() {
   if (!root) return;
   const fb = root.querySelector('[data-wlfilter]');
   if (fb) fb.addEventListener('click', () => { wlOnlyTodo = !wlOnlyTodo; renderMap(); });
-  const sb = root.querySelector('[data-shrinetoggle]');
-  if (sb) sb.addEventListener('click', () => { showShrines = !showShrines; renderMap(); });
+  $$('[data-layer]', root).forEach(b => b.addEventListener('click', () => {
+    const L = b.dataset.layer;
+    if (L === 'wl') showWL = !showWL;
+    else if (L === 'shrine') showShrines = !showShrines;
+    else if (L === 'wax') showWax = !showWax;
+    else if (L === 'boundary') showBoundary = !showBoundary;
+    renderMap();
+  }));
   $$('.wl-check', root).forEach(cb => cb.addEventListener('change', () => {
     const order = cb.dataset.wl;
     wlToggle(order);
