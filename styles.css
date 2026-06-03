@@ -296,6 +296,11 @@ input:focus { outline: none; border-color: var(--accent); }
 .q-types { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
 .q-item { display: flex; align-items: center; gap: 8px; font-size: 13.5px; cursor: pointer; }
 .q-item input { width: 16px; height: 16px; accent-color: var(--gold); flex: 0 0 auto; }
+.q-item { border-bottom: 1px dashed var(--line); padding-bottom: 6px; margin-bottom: 2px; }
+.q-item:last-child { border-bottom: none; }
+.q-item .wl-row { border-bottom: none; }
+.q-media { margin: 2px 0 4px 28px; }
+.q-media .shard-map, .q-media .wl-thumb.shard-photo { max-width: 240px; }
 .q-claims { display: flex; flex-wrap: wrap; gap: 12px; }
 .q-claim { display: flex; align-items: center; gap: 10px; flex: 1 1 250px; font-size: 13px; }
 

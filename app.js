@@ -278,6 +278,35 @@ function qZh(s) {
   return out.replace(/\s*[-–]\s*/g, ' · ').replace(/\s{2,}/g, ' ').trim();
 }
 
+// 由任務英文標題偵測其所在「區域」(含世界座標+實景照)，用於顯示位置圖
+let _AREA_IDX = null;
+function areaIndex() {
+  if (_AREA_IDX) return _AREA_IDX;
+  _AREA_IDX = [];
+  const S = (typeof window !== 'undefined' && window.SKYDATA) || {};
+  (S.realms || []).forEach(r => (r.areaLocs || []).forEach(a => { if (a.pos) _AREA_IDX.push({ name: a.name, pos: a.pos, img: a.img, realm: r.name }); }));
+  return _AREA_IDX;
+}
+const QUEST_AREA_ALIAS = [
+  [/tree ?house/i, 'The Treehouse'], [/elevated clearing/i, 'Elevated Clearing'],
+  [/prairie heights/i, 'Prairie Heights'], [/butterfly fields?/i, 'Butterfly Fields'],
+  [/sanctuary islands?/i, 'Sanctuary Islands'], [/koi pond/i, 'Koi Pond'],
+  [/table of belonging|ancestor.{0,3}s? table|belonging/i, 'Forest Clearing'],
+  [/vault entrance/i, 'Vault Social Space'], [/wind paths?/i, 'The Wind Paths'],
+  [/coliseum/i, 'The Coliseum'], [/citadel/i, 'The Citadel'], [/graveyard/i, 'The Graveyard'],
+];
+function detectQuestArea(en) {
+  const idx = areaIndex();
+  for (const [re, nm] of QUEST_AREA_ALIAS) { if (re.test(en)) { const a = idx.find(x => x.name === nm); if (a) return a; } }
+  let best = null;
+  idx.forEach(a => { const r = new RegExp('\\b' + a.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i'); if (r.test(en) && (!best || a.name.length > best.name.length)) best = a; });
+  return best;
+}
+function questAreaLabel(a) {
+  const zh = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
+  return [zh(a.realm), zh(a.name)].filter(Boolean).join(' · ');
+}
+
 // 今日任務即時資料（來源：SkyHelper API，CORS 開放、每日重置後更新）
 let questState = { day: null, loaded: false, loading: false, error: false, data: null };
 let questsRetry = null; // 來源尚未發布當日任務時，定時自動重抓直到拿到當日資料
@@ -321,10 +350,20 @@ function renderQuests(now) {
       const zh = escapeHtml(qZh(en) || ('任務 ' + (i + 1)));
       const media = q.images && q.images[0] && q.images[0].url;
       const isVid = media && /\.(mov|mp4|webm)(\?|$)/i.test(media); // 有些任務附的是影片，不能當 <img>
-      return `<div class="wl-row">
-        ${withCheck ? `<input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />` : ''}
-        <span class="wl-info" title="${escapeHtml(en)}">${zh}${isVid ? ` <a class="wiki-link" href="${escapeHtml(media)}" target="_blank" rel="noopener">🎬 影片攻略↗</a>` : ''}</span>
-        ${media && !isVid ? `<img class="wl-thumb" src="${escapeHtml(media)}" data-full="${escapeHtml(media)}" data-cap="${zh}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
+      // 由文字偵測地點 → 補上「位置小地圖 + 區域實景照」
+      const area = detectQuestArea(en);
+      const azh = area ? questAreaLabel(area) : '';
+      const locMedia = area ? `<div class="shard-media q-media">
+          ${area.img ? `<div class="shard-photo-wrap">${imgThumb(area.img, azh, 'shard-photo')}</div>` : ''}
+          <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(azh)}（點地圖放大）</p>${posMiniMap(area.pos, azh, area.img)}</div>
+        </div>` : '';
+      return `<div class="q-item">
+        <div class="wl-row">
+          ${withCheck ? `<input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />` : ''}
+          <span class="wl-info" title="${escapeHtml(en)}">${zh}${isVid ? ` <a class="wiki-link" href="${escapeHtml(media)}" target="_blank" rel="noopener">🎬 影片攻略↗</a>` : ''}</span>
+          ${media && !isVid ? `<img class="wl-thumb" src="${escapeHtml(media)}" data-full="${escapeHtml(media)}" data-cap="${zh}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
+        </div>
+        ${locMedia}
       </div>`;
     };
     // 其他來源對照連結（SkyHelper 慢/不全時可一鍵去別家看）
