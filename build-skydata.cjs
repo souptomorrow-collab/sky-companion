@@ -29,6 +29,9 @@ try { AREA_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'area-img.json'
 // 地圖祭壇（神像）照片（shrine guid → 本地路徑 img/shrine/*.webp），可選
 let SHRINE_IMG = {};
 try { SHRINE_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'shrine-img.json'), 'utf8')); } catch (e) {}
+// 每日大蠟路線圖（國度名 → 本地路徑 img/candle/*.webp，來源 sky-planner/solsuga），可選
+let CANDLE_IMG = {};
+try { CANDLE_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'candle-img.json'), 'utf8')); } catch (e) {}
 
 const itemsMap = new Map(get('items').map(x => [x.guid, x]));
 const nodesMap = new Map(get('nodes').map(x => [x.guid, x]));
@@ -168,6 +171,11 @@ const mapShrines = get('mapShrines')
     };
   });
 
+// ---------- 每日大蠟路線圖（各國度大蠟燭位置圖）----------
+const candleMaps = get('candles')
+  .map(c => ({ name: c.name, img: CANDLE_IMG[c.name] || '', attribution: c.imageAttribution || '' }))
+  .filter(c => c.img);
+
 // ---------- 光之翼 + 國度輪廓（地圖用）----------
 const FOLDER_ZH = { aviary: '鳥族村', prairie: '雲野', forest: '雨林', valley: '霞谷', wasteland: '暮土', vault: '禁閣', isle: '晨島', dawn: '晨島', eden: '伊甸之眼', void: '星海', home: '家' };
 const wingedLights = get('wingedLights').map(w => {
@@ -251,7 +259,7 @@ const SKYDATA = {
     counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length, wingedLights: wingedLights.length },
   },
   seasons, spirits, realms, events, travelingSpirits, currencies, shards, daily, dailyQuests,
-  wingedLights, realmShapes, mapShrines, shardImages: SHARD_IMG, shardPos: SHARD_POS,
+  wingedLights, realmShapes, mapShrines, candleMaps, shardImages: SHARD_IMG, shardPos: SHARD_POS,
 };
 
 const outPath = path.join(__dirname, 'skydata.js');

@@ -64,6 +64,20 @@ function openMapZoom(pos, cap, img) {
   lb.classList.add('open');
   if (typeof setupMapZoom === 'function') setupMapZoom(host.querySelector('.wl-map-wrap'));
 }
+// 全螢幕可縮放看任意圖片（給大蠟路線圖等大圖用，可滾輪/雙指放大、拖曳平移）
+function openImageZoom(url, cap) {
+  const lb = document.getElementById('map-lightbox');
+  const host = document.getElementById('map-lightbox-host');
+  if (!lb || !host || !url) return;
+  host.innerHTML = `<div class="wl-map-wrap wide">
+    <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
+    <div class="wl-map"><img class="wl-map-bg" src="${escapeHtml(url)}" alt="${escapeHtml(cap || '')}" draggable="false" /></div>
+  </div>`;
+  const cap2 = document.getElementById('map-lightbox-cap');
+  if (cap2) cap2.textContent = cap || '';
+  lb.classList.add('open');
+  if (typeof setupMapZoom === 'function') setupMapZoom(host.querySelector('.wl-map-wrap'));
+}
 // 依先祖名查所在地點 {realm,area,pos}（資料來自 skydata 的 spirits[].loc）
 function spLoc(name) {
   const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.spirits) || [];
@@ -104,6 +118,17 @@ function waxEventsInfo(now) {
     const activeUntil = (prev && now.getTime() < prev.getTime() + w.dur * 60000) ? prev.getTime() + w.dur * 60000 : null;
     return Object.assign({}, w, { next, activeUntil });
   });
+}
+// 總覽卡：饅頭/海膽 下次出現（台灣時間）+ 即時倒數
+function waxSummaryHTML(now) {
+  const list = waxEventsInfo(now);
+  const rows = list.map(w => {
+    const status = w.activeUntil
+      ? `<span class="badge live">出現中</span> 結束 ${cd(w.activeUntil)}`
+      : (w.next ? `<b>${fmtLocalTime(w.next)}</b> ${cd(w.next.getTime())}` : '—');
+    return `<div class="kv"><span class="k">${w.emoji} ${w.name} <span class="muted">${w.realmZh}</span></span><span class="v">${status}</span></div>`;
+  }).join('');
+  return rows + `<p class="note">每 2 小時一次（台灣時間），持續約 10 分鐘，可得大量燭光。地圖分頁可看位置。</p>`;
 }
 function tsImgOn(dateStr) {
   const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.travelingSpirits) || [];
@@ -189,6 +214,9 @@ function renderOverview(now) {
 
   // 季節
   $('#ov-season .card-body').innerHTML = seasonSummaryHTML(now);
+
+  // 定時蠟燭（饅頭/海膽）
+  const ow = $('#ov-wax .card-body'); if (ow) ow.innerHTML = waxSummaryHTML(now);
 
   // 每日任務參考卡
   renderQuests(now);
@@ -598,6 +626,13 @@ function computeNextFlip(now) {
       if (e.end.getTime() > now.getTime()) { next = Math.min(next, e.end.getTime()); break; }
     }
   }
+  // 饅頭/海膽 出現或結束時也翻頁刷新總覽卡
+  if (typeof waxEventsInfo === 'function') {
+    waxEventsInfo(now).forEach(w => {
+      if (w.next && w.next.getTime() > now.getTime()) next = Math.min(next, w.next.getTime());
+      if (w.activeUntil && w.activeUntil > now.getTime()) next = Math.min(next, w.activeUntil);
+    });
+  }
   nextFlip = next;
 }
 function reRenderDay(now) {
@@ -643,6 +678,9 @@ function init() {
         closeMapLb(); return;
       }
     }
+    // 大蠟路線圖等大圖 → 開可縮放檢視
+    const iz = e.target.closest && e.target.closest('[data-imgzoom]');
+    if (iz && iz.dataset.imgzoom) { openImageZoom(iz.dataset.imgzoom, iz.dataset.cap || ''); return; }
     const el = e.target.closest && e.target.closest('[data-full]');
     if (el && el.dataset.full) {
       lbImg.src = el.dataset.full;

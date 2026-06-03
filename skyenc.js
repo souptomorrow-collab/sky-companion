@@ -180,6 +180,18 @@ function wikiEvents() {
   }).join('');
   return rows;
 }
+// 每日大蠟路線圖（各國度大蠟燭位置；點圖可放大）
+function wikiCandleMaps() {
+  const list = SD.candleMaps || [];
+  if (!list.length) return '<p class="muted">無大蠟地圖資料。</p>';
+  return `<p class="note">各國度「每日大蠟燭」路線圖，標出所有大蠟位置與數量（c 值＝該處蠟量）。點圖可放大（滾輪／雙指縮放、拖曳平移）。來源：sky-planner / solsuga。</p>` +
+    list.map(c => {
+      const zh = zhOf(c.name) || c.name;
+      return `<details class="wiki-card"><summary><b>${NM(c.name)}</b> <span class="badge none">大蠟地圖</span></summary>
+        <div class="sp-body"><img class="wl-thumb shard-photo" style="max-width:100%;cursor:zoom-in" src="${escapeHtml(c.img)}" data-imgzoom="${escapeHtml(c.img)}" data-cap="${escapeHtml(zh + ' · 每日大蠟地圖')}" loading="lazy" alt="${escapeHtml(zh)} 大蠟地圖" onerror="this.style.display='none'" /></div>
+      </details>`;
+    }).join('');
+}
 function wikiCurrencies() {
   return SD.currencies.map(c => `<div class="wiki-card open">
     <div class="wc-head"><b>${escapeHtml(c.name)}</b> <span class="muted">${escapeHtml(c.en || '')}</span></div>
@@ -429,9 +441,9 @@ function setupMapZoom(wrap) {
 function renderWiki() {
   const root = $('#wiki-root');
   if (!root) return;
-  const subs = [['seasons', '季節'], ['realms', '國度'], ['events', '活動'], ['currencies', '貨幣'], ['shards', '碎石'], ['daily', '每日攻略']];
+  const subs = [['seasons', '季節'], ['realms', '國度'], ['candlemap', '🕯️ 大蠟地圖'], ['events', '活動'], ['currencies', '貨幣'], ['shards', '碎石'], ['daily', '每日攻略']];
   const fn = {
-    seasons: wikiSeasons, realms: wikiRealms, events: wikiEvents,
+    seasons: wikiSeasons, realms: wikiRealms, candlemap: wikiCandleMaps, events: wikiEvents,
     currencies: wikiCurrencies, shards: wikiShards, daily: wikiDaily,
   }[wikiTab] || wikiSeasons;
   const body = fn();

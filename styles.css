@@ -275,6 +275,7 @@ input:focus { outline: none; border-color: var(--accent); }
 .map-lightbox .ml-host { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .map-lightbox .ml-photo { display: block; width: auto; max-width: min(92vw, 640px); max-height: 30vh; height: auto; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,.55); }
 .map-lightbox .wl-map-wrap { width: min(92vw, 58vh); max-width: 640px; margin: 0; }
+.map-lightbox .wl-map-wrap.wide { width: min(94vw, 880px); max-width: 880px; max-height: 84vh; }
 .ml-close { position: absolute; top: 14px; right: 16px; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: rgba(16,22,46,.9); color: var(--text); font-size: 20px; cursor: pointer; z-index: 3; line-height: 1; }
 .ml-close:hover { border-color: var(--accent); color: var(--gold-soft); }
 /* 小地圖：可點放大提示 */
