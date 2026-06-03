@@ -328,12 +328,15 @@ input:focus { border-color: var(--accent); }
 
 /* 雲朵小狗裝飾（原創插畫，非三麗鷗官方圖） */
 .cinna-deco { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.cinna-deco .pup { position: absolute; opacity: .92; animation: bob 6s ease-in-out infinite; filter: drop-shadow(0 6px 10px rgba(120,170,220,.25)); }
-.cinna-deco .p1 { top: 9%; left: 2.5%; width: 96px; animation-delay: 0s; }
-.cinna-deco .p2 { top: 32%; right: 2%; width: 122px; animation-delay: 1.2s; }
-.cinna-deco .p3 { bottom: 6%; left: 3.5%; width: 104px; animation-delay: 2.4s; }
-@keyframes bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-14px) rotate(2deg); } }
-.pup-logo { width: 42px; height: 34px; vertical-align: middle; }
+.cinna-deco .pup { position: absolute; height: auto; opacity: .9; animation: bob 6s ease-in-out infinite; filter: drop-shadow(0 6px 10px rgba(120,170,220,.25)); }
+.cinna-deco .p1 { top: 9%; left: 2%; width: 104px; animation-delay: 0s; }
+.cinna-deco .p2 { top: 33%; right: 1.5%; width: 132px; animation-delay: 1.2s; }
+.cinna-deco .p3 { bottom: 5%; left: 3%; width: 114px; animation-delay: 2.4s; }
+@keyframes bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-14px) rotate(3deg); } }
+.pup-logo { height: 42px; width: auto; vertical-align: middle; }
+/* 總覽大耳狗橫幅 */
+.cinna-strip { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+.cinna-strip img { height: 120px; max-width: 46%; width: auto; object-fit: cover; border-radius: 16px; border: 3px solid #fff; box-shadow: 0 6px 18px rgba(120,170,220,.28); cursor: zoom-in; }
 @media (max-width: 560px) {
   .cinna-deco .pup { opacity: .5; }
   .cinna-deco .p1 { width: 60px; } .cinna-deco .p2 { width: 68px; } .cinna-deco .p3 { width: 58px; }
