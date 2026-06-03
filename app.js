@@ -306,6 +306,27 @@ function questAreaLabel(a) {
   const zh = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
   return [zh(a.realm), zh(a.name)].filter(Boolean).join(' · ');
 }
+// 國度索引（座標取自 realmShapes，實景照取自 realms）
+let _REALM_IDX = null;
+function realmIndex() {
+  if (_REALM_IDX) return _REALM_IDX;
+  _REALM_IDX = {};
+  const S = (typeof window !== 'undefined' && window.SKYDATA) || {};
+  const sp = {}; (S.realmShapes || []).forEach(s => { if (s.pos) sp[s.name] = s.pos; });
+  (S.realms || []).forEach(r => { _REALM_IDX[r.name] = { name: r.name, pos: sp[r.name] || null, img: r.img || '' }; });
+  return _REALM_IDX;
+}
+const QUEST_REALM_SHORT = { Prairie: 'Daylight Prairie', Forest: 'Hidden Forest', Valley: 'Valley of Triumph', Wasteland: 'Golden Wasteland', Vault: 'Vault of Knowledge', Isle: 'Isle of Dawn', Eden: 'Eye of Eden', Aviary: 'Aviary Village' };
+// 偵測任務所屬國度（明確國度名 → 簡稱 → 隱含地點），回 {name,pos,img} 或 null
+function detectQuestRealm(en) {
+  const ri = realmIndex();
+  for (const k in ri) { if (new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i').test(en)) return ri[k]; }
+  for (const w in QUEST_REALM_SHORT) { if (new RegExp('\\b' + w + '\\b', 'i').test(en)) return ri[QUEST_REALM_SHORT[w]]; }
+  if (/melt\b.*darkness|dark plant|dark dragon|corrupt/i.test(en)) return ri['Golden Wasteland']; // 融化黑暗 → 暮土
+  return null;
+}
+// 不限地點（社交/通用動作）的任務
+const QUEST_ANYWHERE = /light \d+ candles?|forge \d+ candles?|make \d+ (?:new )?friends?|bow (?:to|at)|wave (?:to|at)|give a hug|hug a|high[- ]?five|send (?:a )?gift|hold hands?/i;
 
 // 今日任務即時資料（來源：SkyHelper API，CORS 開放、每日重置後更新）
 let questState = { day: null, loaded: false, loading: false, error: false, data: null };
@@ -350,13 +371,27 @@ function renderQuests(now) {
       const zh = escapeHtml(qZh(en) || ('任務 ' + (i + 1)));
       const media = q.images && q.images[0] && q.images[0].url;
       const isVid = media && /\.(mov|mp4|webm)(\?|$)/i.test(media); // 有些任務附的是影片，不能當 <img>
-      // 由文字偵測地點 → 補上「位置小地圖 + 區域實景照」
+      // 由文字偵測地點 → 每項任務都標地點：明確區域 → 隱含國度 → 不限地點
+      const mediaBlock = (label, img, pos) => `<div class="shard-media q-media">
+          ${img ? `<div class="shard-photo-wrap">${imgThumb(img, label, 'shard-photo')}</div>` : ''}
+          <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(label)}（點地圖放大）</p>${posMiniMap(pos, label, img)}</div>
+        </div>`;
+      const zhName = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
+      let locMedia = '';
       const area = detectQuestArea(en);
-      const azh = area ? questAreaLabel(area) : '';
-      const locMedia = area ? `<div class="shard-media q-media">
-          ${area.img ? `<div class="shard-photo-wrap">${imgThumb(area.img, azh, 'shard-photo')}</div>` : ''}
-          <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(azh)}（點地圖放大）</p>${posMiniMap(area.pos, azh, area.img)}</div>
-        </div>` : '';
+      if (area && area.pos) {
+        locMedia = mediaBlock(questAreaLabel(area), area.img, area.pos);
+      } else {
+        const realm = detectQuestRealm(en);
+        if (realm && realm.pos) {
+          const rl = zhName(realm.name) + (/melt\b.*darkness/i.test(en) ? '（黑暗通常在暮土，依當天指引）' : '');
+          locMedia = mediaBlock(rl, realm.img, realm.pos);
+        } else if (QUEST_ANYWHERE.test(en)) {
+          locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 不限地點（任何地方都可完成）</p>`;
+        } else {
+          locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 地點未明確標示（請參考任務攻略圖／影片）</p>`;
+        }
+      }
       return `<div class="q-item">
         <div class="wl-row">
           ${withCheck ? `<input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />` : ''}
