@@ -12,11 +12,11 @@ function IMGT(url, cap, cls) { return (typeof imgThumb === 'function') ? imgThum
 let wlOnlyTodo = (typeof Store !== 'undefined') ? Store.get('map_todo', false) : false;
 // 地圖圖層開關（記住上次選擇，存 localStorage）
 const _ls = (k, d) => (typeof Store !== 'undefined') ? Store.get(k, d) : d;
-let showWL = _ls('map_wl', true);          // 光之翼
-let showShrines = _ls('map_shrine', true); // 祭壇（地圖神像）
-let showWax = _ls('map_wax', true);        // 饅頭/海膽 定時蠟燭點
+let showWL = _ls('map_wl', true);             // 光之翼
+let showShrines = _ls('map_shrine', false);   // 祭壇（67 個，預設關，要看再開）
+let showWax = _ls('map_wax', true);           // 饅頭/海膽 定時蠟燭點
 let showBoundary = _ls('map_boundary', true); // 國度框線 + 標籤 + 旅程連線
-let showSpirits = _ls('map_spirits', true);   // 先祖位置
+let showSpirits = _ls('map_spirits', false);  // 先祖位置（205 個，預設關，避免太亂）
 let showShards = _ls('map_shards', true);     // 今日碎石位置
 function wlGot() { return Store.get('wl', {}); }
 function wlToggle(order) { const g = wlGot(); if (g[order]) delete g[order]; else g[order] = 1; Store.set('wl', g); }

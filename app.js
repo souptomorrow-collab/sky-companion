@@ -388,10 +388,12 @@ function renderQuests(now) {
       const media = q.images && q.images[0] && q.images[0].url;
       const isVid = media && /\.(mov|mp4|webm)(\?|$)/i.test(media); // 有些任務附的是影片，不能當 <img>
       // 由文字偵測地點 → 每項任務都標地點：明確區域 → 隱含國度 → 不限地點
-      const mediaBlock = (label, img, pos) => `<div class="shard-media q-media">
-          ${img ? `<div class="shard-photo-wrap">${imgThumb(img, label, 'shard-photo')}</div>` : ''}
-          <div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(label)}（點地圖放大）</p>${posMiniMap(pos, label, img)}</div>
-        </div>`;
+      // 預設只顯示一行「📍 地點」，點開才看實景照＋地圖（避免卡片太長）
+      const mediaBlock = (label, img, pos) => `<details class="q-loc"><summary>📍 ${escapeHtml(label)}　<span class="muted">· 看地點圖</span></summary>
+          <div class="shard-media q-media">
+            ${img ? `<div class="shard-photo-wrap">${imgThumb(img, label, 'shard-photo')}</div>` : ''}
+            <div class="shard-map-wrap">${posMiniMap(pos, label, img)}</div>
+          </div></details>`;
       const zhName = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
       let locMedia = '';
       const area = detectQuestArea(en);
