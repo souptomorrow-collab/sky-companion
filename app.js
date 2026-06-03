@@ -304,7 +304,9 @@ function detectQuestArea(en) {
 }
 function questAreaLabel(a) {
   const zh = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
-  return [zh(a.realm), zh(a.name)].filter(Boolean).join(' · ');
+  const zhStr = [zh(a.realm), zh(a.name)].filter(Boolean).join(' · ');
+  const enStr = [a.realm, a.name].filter(Boolean).join(' · ');
+  return zhStr + (enStr && enStr !== zhStr ? '（' + enStr + '）' : '');
 }
 // 國度索引（座標取自 realmShapes，實景照取自 realms）
 let _REALM_IDX = null;
@@ -384,7 +386,7 @@ function renderQuests(now) {
       } else {
         const realm = detectQuestRealm(en);
         if (realm && realm.pos) {
-          const rl = zhName(realm.name) + (/melt\b.*darkness/i.test(en) ? '（黑暗通常在暮土，依當天指引）' : '');
+          const rl = zhName(realm.name) + '（' + realm.name + '）' + (/melt\b.*darkness/i.test(en) ? ' · 黑暗通常在暮土' : '');
           locMedia = mediaBlock(rl, realm.img, realm.pos);
         } else if (QUEST_ANYWHERE.test(en)) {
           locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 不限地點（任何地方都可完成）</p>`;
