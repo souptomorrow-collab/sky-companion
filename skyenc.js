@@ -77,10 +77,17 @@ function spiritBody(sp) {
   if (sp.loc && sp.loc.pos) {
     const lt = (typeof locText === 'function') ? locText(sp.loc) : (sp.loc.area || '');
     const tip = sp.type === 'Season' ? '（季節先祖：此為其季節原本所在的地點）' : '';
-    const guide = sp.locImg ? `<div class="sp-guide">${IMGT(sp.locImg, lt + ' 位置教學圖', 'loc-guide')}</div>` : '';
-    const photo = sp.loc.img ? `<div class="shard-photo-wrap">${IMGT(sp.loc.img, lt, 'shard-photo')}</div>` : '';
     const map = (typeof posMiniMap === 'function') ? posMiniMap(sp.loc.pos, lt, sp.loc.img) : '';
-    locHtml = `<div class="sp-loc"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(lt)}${tip}${sp.locImg ? ' · ⬇ 下圖有箭頭標出精確位置' : ''}</p>${guide}<div class="shard-media">${photo}<div class="shard-map-wrap">${map}</div></div></div>`;
+    if (sp.locImg) {
+      // 有位置教學圖：以教學圖為主（箭頭標好位置），世界地圖位置收進可展開，不再重複放空景
+      locHtml = `<div class="sp-loc"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(lt)}${tip} · ⬇ 圖上箭頭為精確位置</p>
+        <div class="sp-guide">${IMGT(sp.locImg, lt + ' 位置教學圖', 'loc-guide')}</div>
+        <details class="sp-worldmap"><summary>🗺️ 在世界地圖的位置</summary><div class="shard-map-wrap" style="margin-top:6px">${map}</div></details></div>`;
+    } else {
+      // 無教學圖：用區域實景照 + 世界地圖紅點
+      const photo = sp.loc.img ? `<div class="shard-photo-wrap">${IMGT(sp.loc.img, lt, 'shard-photo')}</div>` : '';
+      locHtml = `<div class="sp-loc"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(lt)}${tip}</p><div class="shard-media">${photo}<div class="shard-map-wrap">${map}</div></div></div>`;
+    }
   } else if (sp.type === 'Event') {
     locHtml = `<p class="note">📍 活動限定，無固定地點</p>`;
   }

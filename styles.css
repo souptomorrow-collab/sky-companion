@@ -260,6 +260,9 @@ input:focus { outline: none; border-color: var(--accent); }
 .shard-photo-wrap, .realm-photo-wrap, .sp-portrait-wrap, .ts-portrait-wrap { margin: 6px 0 10px; }
 .wl-thumb.shard-photo, .wl-thumb.realm-photo { width: 100%; max-width: 340px; height: auto; }
 .sp-guide { margin: 4px 0 8px; }
+.sp-worldmap > summary { list-style: none; cursor: pointer; font-size: 12.5px; color: var(--muted); padding: 2px 0; }
+.sp-worldmap > summary::-webkit-details-marker { display: none; }
+.sp-worldmap[open] > summary { color: var(--ink); }
 .wl-thumb.loc-guide { width: 100%; max-width: 560px; height: auto; border-color: var(--accent); }
 .shard-media { display: flex; flex-wrap: wrap; gap: 14px; margin: 6px 0 10px; }
 .shard-media > div { flex: 1 1 270px; margin: 0; }
