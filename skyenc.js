@@ -15,6 +15,7 @@ let showWL = true;       // 光之翼
 let showShrines = true;  // 祭壇（地圖神像）
 let showWax = true;      // 饅頭/海膽 定時蠟燭點
 let showBoundary = true; // 國度框線 + 標籤 + 旅程連線
+let showSpirits = true;  // 先祖位置（依區域聚合）
 function wlGot() { return Store.get('wl', {}); }
 function wlToggle(order) { const g = wlGot(); if (g[order]) delete g[order]; else g[order] = 1; Store.set('wl', g); }
 
@@ -268,10 +269,27 @@ function wikiWinged() {
       <circle cx="${x}" cy="${y}" r="6.2" fill="${w.color}" stroke="#fff" stroke-width="0.9"><title>${cap}</title></circle>
       <text x="${x}" y="${y + 2.2}" text-anchor="middle" font-size="6" fill="#fff" font-weight="700">${w.char}</text></g>`;
   }).join('');
+  // 先祖位置：依區域(座標)聚合，同區多位先祖共用一個綠色「祖」標記，點開看實景＋名單
+  const spiritAreas = {};
+  (SD.spirits || []).forEach(s => {
+    if (!s.loc || !s.loc.pos) return;
+    const k = s.loc.pos.join(',');
+    if (!spiritAreas[k]) spiritAreas[k] = { pos: s.loc.pos, realm: s.loc.realm, area: s.loc.area, img: s.loc.img, names: [] };
+    spiritAreas[k].names.push(zhOf(s.name) || s.name);
+  });
+  const spiritDots = Object.keys(spiritAreas).map(k => {
+    const a = spiritAreas[k];
+    const x = X(a.pos), y = Y(a.pos);
+    const loc = [zhOf(a.realm) || a.realm, zhOf(a.area) || a.area].filter(Boolean).join(' · ');
+    const cap = escapeHtml(`👴 先祖 · ${loc}（${a.names.length} 位）：${a.names.join('、')}`);
+    return `<g class="spirit-mark" data-x="${x}" data-y="${y}"${a.img ? ` data-full="${escapeHtml(a.img)}" data-cap="${cap}"` : ''}>
+      <circle cx="${x}" cy="${y}" r="5.4" fill="#54c98a" stroke="#fff" stroke-width="0.9"><title>${cap}</title></circle>
+      <text x="${x}" y="${y + 2}" text-anchor="middle" font-size="5.4" fill="#fff" font-weight="700">祖</text></g>`;
+  }).join('');
   // 真實遊戲世界地圖底圖 + SVG 疊層（viewBox 對齊底圖 540×540 座標）
   const svg = `<div class="wl-map">
     <img class="wl-map-bg" src="img/map.webp" alt="光遇世界地圖" draggable="false" />
-    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${showBoundary ? polys + pathLine : ''}${showShrines ? shrineDots : ''}${showWax ? waxMarks : ''}${showWL ? dots : ''}</svg>
+    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${showBoundary ? polys + pathLine : ''}${showSpirits ? spiritDots : ''}${showShrines ? shrineDots : ''}${showWax ? waxMarks : ''}${showWL ? dots : ''}</svg>
   </div>`;
   // 定時蠟燭倒數面板（台灣時間 + 即時倒數；倒數用 .cd 由主迴圈每秒更新）
   const waxPanel = wax.length ? `<div class="wax-panel">${wax.map(w => {
@@ -300,13 +318,14 @@ function wikiWinged() {
   }).join('');
   const layerBar = `<div class="layer-bar"><span class="lb-label">顯示圖層</span>
     <button class="chip ${showWL ? 'on' : ''}" data-layer="wl">✦ 光之翼</button>
+    <button class="chip ${showSpirits ? 'on' : ''}" data-layer="spirits">🟢 先祖</button>
     <button class="chip ${showShrines ? 'on' : ''}" data-layer="shrine">🔷 祭壇</button>
     <button class="chip ${showWax ? 'on' : ''}" data-layer="wax">🍬 蠟燭點</button>
     <button class="chip ${showBoundary ? 'on' : ''}" data-layer="boundary">🗺️ 國度框線</button>
     <span class="lb-sep"></span>
     <button class="chip ${wlOnlyTodo ? 'on' : ''}" data-wlfilter>只看未拿翼</button>
   </div>`;
-  return `<p class="note" style="margin-top:0">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>。黃點＝光之翼、🔷＝祭壇、🥟🦔＝蠟燭點，點標記看實景；滾輪／雙指或右上 ＋－ 縮放、拖曳平移。用下方開關勾選要顯示的圖層。</p>
+  return `<p class="note" style="margin-top:0">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>。黃點＝光之翼、🟢＝先祖、🔷＝祭壇、🥟🦔＝蠟燭點，點標記看實景／名單；滾輪／雙指或右上 ＋－ 縮放、拖曳平移。用下方開關勾選要顯示的圖層。</p>
     ${layerBar}
     ${showWax ? waxPanel : ''}
     <div class="wl-map-wrap">
@@ -328,6 +347,7 @@ function bindWlCollection() {
   $$('[data-layer]', root).forEach(b => b.addEventListener('click', () => {
     const L = b.dataset.layer;
     if (L === 'wl') showWL = !showWL;
+    else if (L === 'spirits') showSpirits = !showSpirits;
     else if (L === 'shrine') showShrines = !showShrines;
     else if (L === 'wax') showWax = !showWax;
     else if (L === 'boundary') showBoundary = !showBoundary;
@@ -422,7 +442,7 @@ function setupMapZoom(wrap) {
     try { loc = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); }
     catch (_) { const p = inner.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; loc = p.matrixTransform(m.inverse()); }
     let best = null, bestD = Infinity;
-    inner.querySelectorAll('.wl-mark, .shrine-mark, .wax-mark').forEach(g => {
+    inner.querySelectorAll('.wl-mark, .shrine-mark, .wax-mark, .spirit-mark').forEach(g => {
       if (g.style.display === 'none') return;
       const dx = loc.x - (+g.dataset.x), dy = loc.y - (+g.dataset.y);
       const d = dx * dx + dy * dy;
