@@ -324,11 +324,10 @@ function detectQuestRealm(en) {
   const ri = realmIndex();
   for (const k in ri) { if (new RegExp('\\b' + k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i').test(en)) return ri[k]; }
   for (const w in QUEST_REALM_SHORT) { if (new RegExp('\\b' + w + '\\b', 'i').test(en)) return ri[QUEST_REALM_SHORT[w]]; }
-  if (/melt\b.*darkness|dark plant|dark dragon|corrupt/i.test(en)) return ri['Golden Wasteland']; // 融化黑暗 → 暮土
   return null;
 }
-// 不限地點（社交/通用動作）的任務
-const QUEST_ANYWHERE = /light \d+ candles?|forge \d+ candles?|make \d+ (?:new )?friends?|bow (?:to|at)|wave (?:to|at)|give a hug|hug a|high[- ]?five|send (?:a )?gift|hold hands?/i;
+// 不限地點（社交/通用動作，所有區域皆可）的任務
+const QUEST_ANYWHERE = /melt \d* ?darkness|light \d+ candles?|forge \d+ candles?|make \d+ (?:new )?friends?|bow (?:to|at)|wave (?:to|at)|give a hug|hug a|high[- ]?five|send (?:a )?gift|hold hands?/i;
 
 // 今日任務即時資料（來源：SkyHelper API，CORS 開放、每日重置後更新）
 let questState = { day: null, loaded: false, loading: false, error: false, data: null };
@@ -386,7 +385,7 @@ function renderQuests(now) {
       } else {
         const realm = detectQuestRealm(en);
         if (realm && realm.pos) {
-          const rl = zhName(realm.name) + '（' + realm.name + '）' + (/melt\b.*darkness/i.test(en) ? ' · 黑暗通常在暮土' : '');
+          const rl = zhName(realm.name) + '（' + realm.name + '）';
           locMedia = mediaBlock(rl, realm.img, realm.pos);
         } else if (QUEST_ANYWHERE.test(en)) {
           locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 不限地點（任何地方都可完成）</p>`;
