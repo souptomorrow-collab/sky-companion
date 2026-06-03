@@ -32,6 +32,9 @@ try { SHRINE_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'shrine-img.j
 // 每日大蠟路線圖（國度名 → 本地路徑 img/candle/*.webp，來源 sky-planner/solsuga），可選
 let CANDLE_IMG = {};
 try { CANDLE_IMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'candle-img.json'), 'utf8')); } catch (e) {}
+// 先祖位置教學圖（spirit guid → wiki 圖網址；由 fetch-spirit-locimg.cjs 產生），可選
+let SPIRIT_LOCIMG = {};
+try { SPIRIT_LOCIMG = JSON.parse(fs.readFileSync(path.join(__dirname, 'spirit-locimg.json'), 'utf8')); } catch (e) {}
 
 const itemsMap = new Map(get('items').map(x => [x.guid, x]));
 const nodesMap = new Map(get('nodes').map(x => [x.guid, x]));
@@ -126,6 +129,7 @@ const spirits = get('spirits')
       traveled: spiritTraveled.get(s.guid) || [],
       wiki: s._wiki ? s._wiki.href : null,
       loc: spiritLoc(s.guid), // {realm,area,pos:[lat,lng]} 或 null（活動先祖等無固定點）
+      locImg: SPIRIT_LOCIMG[s.guid] || '', // 位置教學圖（含箭頭/標記，Wiki 來源），可能無
     };
   });
 

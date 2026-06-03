@@ -75,9 +75,10 @@ function spiritBody(sp) {
   if (sp.loc && sp.loc.pos) {
     const lt = (typeof locText === 'function') ? locText(sp.loc) : (sp.loc.area || '');
     const tip = sp.type === 'Season' ? '（季節先祖：此為其季節原本所在的地點）' : '';
+    const guide = sp.locImg ? `<div class="sp-guide">${IMGT(sp.locImg, lt + ' 位置教學圖', 'loc-guide')}</div>` : '';
     const photo = sp.loc.img ? `<div class="shard-photo-wrap">${IMGT(sp.loc.img, lt, 'shard-photo')}</div>` : '';
     const map = (typeof posMiniMap === 'function') ? posMiniMap(sp.loc.pos, lt, sp.loc.img) : '';
-    locHtml = `<div class="sp-loc"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(lt)}${tip}</p><div class="shard-media">${photo}<div class="shard-map-wrap">${map}</div></div></div>`;
+    locHtml = `<div class="sp-loc"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(lt)}${tip}${sp.locImg ? ' · ⬇ 下圖有箭頭標出精確位置' : ''}</p>${guide}<div class="shard-media">${photo}<div class="shard-map-wrap">${map}</div></div></div>`;
   } else if (sp.type === 'Event') {
     locHtml = `<p class="note">📍 活動限定，無固定地點</p>`;
   }
@@ -269,22 +270,26 @@ function wikiWinged() {
       <circle cx="${x}" cy="${y}" r="6.2" fill="${w.color}" stroke="#fff" stroke-width="0.9"><title>${cap}</title></circle>
       <text x="${x}" y="${y + 2.2}" text-anchor="middle" font-size="6" fill="#fff" font-weight="700">${w.char}</text></g>`;
   }).join('');
-  // 先祖位置：依區域(座標)聚合，同區多位先祖共用一個綠色「祖」標記，點開看實景＋名單
-  const spiritAreas = {};
+  // 先祖位置：每位先祖一個綠點；同區多位以小環狀錯開，點開優先看「位置教學圖」(有箭頭標記)，無則區域實景
+  const spiritByPos = {};
   (SD.spirits || []).forEach(s => {
     if (!s.loc || !s.loc.pos) return;
     const k = s.loc.pos.join(',');
-    if (!spiritAreas[k]) spiritAreas[k] = { pos: s.loc.pos, realm: s.loc.realm, area: s.loc.area, img: s.loc.img, names: [] };
-    spiritAreas[k].names.push(zhOf(s.name) || s.name);
+    (spiritByPos[k] = spiritByPos[k] || []).push(s);
   });
-  const spiritDots = Object.keys(spiritAreas).map(k => {
-    const a = spiritAreas[k];
-    const x = X(a.pos), y = Y(a.pos);
-    const loc = [zhOf(a.realm) || a.realm, zhOf(a.area) || a.area].filter(Boolean).join(' · ');
-    const cap = escapeHtml(`👴 先祖 · ${loc}（${a.names.length} 位）：${a.names.join('、')}`);
-    return `<g class="spirit-mark" data-x="${x}" data-y="${y}"${a.img ? ` data-full="${escapeHtml(a.img)}" data-cap="${cap}"` : ''}>
-      <circle cx="${x}" cy="${y}" r="5.4" fill="#54c98a" stroke="#fff" stroke-width="0.9"><title>${cap}</title></circle>
-      <text x="${x}" y="${y + 2}" text-anchor="middle" font-size="5.4" fill="#fff" font-weight="700">祖</text></g>`;
+  const spiritDots = Object.keys(spiritByPos).map(k => {
+    const grp = spiritByPos[k], n = grp.length;
+    const cx = X(grp[0].loc.pos), cy = Y(grp[0].loc.pos);
+    return grp.map((s, i) => {
+      let x = cx, y = cy;
+      if (n > 1) { const r = Math.min(3 + n * 0.5, 9), a = (i / n) * 2 * Math.PI; x = cx + r * Math.cos(a); y = cy + r * Math.sin(a); }
+      const nm = zhOf(s.name) || s.name;
+      const loc = [zhOf(s.loc.realm) || s.loc.realm, zhOf(s.loc.area) || s.loc.area].filter(Boolean).join(' · ');
+      const img = s.locImg || s.loc.img;
+      const cap = escapeHtml(`${nm} · ${loc}${s.locImg ? '（位置教學圖）' : '（區域實景）'}`);
+      return `<g class="spirit-mark${s.locImg ? ' has-guide' : ''}" data-x="${x.toFixed(1)}" data-y="${y.toFixed(1)}"${img ? ` data-full="${escapeHtml(img)}" data-cap="${cap}"` : ''}>
+        <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" fill="#54c98a" stroke="#fff" stroke-width="0.7"><title>${cap}</title></circle></g>`;
+    }).join('');
   }).join('');
   // 真實遊戲世界地圖底圖 + SVG 疊層（viewBox 對齊底圖 540×540 座標）
   const svg = `<div class="wl-map">
