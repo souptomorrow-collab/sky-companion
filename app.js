@@ -254,6 +254,7 @@ const QUEST_VOCAB = [
   [/\bPrairie\b/gi, '雲野'], [/\bForest\b/gi, '雨林'], [/\bValley\b/gi, '霞谷'],
   [/\bWasteland\b/gi, '暮土'], [/\bVault\b/gi, '禁閣'], [/\bIsle\b/gi, '晨島'],
   [/\bcandles?\b/gi, '蠟燭'], [/\bdarkness\b/gi, '黑暗'], [/\bcave\b/gi, '洞穴'], [/\bshrine\b/gi, '神壇'],
+  [/\bfriends?\b/gi, '朋友'], [/\bstrangers?\b/gi, '陌生人'], [/\bplayers?\b/gi, '玩家'], [/\bsomeone\b/gi, '某人'],
   [/\bTemple\b/gi, '神廟'], [/\bGuide\b/gi, '嚮導'], [/\bLight\b/gi, '光'],
   [/['’]s\b/g, ''], [/\b(?:the|a|an)\b/gi, ''],
 ];
