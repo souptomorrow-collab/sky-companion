@@ -5,8 +5,8 @@
   --panel: rgba(255, 255, 255, 0.82);
   --panel-solid: #ffffff;
   --line: rgba(120, 175, 222, 0.30);
-  --text: #54648c;
-  --muted: #95a8c8;
+  --text: #4c5c82;
+  --muted: #6f82a8;  /* 調深以符合無障礙對比（原 #95a8c8 太淺） */
   --gold: #ff9ec7;        /* 粉色主強調 */
   --gold-soft: #ffd0e6;   /* 淺粉（漸層用） */
   --red: #ff89a8;
