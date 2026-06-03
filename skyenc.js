@@ -36,6 +36,7 @@ function fmtTotals(t) {
 
 /* ---------- 先祖圖鑑 ---------- */
 let dexState = { q: '', filter: 'all' };
+let dexQTimer = null;
 const dexByName = new Map(SD.spirits.map(s => [s.name, s]));
 function dexCollected() { return Store.get('dex', {}); }
 function dexToggle(name) {
@@ -118,17 +119,32 @@ function renderDex() {
     <div class="dex-head">
       <input type="text" id="dex-q" placeholder="搜尋先祖 / 季節 / 國度…" aria-label="搜尋先祖" value="${escapeHtml(dexState.q)}" />
       <div class="chips">${chips.map(c => `<button class="chip ${dexState.filter === c[0] ? 'on' : ''}" data-filter="${c[0]}">${c[1]}</button>`).join('')}</div>
-      <p class="note">已解鎖 ${got}/${total}　·　顯示 ${list.length} 位</p>
+      <p class="note">已解鎖 <b id="dex-got">${got}</b>/${total}　·　顯示 ${list.length} 位</p>
     </div>
     <div class="dex-list">${list.map(spiritCard).join('')}</div>`;
 
   const q = $('#dex-q');
-  q.addEventListener('input', () => { dexState.q = q.value; const pos = q.selectionStart; renderDex(); const nq = $('#dex-q'); nq.focus(); try { nq.setSelectionRange(pos, pos); } catch (_) {} });
+  q.addEventListener('input', () => {
+    dexState.q = q.value; const pos = q.selectionStart;
+    clearTimeout(dexQTimer);
+    dexQTimer = setTimeout(() => { renderDex(); const nq = $('#dex-q'); if (nq) { nq.focus(); try { nq.setSelectionRange(pos, pos); } catch (_) {} } }, 180);
+  });
   $$('.chip', root).forEach(b => b.addEventListener('click', () => { dexState.filter = b.dataset.filter; renderDex(); }));
   const listEl = $('.dex-list', root);
   listEl.addEventListener('click', e => {
     const star = e.target.closest('.star');
-    if (star) { e.preventDefault(); dexToggle(star.dataset.star); renderDex(); }
+    if (!star) return;
+    e.preventDefault();
+    const name = star.dataset.star;
+    dexToggle(name);
+    const on = !!dexCollected()[name];
+    // 只更新那顆星與進度，不整頁重畫（保留展開狀態與捲動位置）
+    star.classList.toggle('on', on);
+    star.textContent = on ? '★' : '☆';
+    const gotEl = root.querySelector('#dex-got');
+    if (gotEl) gotEl.textContent = SD.spirits.filter(s => dexCollected()[s.name]).length;
+    // 「未解鎖」篩選下，剛標為已解鎖的卡要移出視圖
+    if (dexState.filter === 'uncollected' && on) { const card = star.closest('.spirit'); if (card) card.remove(); }
   });
   listEl.addEventListener('toggle', e => { // 展開時才填入明細（toggle 不冒泡，用捕獲）
     const d = e.target;
