@@ -2,7 +2,7 @@
  * 策略：HTML 網路優先（確保更新）；同源圖片/JS/CSS cache-first＋背景更新；
  * API / 第三方動態資源（SkyHelper、Discord、wikia、Firebase）一律走網路、不快取。
  */
-const CACHE = 'sky-companion-v1';
+const CACHE = 'sky-companion-v2';
 const BYPASS = /api\.skyhelper\.xyz|cdn\.discordapp\.com|static\.wikia\.nocookie\.net|sky-planner\.com|gstatic\.com|googleapis\.com|firebaseio\.com|firebase|fandom\.com/i;
 
 self.addEventListener('install', e => { self.skipWaiting(); });
