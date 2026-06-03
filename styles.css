@@ -360,6 +360,8 @@ input:focus { border-color: var(--accent); }
 .dex-head, .wiki-nav { background: var(--panel-solid); }
 .item input[type=checkbox], .q-item input, .q-check, .wl-check { accent-color: var(--gold); }
 .wl-mark circle { fill: #ffd76b; }
+.pill-loc:hover { color: var(--ink-pink); }
+.wl-n { background: rgba(255,158,199,.16); color: var(--ink-pink); }
 
 /* 雲朵小狗裝飾（原創插畫，非三麗鷗官方圖） */
 .cinna-deco { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
