@@ -312,7 +312,8 @@ function wikiWinged() {
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
-    </div>${list}`;
+    </div>${list}
+    <details class="wiki-card" style="margin-top:14px"><summary><b>🕯️ 每日大蠟地圖</b> <span class="muted">各國度固定大蠟位置 · 點開查看</span></summary><div class="sp-body">${wikiCandleMaps()}</div></details>`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
 function renderMap() {
@@ -441,9 +442,9 @@ function setupMapZoom(wrap) {
 function renderWiki() {
   const root = $('#wiki-root');
   if (!root) return;
-  const subs = [['seasons', '季節'], ['realms', '國度'], ['candlemap', '🕯️ 大蠟地圖'], ['events', '活動'], ['currencies', '貨幣'], ['shards', '碎石'], ['daily', '每日攻略']];
+  const subs = [['seasons', '季節'], ['realms', '國度'], ['events', '活動'], ['currencies', '貨幣'], ['shards', '碎石'], ['daily', '每日攻略']];
   const fn = {
-    seasons: wikiSeasons, realms: wikiRealms, candlemap: wikiCandleMaps, events: wikiEvents,
+    seasons: wikiSeasons, realms: wikiRealms, events: wikiEvents,
     currencies: wikiCurrencies, shards: wikiShards, daily: wikiDaily,
   }[wikiTab] || wikiSeasons;
   const body = fn();
