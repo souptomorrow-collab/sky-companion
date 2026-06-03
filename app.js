@@ -22,7 +22,7 @@ function nm(name) {
 /* 圖片縮圖（點開燈箱）。wikia 圖用 no-referrer 避開防盜連；載入失敗自動隱藏。 */
 function imgThumb(url, cap, cls) {
   if (!url) return '';
-  return `<img class="wl-thumb ${cls || ''}" src="${escapeHtml(url)}" data-full="${escapeHtml(url)}" data-cap="${escapeHtml(cap || '')}" loading="lazy" referrerpolicy="no-referrer" alt="${escapeHtml(cap || '照片')}" onerror="this.style.display='none'" />`;
+  return `<img class="wl-thumb ${cls || ''}" src="${escapeHtml(url)}" data-full="${escapeHtml(url)}" data-cap="${escapeHtml(cap || '')}" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="${escapeHtml(cap || '照片')}" onerror="this.style.display='none'" />`;
 }
 function shardImg(loc) { return (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.shardImages && window.SKYDATA.shardImages[loc]) || ''; }
 // 世界地圖小圖 + 脈動紅點（pos=[lat,lng]）。整塊可點擊 → 開全螢幕可縮放地圖（含該地點實景照片）。
