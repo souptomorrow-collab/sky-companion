@@ -17,6 +17,7 @@ let showShrines = _ls('map_shrine', true); // 祭壇（地圖神像）
 let showWax = _ls('map_wax', true);        // 饅頭/海膽 定時蠟燭點
 let showBoundary = _ls('map_boundary', true); // 國度框線 + 標籤 + 旅程連線
 let showSpirits = _ls('map_spirits', true);   // 先祖位置
+let showShards = _ls('map_shards', true);     // 今日碎石位置
 function wlGot() { return Store.get('wl', {}); }
 function wlToggle(order) { const g = wlGot(); if (g[order]) delete g[order]; else g[order] = 1; Store.set('wl', g); }
 
@@ -292,10 +293,28 @@ function wikiWinged() {
         <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.6" fill="#54c98a" stroke="#fff" stroke-width="0.7"><title>${cap}</title></circle></g>`;
     }).join('');
   }).join('');
+  // 今日碎石位置：紅石/黑石，於碎石所在區域標一個彩色圈
+  let shardMark = '';
+  try {
+    if (typeof SHARD !== 'undefined' && typeof skyParts === 'function') {
+      const p = skyParts(new Date());
+      const sd = SHARD.forDate(p.year, p.month, p.day);
+      const spos = sd && sd.hasShard && (SD.shardPos || {})[sd.location[0]];
+      if (spos) {
+        const x = X(spos), y = Y(spos), red = sd.type === 'red';
+        const t0 = (sd.eruptions && sd.eruptions[0] && typeof fmtLocalTime === 'function') ? fmtLocalTime(sd.eruptions[0].start) : '';
+        const cap = escapeHtml(`${red ? '🔴 紅石' : '⚫ 黑石'} · ${sd.realmZh} · ${sd.location[1]}${t0 ? ' · 首次 ' + t0 + '（台灣）' : ''}`);
+        const img = (SD.shardImages || {})[sd.location[0]];
+        shardMark = `<g class="shard-mark" data-x="${x}" data-y="${y}"${img ? ` data-full="${escapeHtml(img)}" data-cap="${cap}"` : ''}>
+          <circle cx="${x}" cy="${y}" r="6.6" fill="${red ? '#ff5a5a' : '#9b7be0'}" stroke="#fff" stroke-width="1"><title>${cap}</title></circle>
+          <text x="${x}" y="${y + 2.4}" text-anchor="middle" font-size="7" fill="#fff" font-weight="700">${red ? '紅' : '黑'}</text></g>`;
+      }
+    }
+  } catch (e) {}
   // 真實遊戲世界地圖底圖 + SVG 疊層（viewBox 對齊底圖 540×540 座標）
   const svg = `<div class="wl-map">
     <img class="wl-map-bg" src="img/map.webp" alt="光遇世界地圖" draggable="false" />
-    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${showBoundary ? polys + pathLine : ''}${showSpirits ? spiritDots : ''}${showShrines ? shrineDots : ''}${showWax ? waxMarks : ''}${showWL ? dots : ''}</svg>
+    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${showBoundary ? polys + pathLine : ''}${showSpirits ? spiritDots : ''}${showShrines ? shrineDots : ''}${showWax ? waxMarks : ''}${showShards ? shardMark : ''}${showWL ? dots : ''}</svg>
   </div>`;
   // 定時蠟燭倒數面板（台灣時間 + 即時倒數；倒數用 .cd 由主迴圈每秒更新）
   const waxPanel = wax.length ? `<div class="wax-panel">${wax.map(w => {
@@ -327,11 +346,12 @@ function wikiWinged() {
     <button class="chip ${showSpirits ? 'on' : ''}" data-layer="spirits">🟢 先祖</button>
     <button class="chip ${showShrines ? 'on' : ''}" data-layer="shrine">🔷 祭壇</button>
     <button class="chip ${showWax ? 'on' : ''}" data-layer="wax">🍬 蠟燭點</button>
+    <button class="chip ${showShards ? 'on' : ''}" data-layer="shards">🌑 今日碎石</button>
     <button class="chip ${showBoundary ? 'on' : ''}" data-layer="boundary">🗺️ 國度框線</button>
     <span class="lb-sep"></span>
     <button class="chip ${wlOnlyTodo ? 'on' : ''}" data-wlfilter>只看未拿翼</button>
   </div>`;
-  return `<p class="note" style="margin-top:0">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>。黃點＝光之翼、🟢＝先祖、🔷＝祭壇、🥟🦔＝蠟燭點，點標記看實景／名單；滾輪／雙指或右上 ＋－ 縮放、拖曳平移。用下方開關勾選要顯示的圖層。</p>
+  return `<p class="note" style="margin-top:0">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>。黃點＝光之翼、🟢＝先祖、🔷＝祭壇、🥟🦔＝蠟燭點、🔴⚫＝今日碎石，點標記看實景／名單；滾輪／雙指或右上 ＋－ 縮放、拖曳平移。用下方開關勾選要顯示的圖層。</p>
     ${layerBar}
     ${showWax ? waxPanel : ''}
     <div class="wl-map-wrap">
@@ -356,6 +376,7 @@ function bindWlCollection() {
     else if (L === 'spirits') { showSpirits = !showSpirits; Store.set('map_spirits', showSpirits); }
     else if (L === 'shrine') { showShrines = !showShrines; Store.set('map_shrine', showShrines); }
     else if (L === 'wax') { showWax = !showWax; Store.set('map_wax', showWax); }
+    else if (L === 'shards') { showShards = !showShards; Store.set('map_shards', showShards); }
     else if (L === 'boundary') { showBoundary = !showBoundary; Store.set('map_boundary', showBoundary); }
     renderMap();
   }));
@@ -448,7 +469,7 @@ function setupMapZoom(wrap) {
     try { loc = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); }
     catch (_) { const p = inner.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; loc = p.matrixTransform(m.inverse()); }
     let best = null, bestD = Infinity;
-    inner.querySelectorAll('.wl-mark, .shrine-mark, .wax-mark, .spirit-mark').forEach(g => {
+    inner.querySelectorAll('.wl-mark, .shrine-mark, .wax-mark, .spirit-mark, .shard-mark').forEach(g => {
       if (g.style.display === 'none') return;
       const dx = loc.x - (+g.dataset.x), dy = loc.y - (+g.dataset.y);
       const d = dx * dx + dy * dy;

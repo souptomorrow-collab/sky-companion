@@ -84,6 +84,21 @@ function spLoc(name) {
   const s = list.find(x => x.name === name);
   return (s && s.loc) || null;
 }
+// 依先祖名查完整資料（含兌換物品 items / 總花費 totals）
+function spiritByName(name) {
+  const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.spirits) || [];
+  return list.find(x => x.name === name) || null;
+}
+// 復刻先祖兌換內容（物品清單 + 總花費）。fmtCost/fmtTotals 由 skyenc.js 提供
+function tsTreeHTML(name) {
+  const sp = name ? spiritByName(name) : null;
+  if (!sp || !sp.items || !sp.items.length) return '';
+  const fc = (typeof fmtCost === 'function') ? fmtCost : () => '';
+  const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
+  const rows = sp.items.map(it => `<div class="dex-item"><span>${escapeHtml(it.name)} <span class="muted">${escapeHtml(it.type || '')}</span></span><span class="cost">${fc(it.cost)}</span></div>`).join('');
+  return `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(sp.totals)}</span></div>
+    <details class="wiki-card" style="margin-top:6px"><summary><b>🎁 兌換內容（${sp.items.length} 項）· 點開</b></summary><div class="sp-body">${rows}</div></details>`;
+}
 // 地點文字（中文優先）："暮土 · 藏寶礁"
 function locText(loc) {
   if (!loc) return '';
@@ -576,7 +591,8 @@ function renderSpirits(now) {
         <div class="shard-media">
           ${loc.img ? `<div class="shard-photo-wrap">${imgThumb(loc.img, locText(loc), 'shard-photo')}</div>` : ''}
           <div class="shard-map-wrap">${posMiniMap(loc.pos, locText(loc), loc.img)}</div>
-        </div>` : ''}`;
+        </div>` : ''}
+      ${tsTreeHTML(who)}`;
   } else {
     const next = tsArrival(cur.k + 1);
     const who = tsSpiritOn(dateKey(next.cal));

@@ -231,6 +231,10 @@ input:focus { outline: none; border-color: var(--accent); }
 .spirit-mark circle { transition: filter .1s; }
 .spirit-mark:hover circle { filter: brightness(1.2); }
 .spirit-mark text { pointer-events: none; }
+.shard-mark { cursor: pointer; }
+.shard-mark circle { transition: filter .1s; }
+.shard-mark:hover circle { filter: brightness(1.2); }
+.shard-mark text { pointer-events: none; }
 .wax-panel { margin: 8px 0 4px; padding: 10px 12px; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 10px; }
 .wax-row { font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 3px 0; }
 .wax-dot { display: inline-flex; width: 20px; height: 20px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; align-items: center; justify-content: center; flex: 0 0 auto; }
