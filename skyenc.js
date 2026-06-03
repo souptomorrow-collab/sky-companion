@@ -243,11 +243,29 @@ function wikiWinged() {
     return `<g class="shrine-mark" data-x="${x}" data-y="${y}"${s.img ? ` data-full="${escapeHtml(s.img)}" data-cap="${cap}"` : ''}>
       <path d="M${x},${y - 4.4} L${x + 4.4},${y} L${x},${y + 4.4} L${x - 4.4},${y} Z"><title>${cap}</title></path></g>`;
   }).join('') : '';
+  // 定時蠟燭點：饅頭（雨林團圓飯）/ 海膽（聖島污染噴泉），彩色圓點 + 中文字
+  const wax = (typeof waxEventsInfo === 'function') ? waxEventsInfo(new Date()) : [];
+  const waxMarks = wax.filter(w => w.pos).map(w => {
+    const x = X(w.pos), y = Y(w.pos);
+    const cap = escapeHtml(`${w.emoji} ${w.name}（${w.realmZh}）· ${w.note}`);
+    return `<g class="wax-mark" data-x="${x}" data-y="${y}"${w.img ? ` data-full="${escapeHtml(w.img)}" data-cap="${cap}"` : ''}>
+      <circle cx="${x}" cy="${y}" r="6.2" fill="${w.color}" stroke="#fff" stroke-width="0.9"><title>${cap}</title></circle>
+      <text x="${x}" y="${y + 2.2}" text-anchor="middle" font-size="6" fill="#fff" font-weight="700">${w.char}</text></g>`;
+  }).join('');
   // 真實遊戲世界地圖底圖 + SVG 疊層（viewBox 對齊底圖 540×540 座標）
   const svg = `<div class="wl-map">
     <img class="wl-map-bg" src="img/map.webp" alt="光遇世界地圖" draggable="false" />
-    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${polys}${pathLine}${shrineDots}${dots}</svg>
+    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${polys}${pathLine}${shrineDots}${waxMarks}${dots}</svg>
   </div>`;
+  // 定時蠟燭倒數面板（台灣時間 + 即時倒數；倒數用 .cd 由主迴圈每秒更新）
+  const waxPanel = wax.length ? `<div class="wax-panel">${wax.map(w => {
+    const cdFn = (typeof cd === 'function') ? cd : (() => '');
+    const fL = (typeof fmtLocalTime === 'function') ? fmtLocalTime : (d => d);
+    const status = w.activeUntil
+      ? `<span class="badge live">出現中</span> 結束 ${cdFn(w.activeUntil)}`
+      : (w.next ? `下次 <b>${fL(w.next)}</b>（台灣）　${cdFn(w.next.getTime())}` : '');
+    return `<div class="wax-row"><span class="wax-dot" style="background:${w.color}">${w.char}</span><b>${w.emoji} ${w.name}</b> <span class="muted">${w.realmZh}</span>　${status}</div>`;
+  }).join('')}<p class="note" style="margin:4px 0 0">饅頭/海膽每 2 小時出現一次（太平洋偶數整點，已換算台灣時間），持續約 10 分鐘，可燒得大量燭光。點地圖上的 🥟🦔 看實景。</p></div>` : '';
   const byRealm = {};
   (SD.wingedLights || []).forEach(w => { (byRealm[w.realm] = byRealm[w.realm] || []).push(w); });
   const list = Object.keys(byRealm).map(rk => {
@@ -264,7 +282,8 @@ function wikiWinged() {
       <div class="sp-body">${rows || '<p class="muted">此國度已全部拿完 ✓</p>'}</div>
     </details>`;
   }).join('');
-  return `<p class="note">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>　·　<button class="chip ${wlOnlyTodo ? 'on' : ''}" data-wlfilter>只看未拿</button>　<button class="chip ${showShrines ? 'on' : ''}" data-shrinetoggle>🔥 祭壇</button><br>黃點＝光之翼（點看實拍照片）；🔷 青色菱形＝祭壇／地圖神像（點亮即開啟該區域地圖，點看實景）。滾輪／雙指或右上 ＋－ 可縮放、拖曳平移。</p>
+  return `<p class="note">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>　·　<button class="chip ${wlOnlyTodo ? 'on' : ''}" data-wlfilter>只看未拿</button>　<button class="chip ${showShrines ? 'on' : ''}" data-shrinetoggle>🔥 祭壇</button><br>黃點＝光之翼（點看實拍照片）；🔷 青色菱形＝祭壇／地圖神像（點亮即開啟該區域地圖）；🥟饅頭／🦔海膽＝定時蠟燭點。滾輪／雙指或右上 ＋－ 可縮放、拖曳平移。</p>
+    ${waxPanel}
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
@@ -371,7 +390,7 @@ function setupMapZoom(wrap) {
     try { loc = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse()); }
     catch (_) { const p = inner.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; loc = p.matrixTransform(m.inverse()); }
     let best = null, bestD = Infinity;
-    inner.querySelectorAll('.wl-mark, .shrine-mark').forEach(g => {
+    inner.querySelectorAll('.wl-mark, .shrine-mark, .wax-mark').forEach(g => {
       if (g.style.display === 'none') return;
       const dx = loc.x - (+g.dataset.x), dy = loc.y - (+g.dataset.y);
       const d = dx * dx + dy * dy;

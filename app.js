@@ -76,6 +76,35 @@ function locText(loc) {
   const zh = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
   return [loc.realm && zh(loc.realm), loc.area && zh(loc.area)].filter(Boolean).join(' · ');
 }
+
+/* ---------- 定時蠟燭點：饅頭（雨林團圓飯）/ 海膽（聖島污染噴泉）----------
+ * 兩者皆每 2 小時、於「太平洋偶數整點」的固定分鐘出現，持續約 10 分鐘。
+ * 海膽：偶數整點 :05 噴發；饅頭：偶數整點 :35 出現。每天各 12 次。
+ */
+const WAX_EVENTS = [
+  { key: 'urchin', name: '海膽', char: '膽', emoji: '🦔', color: '#a371ff', realmZh: '雲野 · 聖島', pos: [-352.25, 206.25], img: 'img/area/prairie-sanctuary.webp', minute: 5, dur: 10, note: '聖島受污染的間歇泉，燒掉噴出的污染物可得大量燭光' },
+  { key: 'bun', name: '饅頭', char: '饅', emoji: '🥟', color: '#ff9d42', realmZh: '雨林 · 團圓桌', pos: [-366.19, 117.44], img: 'img/area/forest-clearing.webp', minute: 35, dur: 10, note: '雨林「奶奶聚餐」長桌，點燃饅頭（餐點）可得大量燭光' },
+];
+// 下一次出現（太平洋偶數整點的第 minute 分），逐一以 skyWallToDate 計算，DST 正確
+function nextWaxTime(minute, now) {
+  const p = skyParts(now);
+  for (let day = 0; day < 2; day++) {
+    const d = addDays(p.year, p.month, p.day, day);
+    for (let h = 0; h < 24; h += 2) {
+      const t = skyWallToDate(d.y, d.mo, d.d, h, minute, 0);
+      if (t.getTime() > now.getTime()) return t;
+    }
+  }
+  return null;
+}
+function waxEventsInfo(now) {
+  return WAX_EVENTS.map(w => {
+    const next = nextWaxTime(w.minute, now);
+    const prev = next ? new Date(next.getTime() - 2 * 3600 * 1000) : null;
+    const activeUntil = (prev && now.getTime() < prev.getTime() + w.dur * 60000) ? prev.getTime() + w.dur * 60000 : null;
+    return Object.assign({}, w, { next, activeUntil });
+  });
+}
 function tsImgOn(dateStr) {
   const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.travelingSpirits) || [];
   for (const t of list) if (t.date === dateStr) return t.img || '';

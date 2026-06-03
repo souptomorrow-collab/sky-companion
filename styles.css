@@ -218,6 +218,13 @@ input:focus { outline: none; border-color: var(--accent); }
 .shrine-mark { cursor: pointer; }
 .shrine-mark path { fill: #46d4e0; stroke: #07313a; stroke-width: 0.5; transition: fill .1s; }
 .shrine-mark:hover path { fill: #c2f7ff; stroke: var(--gold); stroke-width: 1; }
+.wax-mark { cursor: pointer; }
+.wax-mark circle { transition: filter .1s; }
+.wax-mark:hover circle { filter: brightness(1.25); }
+.wax-mark text { pointer-events: none; }
+.wax-panel { margin: 8px 0 4px; padding: 10px 12px; background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 10px; }
+.wax-row { font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 3px 0; }
+.wax-dot { display: inline-flex; width: 20px; height: 20px; border-radius: 50%; color: #fff; font-size: 12px; font-weight: 700; align-items: center; justify-content: center; flex: 0 0 auto; }
 .wl-mark.wl-got circle { fill: #495680; stroke: #20263f; }
 .wl-mark.wl-got text { fill: #c5cbe4; }
 .wl-check { flex: 0 0 auto; width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; }
