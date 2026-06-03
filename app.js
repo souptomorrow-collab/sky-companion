@@ -697,6 +697,7 @@ function importData(e) {
 
 /* ---------- 分頁切換 ---------- */
 function showTab(name) {
+  Store.set('last_tab', name); // 記住上次分頁
   $$('.tab').forEach(t => {
     const on = t.dataset.tab === name;
     t.classList.toggle('active', on);
@@ -799,6 +800,10 @@ function init() {
   });
   bindSettings();
   reRenderDay(new Date());
+  // 還原上次分頁
+  const VALID_TABS = ['overview', 'shards', 'spirits', 'candles', 'dex', 'map', 'wiki', 'settings'];
+  const lastTab = Store.get('last_tab', 'overview');
+  if (lastTab && lastTab !== 'overview' && VALID_TABS.indexOf(lastTab) >= 0) showTab(lastTab);
   setInterval(tick, 1000);
 }
 

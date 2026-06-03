@@ -3,9 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#10162e" />
+  <meta name="theme-color" content="#aedcf0" />
   <title>光遇助手 · Sky Companion</title>
-  <link rel="stylesheet" href="styles.css?v=0603r" />
+  <link rel="manifest" href="manifest.json?v=0603s" />
+  <link rel="icon" type="image/png" href="favicon-32.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="光遇助手" />
+  <link rel="stylesheet" href="styles.css?v=0603s" />
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -213,13 +218,21 @@
     <div class="ml-host" id="map-lightbox-host"></div>
   </div>
 
-  <script src="util.js?v=0603r"></script>
-  <script src="shards.js?v=0603r"></script>
-  <script src="skydata.js?v=0603r"></script>
-  <script src="zh.js?v=0603r"></script>
-  <script src="app.js?v=0603r"></script>
-  <script src="skyenc.js?v=0603r"></script>
-  <script src="firebase-config.js?v=0603r"></script>
-  <script src="auth.js?v=0603r"></script>
+  <script src="util.js?v=0603s"></script>
+  <script src="shards.js?v=0603s"></script>
+  <script src="skydata.js?v=0603s"></script>
+  <script src="zh.js?v=0603s"></script>
+  <script src="app.js?v=0603s"></script>
+  <script src="skyenc.js?v=0603s"></script>
+  <script src="firebase-config.js?v=0603s"></script>
+  <script src="auth.js?v=0603s"></script>
+  <script>
+    /* PWA：註冊 Service Worker（離線可用、可安裝） */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

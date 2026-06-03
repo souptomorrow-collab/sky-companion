@@ -9,13 +9,14 @@ function NM(x) { return (typeof nm === 'function') ? nm(x) : escapeHtml(x == nul
 function zhOf(name) { return (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[name]) || ''; }
 function IMGT(url, cap, cls) { return (typeof imgThumb === 'function') ? imgThumb(url, cap, cls) : ''; }
 // 光之翼收集追蹤（存 localStorage 'sky_wl'；帳號登入後會一起雲端同步）
-let wlOnlyTodo = false;
-// 地圖圖層開關（哪些類別要顯示在地圖上）
-let showWL = true;       // 光之翼
-let showShrines = true;  // 祭壇（地圖神像）
-let showWax = true;      // 饅頭/海膽 定時蠟燭點
-let showBoundary = true; // 國度框線 + 標籤 + 旅程連線
-let showSpirits = true;  // 先祖位置（依區域聚合）
+let wlOnlyTodo = (typeof Store !== 'undefined') ? Store.get('map_todo', false) : false;
+// 地圖圖層開關（記住上次選擇，存 localStorage）
+const _ls = (k, d) => (typeof Store !== 'undefined') ? Store.get(k, d) : d;
+let showWL = _ls('map_wl', true);          // 光之翼
+let showShrines = _ls('map_shrine', true); // 祭壇（地圖神像）
+let showWax = _ls('map_wax', true);        // 饅頭/海膽 定時蠟燭點
+let showBoundary = _ls('map_boundary', true); // 國度框線 + 標籤 + 旅程連線
+let showSpirits = _ls('map_spirits', true);   // 先祖位置
 function wlGot() { return Store.get('wl', {}); }
 function wlToggle(order) { const g = wlGot(); if (g[order]) delete g[order]; else g[order] = 1; Store.set('wl', g); }
 
@@ -348,14 +349,14 @@ function bindWlCollection() {
   const root = $('#map-root');
   if (!root) return;
   const fb = root.querySelector('[data-wlfilter]');
-  if (fb) fb.addEventListener('click', () => { wlOnlyTodo = !wlOnlyTodo; renderMap(); });
+  if (fb) fb.addEventListener('click', () => { wlOnlyTodo = !wlOnlyTodo; Store.set('map_todo', wlOnlyTodo); renderMap(); });
   $$('[data-layer]', root).forEach(b => b.addEventListener('click', () => {
     const L = b.dataset.layer;
-    if (L === 'wl') showWL = !showWL;
-    else if (L === 'spirits') showSpirits = !showSpirits;
-    else if (L === 'shrine') showShrines = !showShrines;
-    else if (L === 'wax') showWax = !showWax;
-    else if (L === 'boundary') showBoundary = !showBoundary;
+    if (L === 'wl') { showWL = !showWL; Store.set('map_wl', showWL); }
+    else if (L === 'spirits') { showSpirits = !showSpirits; Store.set('map_spirits', showSpirits); }
+    else if (L === 'shrine') { showShrines = !showShrines; Store.set('map_shrine', showShrines); }
+    else if (L === 'wax') { showWax = !showWax; Store.set('map_wax', showWax); }
+    else if (L === 'boundary') { showBoundary = !showBoundary; Store.set('map_boundary', showBoundary); }
     renderMap();
   }));
   $$('.wl-check', root).forEach(cb => cb.addEventListener('change', () => {
