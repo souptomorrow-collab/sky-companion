@@ -222,32 +222,59 @@ function renderOverview(now) {
   renderQuests(now);
 }
 
-// 每日任務標題即時中譯（標題為 SkyHelper 英文、每天變動，用常見詞字典轉換；離線可用）
-const QUEST_ZH = [
-  [/Daily Quest Guide/gi, '每日任務總覽圖'],
-  [/Meditation Quest Guide|Meditation Quest/gi, '冥想任務'],
-  [/Coloured? Light Quest|Color Light Quest/gi, '彩光任務'],
-  [/Catch The Light Quest/gi, '接光任務'],
-  [/Propose a kite design/gi, '提出風箏設計'], [/Catch the light/gi, '接光'], [/Collect/gi, '收集'],
-  [/Meet up with/gi, '前往會合'], [/Read a book together with|Read a book together|Read a book/gi, '一起讀書'],
-  [/Relieve a spirit['’]?s memory/gi, '喚回先祖的記憶'], [/Flight Guide/gi, '飛行季嚮導'],
-  [/Meditate at|Meditate in|Meditate by|Meditate/gi, '冥想於'], [/video guide/gi, '影片攻略'],
+// 每日任務即時中譯（標題為 SkyHelper 英文、每天變動）。先套「完整句型模板」讓語序自然，未命中再退回逐詞詞庫。
+// 詞庫：地點/物件/顏色（給 qLoc 翻譯句中片段用；長詞先放）
+const QUEST_VOCAB = [
   [/Vault of Knowledge/gi, '禁閣'], [/Daylight Prairie/gi, '雲野'], [/Hidden Forest/gi, '雨林'],
   [/Valley of Triumph/gi, '霞谷'], [/Golden Wasteland/gi, '暮土'], [/Isle of Dawn/gi, '晨島'],
   [/Eye of Eden/gi, '伊甸之眼'], [/Aviary Village/gi, '鳥族村'],
+  [/Ancestor['’]?s Table of Belonging/gi, '群擁季先祖長桌'], [/Table of Belonging/gi, '群擁季長桌'],
   [/Prairie Heights/gi, '雲頂'], [/Sanctuary Islands?/gi, '聖島'], [/Butterfly Fields?/gi, '蝴蝶原野'],
-  [/Bird['’]?s? Nest/gi, '鳥巢'], [/Koi Pond/gi, '錦鯉池'], [/Vault Entrance/gi, '禁閣入口'], [/Spirit Mantas?/gi, '蝠鱝精靈'],
+  [/Bird['’]?s? Nest/gi, '鳥巢'], [/Koi Pond/gi, '錦鯉池'], [/Vault Entrance/gi, '禁閣入口'],
+  [/elevated clearing/gi, '高處空地'], [/Forest Clearing/gi, '雨林空地'], [/(?:big )?Tree[- ]?house/gi, '大樹屋'],
+  [/Social Space/gi, '社交空間'], [/Spirit Mantas?/gi, '蝠鱝精靈'], [/\bMantas?\b/gi, '蝠鱝'],
+  [/Flight Guide/gi, '飛行季嚮導'],
   [/Purple Light/gi, '紫光'], [/Green Light/gi, '綠光'], [/Blue Light/gi, '藍光'], [/Red Light/gi, '紅光'],
   [/Yellow Light/gi, '黃光'], [/Orange Light/gi, '橙光'], [/White Light/gi, '白光'],
   [/\bPrairie\b/gi, '雲野'], [/\bForest\b/gi, '雨林'], [/\bValley\b/gi, '霞谷'],
   [/\bWasteland\b/gi, '暮土'], [/\bVault\b/gi, '禁閣'], [/\bIsle\b/gi, '晨島'],
-  [/a\.k\.a\.?/gi, '又名'], [/\bEntrance\b/gi, '入口'], [/\bcave\b/gi, '洞穴'], [/\bshrine\b/gi, '神壇'],
-  [/\bGuide\b/gi, '攻略'], [/\bLight\b/gi, '光'], [/\bQuest\b/gi, '任務'],
-  [/\bin\b/gi, '於'], [/\bat\b/gi, '於'], [/\bby\b/gi, '在'],
+  [/\bcandles?\b/gi, '蠟燭'], [/\bdarkness\b/gi, '黑暗'], [/\bcave\b/gi, '洞穴'], [/\bshrine\b/gi, '神壇'],
+  [/\bTemple\b/gi, '神廟'], [/\bGuide\b/gi, '嚮導'], [/\bLight\b/gi, '光'],
+  [/['’]s\b/g, ''], [/\b(?:the|a|an)\b/gi, ''],
+];
+// 翻譯句中地點/物件片段
+function qLoc(s) {
+  let out = (s || '').trim();
+  for (const [re, zh] of QUEST_VOCAB) out = out.replace(re, zh);
+  return out.replace(/\s+/g, '').trim() || (s || '').trim();
+}
+// 完整句型模板（語序自然）
+const QUEST_TEMPLATES = [
+  [/^Daily Quest Guide/i, () => '每日任務總覽圖'],
+  [/^Catch (?:the )?(\d+) lights?(?: in (.+))?$/i, m => (m[2] ? '在' + qLoc(m[2]) : '') + '接 ' + m[1] + ' 個光'],
+  [/^Catch the lights?(?: in (.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '接光'],
+  [/^Collect (\d+) (\w+) lights?(?: in (.+))?$/i, m => (m[3] ? '在' + qLoc(m[3]) : '') + '收集 ' + m[1] + ' 個' + qLoc(m[2] + ' Light')],
+  [/^Melt (\d+) darkness/i, m => '融化 ' + m[1] + ' 處黑暗'],
+  [/^Light (\d+) candles?/i, m => '點亮 ' + m[1] + ' 根蠟燭'],
+  [/^Forge (\d+) candles?/i, m => '鍛造 ' + m[1] + ' 根蠟燭'],
+  [/^Reli(?:ev|v)e (?:a )?spirit['’]?s memory(?: in (.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '喚回一位先祖的記憶'],
+  [/^Tidy up (.+?)(?: in (.+))?$/i, m => '整理' + qLoc(m[1]) + (m[2] ? '（' + qLoc(m[2]) + '）' : '')],
+  [/^Propose a kite design(?: in (.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '設計風箏'],
+  [/^Meditat(?:e|ion)\b.*?(?:at|in|by|near) (.+)$/i, m => '在' + qLoc(m[1]) + '冥想'],
+  [/^Meet up with (.+?)(?: in (.+))?$/i, m => (m[2] ? '在' + qLoc(m[2]) : '') + '與' + qLoc(m[1]) + '會合'],
+  [/^Read a book together with (.+)$/i, m => '與' + qLoc(m[1]) + '一起讀書'],
+  [/^Make (\d+) (?:new )?friends?/i, m => '結交 ' + m[1] + ' 位新朋友'],
+  [/^Bow to (.+)$/i, m => '向' + qLoc(m[1]) + '鞠躬'],
+  [/^Wave (?:to|at) (.+)$/i, m => '向' + qLoc(m[1]) + '揮手'],
+  [/^Pay (?:your )?respects?(?: at| to)? (.+)$/i, m => '在' + qLoc(m[1]) + '致敬'],
+  [/^Practice with (.+)$/i, m => '與' + qLoc(m[1]) + '練習'],
 ];
 function qZh(s) {
-  let out = s || '';
-  for (const [re, zh] of QUEST_ZH) out = out.replace(re, zh);
+  s = (s || '').replace(/\s*[-–]\s*video guide\s*$/i, '').replace(/\s*[-–]\s*$/i, '').trim();
+  for (const [re, fn] of QUEST_TEMPLATES) { const m = s.match(re); if (m) return fn(m); }
+  let out = s;
+  for (const [re, zh] of QUEST_VOCAB) out = out.replace(re, zh);
+  out = out.replace(/\bin\b/gi, '於').replace(/\bat\b/gi, '於');
   return out.replace(/\s*[-–]\s*/g, ' · ').replace(/\s{2,}/g, ' ').trim();
 }
 
