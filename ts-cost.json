@@ -1,16 +1,32 @@
 {
   "_comment": "復刻先祖『實際復刻價』覆寫（資料庫存的是季節原價）。來源：Sky Fandom Wiki 的 TS Friendship Tree。cost 單位：c=普通蠟燭 h=愛心 ac=升華 sc=季節蠟燭。圖示由 build 依物品名自動帶入。",
+    "_source": "使用者提供的遊戲內樹狀圖（光亮制作）",
   "Twirling Champion": {
     "items": [
       { "name": "Triple Axel", "type": "Emote", "cost": {} },
       { "name": "Triple Axel", "type": "Emote", "cost": { "h": 4 } },
-      { "name": "Blessing", "type": "Special", "cost": {} },
+      { "name": "Blessing", "type": "Special", "cost": { "c": 5 } },
       { "name": "Twirling Champion Mask", "type": "Mask", "cost": { "c": 24 } },
+      { "name": "Heart", "type": "Special", "cost": { "c": 3 } },
       { "name": "Triple Axel", "type": "Emote", "cost": { "h": 3 } },
+      { "name": "Blessing", "type": "Special", "cost": { "c": 5 } },
+      { "name": "Wing Buff", "type": "WingBuff", "cost": { "ac": 2 } },
       { "name": "Triple Axel", "type": "Emote", "cost": { "h": 6 } },
-      { "name": "Twirling Champion Hair", "type": "Hair", "cost": { "c": 34 } },
-      { "name": "Panflute", "type": "Held", "cost": { "c": 60 } }
+      { "name": "Panflute", "type": "Held", "cost": { "c": 60 } },
+      { "name": "Twirling Champion Hair", "type": "Hair", "cost": { "c": 34 } }
     ],
-    "totals": { "c": 118, "h": 13 }
+    "totals": { "c": 131, "ac": 2, "h": 13 }
+  },
+  "Reassuring Ranger": {
+    "items": [
+      { "name": "Side Hug", "type": "Emote", "cost": {} },
+      { "name": "Special Blessing", "type": "Special", "cost": { "c": 5 } },
+      { "name": "Reassuring Ranger Hat", "type": "HairAccessory", "cost": { "c": 36 } },
+      { "name": "Reassuring Ranger Wheat Stalk", "type": "FaceAccessory", "cost": { "c": 45 } },
+      { "name": "Side Hug", "type": "Emote", "cost": { "h": 4 } },
+      { "name": "Reassuring Ranger Cape", "type": "Cape", "cost": { "c": 75 } },
+      { "name": "Reassuring Ranger Mask", "type": "Mask", "cost": { "c": 35 } }
+    ],
+    "totals": { "c": 196, "h": 4 }
   }
 }
