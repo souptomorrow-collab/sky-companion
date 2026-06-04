@@ -98,6 +98,8 @@ function spiritByName(name) {
   const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.spirits) || [];
   return list.find(x => x.name === name) || null;
 }
+// 復刻先祖花費警語：資料庫存的是「季節原價」，復刻時遊戲多改以普通蠟燭/愛心重新計價
+const TS_COST_NOTE = '<p class="note" style="color:var(--ink-pink)">⚠️ 下列花費為該先祖「季節原價」（季節蠟燭🌙）。<b>復刻先祖實際多改以普通蠟燭🕯️＋愛心❤️重新計價</b>，項目與總額可能不同，請以遊戲內為準。</p>';
 // 復刻先祖兌換內容（物品清單 + 總花費）。fmtCost/fmtTotals 由 skyenc.js 提供
 function tsTreeHTML(name) {
   const sp = name ? spiritByName(name) : null;
@@ -106,8 +108,8 @@ function tsTreeHTML(name) {
   const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
   const rows = sp.items.map(itemRowHTML).join('');
   const legend = (typeof costLegendHTML === 'function') ? costLegendHTML() : '';
-  return `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(sp.totals)}</span></div>
-    <details class="wiki-card" style="margin-top:6px"><summary><b>🎁 兌換內容（${sp.items.length} 項）· 點開</b></summary><div class="sp-body">${legend}${rows}</div></details>`;
+  return `<div class="kv"><span class="k">季節原價總花費</span><span class="v">${ft(sp.totals)}</span></div>
+    <details class="wiki-card" style="margin-top:6px"><summary><b>🎁 兌換內容（${sp.items.length} 項）· 點開</b></summary><div class="sp-body">${TS_COST_NOTE}${legend}${rows}</div></details>`;
 }
 // 復刻先祖兌換內容（直接列出，給行事曆展開用，不再多一層收合）
 function tsItemsInline(name) {
@@ -115,7 +117,7 @@ function tsItemsInline(name) {
   if (!sp || !sp.items || !sp.items.length) return '<p class="note">（此先祖無兌換資料）</p>';
   const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
   const legend = (typeof costLegendHTML === 'function') ? costLegendHTML() : '';
-  return `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(sp.totals)}</span></div>${legend}<div class="dex-items">${sp.items.map(itemRowHTML).join('')}</div>`;
+  return `<div class="kv"><span class="k">季節原價總花費</span><span class="v">${ft(sp.totals)}</span></div>${TS_COST_NOTE}${legend}<div class="dex-items">${sp.items.map(itemRowHTML).join('')}</div>`;
 }
 // 地點文字（中文優先）："暮土 · 藏寶礁"
 function locText(loc) {
