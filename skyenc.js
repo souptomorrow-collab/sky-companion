@@ -67,7 +67,7 @@ function spiritBadges(sp) {
 }
 function spiritBody(sp) {
   const itemsHtml = sp.items.length
-    ? sp.items.map(it => `<div class="dex-item"><span>${escapeHtml(it.name)} <span class="muted">${escapeHtml(it.type || '')}</span></span><span class="cost">${fmtCost(it.cost)}</span></div>`).join('')
+    ? '<div class="dex-items">' + sp.items.map(it => (typeof itemRowHTML === 'function') ? itemRowHTML(it) : `<div class="dex-item"><span>${escapeHtml(it.name)}</span><span class="cost">${fmtCost(it.cost)}</span></div>`).join('') + '</div>'
     : '<p class="note">（無兌換資料）</p>';
   const traveled = sp.traveled && sp.traveled.length
     ? `<p class="note">復刻 ${sp.traveled.length} 次：${sp.traveled.slice(-3).join('、')}${sp.traveled.length > 3 ? ' …' : ''}</p>` : '';

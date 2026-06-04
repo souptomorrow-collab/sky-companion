@@ -91,6 +91,9 @@ function costOf(node) {
   for (const k of COST_KEYS) if (node[k]) o[k] = node[k];
   return o;
 }
+// 物品圖網址去掉共同 wikia 前綴只存路徑（前端再補回），縮小 skydata 體積
+const WIKIA_PREFIX = 'https://static.wikia.nocookie.net/sky-children-of-the-light/images/';
+function stripWikia(u) { return u && u.startsWith(WIKIA_PREFIX) ? u.slice(WIKIA_PREFIX.length) : (u || ''); }
 
 // 走訪先祖樹（root node → n/ne/nw），收集物品與花費（保序、去重）
 function walkTree(rootGuid) {
@@ -103,7 +106,11 @@ function walkTree(rootGuid) {
     if (!node) return;
     const it = itemsMap.get(node.item);
     if (it && it.name && it.name !== 'Placeholder') {
-      out.push({ name: it.name, type: TYPE_ZH[it.type] || it.type || '', cost: costOf(node) });
+      const o = { name: it.name, type: TYPE_ZH[it.type] || it.type || '', cost: costOf(node) };
+      const ic = stripWikia(it.icon), pv = stripWikia(it.previewUrl);
+      if (ic) o.icon = ic;     // 物品小圖
+      if (pv) o.prev = pv;     // 外觀預覽（部分物品）
+      out.push(o);
     }
     visit(node.nw); visit(node.n); visit(node.ne);
   })(rootGuid);

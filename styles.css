@@ -201,6 +201,9 @@ input:focus { outline: none; border-color: var(--accent); }
 .dex-item { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 13.5px; }
 .dex-item:last-child { border-bottom: none; }
 .dex-item .cost { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--gold-soft); }
+.di-name { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.item-ic { width: 30px; height: 30px; flex: 0 0 auto; object-fit: contain; border-radius: 6px; background: rgba(120,175,222,.14); padding: 2px; cursor: zoom-in; }
+.item-ic:hover { background: rgba(120,175,222,.28); }
 .wiki-link { display: inline-block; margin-top: 8px; color: var(--accent); font-size: 13px; text-decoration: none; }
 .wiki-link:hover { text-decoration: underline; }
 

@@ -25,6 +25,15 @@ function imgThumb(url, cap, cls) {
   return `<img class="wl-thumb ${cls || ''}" src="${escapeHtml(url)}" data-full="${escapeHtml(url)}" data-cap="${escapeHtml(cap || '')}" loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="${escapeHtml(cap || '照片')}" onerror="this.style.display='none'" />`;
 }
 function shardImg(loc) { return (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.shardImages && window.SKYDATA.shardImages[loc]) || ''; }
+// 物品圖路徑 → 完整 wikia 網址（build 已去掉共同前綴）
+function iconUrl(p) { return p ? (p.indexOf('http') === 0 ? p : 'https://static.wikia.nocookie.net/sky-children-of-the-light/images/' + p) : ''; }
+// 兌換物品一列（小圖 + 名稱 + 類型 + 花費），先祖圖鑑與復刻先祖共用
+function itemRowHTML(it) {
+  const ic = iconUrl(it.icon), pv = iconUrl(it.prev) || ic;
+  const fc = (typeof fmtCost === 'function') ? fmtCost : () => '';
+  const img = ic ? `<img class="item-ic" src="${escapeHtml(ic)}"${pv ? ` data-full="${escapeHtml(pv)}" data-cap="${escapeHtml(it.name)}"` : ''} loading="lazy" decoding="async" referrerpolicy="no-referrer" alt="" onerror="this.style.display='none'" />` : '';
+  return `<div class="dex-item"><span class="di-name">${img}${escapeHtml(it.name)} <span class="muted">${escapeHtml(it.type || '')}</span></span><span class="cost">${fc(it.cost)}</span></div>`;
+}
 // 世界地圖小圖 + 脈動紅點（pos=[lat,lng]）。整塊可點擊 → 開全螢幕可縮放地圖（含該地點實景照片）。
 function posMiniMap(pos, cap, img) {
   if (!pos || pos.length < 2) return '';
@@ -95,7 +104,7 @@ function tsTreeHTML(name) {
   if (!sp || !sp.items || !sp.items.length) return '';
   const fc = (typeof fmtCost === 'function') ? fmtCost : () => '';
   const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
-  const rows = sp.items.map(it => `<div class="dex-item"><span>${escapeHtml(it.name)} <span class="muted">${escapeHtml(it.type || '')}</span></span><span class="cost">${fc(it.cost)}</span></div>`).join('');
+  const rows = sp.items.map(itemRowHTML).join('');
   return `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(sp.totals)}</span></div>
     <details class="wiki-card" style="margin-top:6px"><summary><b>🎁 兌換內容（${sp.items.length} 項）· 點開</b></summary><div class="sp-body">${rows}</div></details>`;
 }
