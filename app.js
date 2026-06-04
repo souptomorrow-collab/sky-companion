@@ -447,10 +447,15 @@ function candleCard(label, emoji, obj) {
 }
 function dailyCandlesHTML() {
   const d = questState.data; if (!d) return '';
-  const t = candleCard('今日尋寶蠟燭（大蠟）', '🕯️', d.rotating_candles);
-  const s = candleCard('今日季節蠟燭', '🌙', d.seasonal_candles);
+  const t = candleCard('尋寶蠟燭（大蠟）', '🕯️', d.rotating_candles);
+  const s = candleCard('季節蠟燭', '🌙', d.seasonal_candles);
   if (!t && !s) return '';
-  return `<div class="candle-today"><p class="note" style="margin:12px 0 4px"><b>🕯️ 今日蠟燭位置</b>（每日輪換；尋寶蠟燭一進該國度入口就有一根，另 3 根散在該國度）</p>${t}${s}</div>`;
+  return `<div class="candle-today">${t}${s}<p class="note" style="margin:6px 0 0">每日輪換；尋寶蠟燭一進該國度入口就有一根，另 3 根散在該國度。</p></div>`;
+}
+// 主畫面「今日蠟燭」卡內容（含載入/錯誤狀態）
+function ovCandleHTML() {
+  if (!questState.loaded || !questState.data) return questState.error ? '<p class="note">暫時無法取得（離線或來源失敗）</p>' : '<p class="muted">載入中…</p>';
+  return dailyCandlesHTML() || '<p class="note">來源暫無今日蠟燭資料，請以遊戲內為準。</p>';
 }
 // 雙倍燭光活動（不定期，官方公告制）。手動維護已知場次；日期為太平洋日，每場約持續一週。
 const DOUBLE_EVENTS = [
@@ -550,9 +555,13 @@ function renderQuests(now) {
   const claimHtml = dq ? dq.claim.map(c =>
     `<div class="q-claim"><img class="wl-thumb" src="${escapeHtml(c.img)}" data-full="${escapeHtml(c.img)}" data-cap="${escapeHtml(c.place + '：' + c.desc)}" loading="lazy" alt="${escapeHtml(c.place)}" onerror="this.style.display='none'" /><div><b>${escapeHtml(c.place)}</b><br><span class="muted">${escapeHtml(c.desc)}</span></div></div>`).join('') : '';
 
-  box.innerHTML = doubleEventHTML(now) + resetLine + questsHtml + dailyCandlesHTML() +
+  box.innerHTML = resetLine + questsHtml +
     `<p class="note">領取地點（固定）：</p><div class="q-claims">${claimHtml}</div>` +
     `<p class="note">今日任務來源：SkyHelper（每日重置後更新）；點任務圖看大圖。</p>`;
+
+  // 主畫面：雙倍活動橫幅 + 今日蠟燭卡（資料同一份 questState，故在此一併更新）
+  const dbl = $('#ov-double'); if (dbl) dbl.innerHTML = doubleEventHTML(now);
+  const cb = $('#ov-candle .card-body'); if (cb) cb.innerHTML = ovCandleHTML();
 
   $$('#ov-quests input[data-q]').forEach(inp => inp.addEventListener('change', () => {
     const d = Store.get('quests_' + dk, {}); d[inp.dataset.q] = inp.checked; Store.set('quests_' + dk, d);

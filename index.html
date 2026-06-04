@@ -10,12 +10,12 @@
   <meta property="og:description" content="光·遇每日任務、碎石、復刻先祖、光之翼地圖、大蠟與定時蠟燭，一站搞定（繁中）" />
   <meta property="og:image" content="https://souptomorrow-collab.github.io/sky-companion/icon-512.png" />
   <meta property="og:type" content="website" />
-  <link rel="manifest" href="manifest.json?v=0604m" />
+  <link rel="manifest" href="manifest.json?v=0604n" />
   <link rel="icon" type="image/png" href="favicon-32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="光遇助手" />
-  <link rel="stylesheet" href="styles.css?v=0604m" />
+  <link rel="stylesheet" href="styles.css?v=0604n" />
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -64,9 +64,14 @@
         <img src="img/cinna/cinna-winter.jpg" data-full="img/cinna/cinna-winter.jpg" data-cap="大耳狗 ❄️" alt="大耳狗" loading="lazy" />
         <img src="img/cinna/cinna-cloud.jpg" data-full="img/cinna/cinna-cloud.jpg" data-cap="大耳狗 ☁️" alt="大耳狗" loading="lazy" />
       </div>
+      <div id="ov-double"></div>
       <div class="grid">
         <div class="card" id="ov-resets">
           <h2>⏳ 重置倒數</h2>
+          <div class="card-body">載入中…</div>
+        </div>
+        <div class="card" id="ov-candle">
+          <h2>🕯️ 今日蠟燭</h2>
           <div class="card-body">載入中…</div>
         </div>
         <div class="card" id="ov-shard">
@@ -227,14 +232,14 @@
     <div class="ml-host" id="map-lightbox-host"></div>
   </div>
 
-  <script src="util.js?v=0604m"></script>
-  <script src="shards.js?v=0604m"></script>
-  <script src="skydata.js?v=0604m"></script>
-  <script src="zh.js?v=0604m"></script>
-  <script src="app.js?v=0604m"></script>
-  <script src="skyenc.js?v=0604m"></script>
-  <script src="firebase-config.js?v=0604m"></script>
-  <script src="auth.js?v=0604m"></script>
+  <script src="util.js?v=0604n"></script>
+  <script src="shards.js?v=0604n"></script>
+  <script src="skydata.js?v=0604n"></script>
+  <script src="zh.js?v=0604n"></script>
+  <script src="app.js?v=0604n"></script>
+  <script src="skyenc.js?v=0604n"></script>
+  <script src="firebase-config.js?v=0604n"></script>
+  <script src="auth.js?v=0604n"></script>
   <script>
     /* PWA：註冊 Service Worker（離線可用、可安裝） */
     if ('serviceWorker' in navigator) {
