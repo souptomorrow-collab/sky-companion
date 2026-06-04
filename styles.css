@@ -329,6 +329,15 @@ input:focus { outline: none; border-color: var(--accent); }
 .q-loc > summary::-webkit-details-marker { display: none; }
 .q-loc[open] > summary { color: var(--ink); }
 .q-claims { display: flex; flex-wrap: wrap; gap: 12px; }
+/* 雙倍燭光活動橫幅 */
+.dbl-banner { margin: 0 0 10px; border-radius: 12px; font-size: 13px; }
+.dbl-banner.on { padding: 9px 12px; background: linear-gradient(100deg, rgba(255,214,102,.22), rgba(255,170,205,.18)); border: 1px solid rgba(255,193,99,.5); color: var(--ink); }
+.dbl-banner > summary { list-style: none; cursor: pointer; padding: 7px 11px; color: var(--muted); background: rgba(154,166,212,.1); border: 1px solid var(--line); border-radius: 12px; }
+.dbl-banner > summary::-webkit-details-marker { display: none; }
+.dbl-banner[open] > summary { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.dbl-banner > .sp-body { padding: 4px 11px 9px; border: 1px solid var(--line); border-top: none; border-radius: 0 0 12px 12px; }
+/* 今日蠟燭位置 */
+.candle-today .q-loc { margin-left: 0; }
 .q-claim { display: flex; align-items: center; gap: 10px; flex: 1 1 250px; font-size: 13px; }
 
 /* mobile */

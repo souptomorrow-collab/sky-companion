@@ -427,6 +427,45 @@ function fetchQuests(dk) {
     .then(d => { questState = { day: dk, loaded: true, loading: false, error: false, data: d }; renderQuests(new Date()); })
     .catch(() => { questState.loading = false; questState.error = true; renderQuests(new Date()); });
 }
+// 今日蠟燭位置（尋寶蠟燭/大蠟 + 季節蠟燭），資料同來自 SkyHelper（每日輪換）。一進該國度入口即可見。
+const REALM_ZH_MAP = [
+  ['Golden Wasteland', '暮土'], ['Valley of Triumph', '霞谷'], ['Daylight Prairie', '雲野'],
+  ['Hidden Forest', '雨林'], ['Vault of Knowledge', '禁閣'], ['Isle of Dawn', '晨島'],
+  ['Aviary Village', '鳥族村'], ['Eye of Eden', '伊甸之眼'],
+  ['Aviary', '鳥族村'], ['Prairie', '雲野'], ['Forest', '雨林'], ['Valley', '霞谷'],
+  ['Wasteland', '暮土'], ['Vault', '禁閣'], ['Isle', '晨島']
+];
+function realmZhIn(str) { if (!str) return ''; for (const [en, zh] of REALM_ZH_MAP) { if (str.indexOf(en) >= 0) return zh + '（' + en + '）'; } return ''; }
+function candleCard(label, emoji, obj) {
+  if (!obj || !obj.title) return '';
+  const realm = realmZhIn(obj.title);
+  const rot = (obj.title.match(/Rotation\s*\d+/i) || [''])[0];
+  const rotZh = rot ? '・第' + rot.replace(/Rotation\s*/i, '') + '輪' : '';
+  const img = obj.images && obj.images[0] && obj.images[0].url;
+  return `<details class="q-loc"><summary>${emoji} ${escapeHtml(label)}：<b>${escapeHtml(realm || obj.title)}</b>${rotZh}　<span class="muted">· 看地圖</span></summary>
+    <div class="shard-media q-media" style="margin-top:6px">${img ? imgThumb(img, label + ' ' + (realm || ''), 'shard-photo') : '<p class="note">（來源暫無圖，請以遊戲內為準）</p>'}</div></details>`;
+}
+function dailyCandlesHTML() {
+  const d = questState.data; if (!d) return '';
+  const t = candleCard('今日尋寶蠟燭（大蠟）', '🕯️', d.rotating_candles);
+  const s = candleCard('今日季節蠟燭', '🌙', d.seasonal_candles);
+  if (!t && !s) return '';
+  return `<div class="candle-today"><p class="note" style="margin:12px 0 4px"><b>🕯️ 今日蠟燭位置</b>（每日輪換；尋寶蠟燭一進該國度入口就有一根，另 3 根散在該國度）</p>${t}${s}</div>`;
+}
+// 雙倍燭光活動（不定期，官方公告制）。手動維護已知場次；日期為太平洋日，每場約持續一週。
+const DOUBLE_EVENTS = [
+  { start: '2025-12-31', end: '2026-01-15', note: '雙倍尋寶燭光🕯️ ＋ 雙倍愛心❤️' },
+  { start: '2026-02-27', end: '2026-03-12', note: '雙倍季節蠟燭🌙 ＋ 雙倍尋寶蠟燭🕯️' }
+];
+function doubleEventHTML(now) {
+  const p = skyParts(now), dk = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+  const active = DOUBLE_EVENTS.find(e => dk >= e.start && dk <= e.end);
+  if (active) return `<div class="dbl-banner on">✨ <b>雙倍燭光活動進行中！</b> ${active.note} <span class="muted">· 至 ${active.end}（太平洋）</span></div>`;
+  const next = DOUBLE_EVENTS.filter(e => e.start > dk).sort((a, b) => a.start < b.start ? -1 : 1)[0];
+  const nextLine = next ? `下一場 <b>${next.start}</b>：${next.note}` : '目前查無已公告的下一場（不定期，無固定排程）。';
+  return `<details class="dbl-banner"><summary>✨ 雙倍燭光活動：目前無進行中　<span class="muted">· 點看說明</span></summary>
+    <div class="sp-body"><p class="note">「雙倍日」是官方<b>不定期公告</b>的活動（每場約一週），會雙倍<b>季節蠟燭🌙／尋寶蠟燭🕯️／愛心❤️</b>其中幾項，常搭季節或特殊活動。${nextLine}<br>以官方公告為準：<a class="wiki-link" href="https://sky-children-of-the-light.fandom.com/wiki/Double_Currency_Events" target="_blank" rel="noopener">雙倍活動列表 ↗</a></p></div></details>`;
+}
 function renderQuests(now) {
   const box = $('#ov-quests .card-body');
   if (!box) return;
@@ -511,7 +550,7 @@ function renderQuests(now) {
   const claimHtml = dq ? dq.claim.map(c =>
     `<div class="q-claim"><img class="wl-thumb" src="${escapeHtml(c.img)}" data-full="${escapeHtml(c.img)}" data-cap="${escapeHtml(c.place + '：' + c.desc)}" loading="lazy" alt="${escapeHtml(c.place)}" onerror="this.style.display='none'" /><div><b>${escapeHtml(c.place)}</b><br><span class="muted">${escapeHtml(c.desc)}</span></div></div>`).join('') : '';
 
-  box.innerHTML = resetLine + questsHtml +
+  box.innerHTML = doubleEventHTML(now) + resetLine + questsHtml + dailyCandlesHTML() +
     `<p class="note">領取地點（固定）：</p><div class="q-claims">${claimHtml}</div>` +
     `<p class="note">今日任務來源：SkyHelper（每日重置後更新）；點任務圖看大圖。</p>`;
 
