@@ -140,6 +140,24 @@ const spirits = get('spirits')
     };
   });
 
+// ---------- 復刻先祖「實際復刻價」覆寫（資料庫存季節原價；ts-cost.json 由 Wiki 校正）----------
+let TS_COST = {};
+try { TS_COST = JSON.parse(fs.readFileSync(path.join(__dirname, 'ts-cost.json'), 'utf8')); } catch (e) {}
+const spiritsByNm = new Map(spirits.map(s => [s.name, s]));
+const tsCosts = {};
+Object.keys(TS_COST).forEach(name => {
+  if (name.startsWith('_')) return;
+  const o = TS_COST[name], base = spiritsByNm.get(name);
+  const items = (o.items || []).map(it => {
+    const m = base && base.items.find(x => x.name === it.name); // 依物品名帶入既有圖示
+    const out = { name: it.name, type: TYPE_ZH[it.type] || it.type || '', cost: it.cost || {} };
+    if (m && m.icon) out.icon = m.icon;
+    if (m && m.prev) out.prev = m.prev;
+    return out;
+  });
+  tsCosts[name] = { items, totals: o.totals || {} };
+});
+
 // ---------- 季節 ----------
 const seasons = get('seasons').map(s => ({
   name: s.name, short: s.shortName, year: s.year, start: s.date, end: s.endDate, icon: s.iconUrl || '',
@@ -281,7 +299,7 @@ const SKYDATA = {
     counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length, wingedLights: wingedLights.length },
   },
   seasons, spirits, realms, events, travelingSpirits, currencies, shards, daily, dailyQuests,
-  wingedLights, realmShapes, mapShrines, candleMaps, shardImages: SHARD_IMG, shardPos: SHARD_POS,
+  wingedLights, realmShapes, mapShrines, candleMaps, tsCosts, shardImages: SHARD_IMG, shardPos: SHARD_POS,
 };
 
 const outPath = path.join(__dirname, 'skydata.js');

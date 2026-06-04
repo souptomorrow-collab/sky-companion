@@ -1,0 +1,16 @@
+{
+  "_comment": "復刻先祖『實際復刻價』覆寫（資料庫存的是季節原價）。來源：Sky Fandom Wiki 的 TS Friendship Tree。cost 單位：c=普通蠟燭 h=愛心 ac=升華 sc=季節蠟燭。圖示由 build 依物品名自動帶入。",
+  "Twirling Champion": {
+    "items": [
+      { "name": "Triple Axel", "type": "Emote", "cost": {} },
+      { "name": "Triple Axel", "type": "Emote", "cost": { "h": 4 } },
+      { "name": "Blessing", "type": "Special", "cost": {} },
+      { "name": "Twirling Champion Mask", "type": "Mask", "cost": { "c": 24 } },
+      { "name": "Triple Axel", "type": "Emote", "cost": { "h": 3 } },
+      { "name": "Triple Axel", "type": "Emote", "cost": { "h": 6 } },
+      { "name": "Twirling Champion Hair", "type": "Hair", "cost": { "c": 34 } },
+      { "name": "Panflute", "type": "Held", "cost": { "c": 60 } }
+    ],
+    "totals": { "c": 118, "h": 13 }
+  }
+}

@@ -101,23 +101,31 @@ function spiritByName(name) {
 // 復刻先祖花費警語：資料庫存的是「季節原價」，復刻時遊戲多改以普通蠟燭/愛心重新計價
 const TS_COST_NOTE = '<p class="note" style="color:var(--ink-pink)">⚠️ 下列花費為該先祖「季節原價」（季節蠟燭🌙）。<b>復刻先祖實際多改以普通蠟燭🕯️＋愛心❤️重新計價</b>，項目與總額可能不同，請以遊戲內為準。</p>';
 // 復刻先祖兌換內容（物品清單 + 總花費）。fmtCost/fmtTotals 由 skyenc.js 提供
-function tsTreeHTML(name) {
+const TS_REAL_NOTE = '<p class="note" style="color:var(--green)">✅ 以下為「實際復刻價」（普通蠟燭🕯️＋愛心❤️，已由 Wiki 校正）。</p>';
+// 取復刻花費資料：有 ts-cost.json 覆寫(實際復刻價)就用它，否則退回資料庫的季節原價
+function tsCostData(name) {
+  const tc = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.tsCosts && window.SKYDATA.tsCosts[name]);
+  if (tc && tc.items && tc.items.length) return { items: tc.items, totals: tc.totals || {}, real: true };
   const sp = name ? spiritByName(name) : null;
-  if (!sp || !sp.items || !sp.items.length) return '';
-  const fc = (typeof fmtCost === 'function') ? fmtCost : () => '';
+  return { items: (sp && sp.items) || [], totals: (sp && sp.totals) || {}, real: false };
+}
+function tsTreeHTML(name) {
+  const d = name ? tsCostData(name) : null;
+  if (!d || !d.items.length) return '';
   const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
-  const rows = sp.items.map(itemRowHTML).join('');
   const legend = (typeof costLegendHTML === 'function') ? costLegendHTML() : '';
-  return `<div class="kv"><span class="k">季節原價總花費</span><span class="v">${ft(sp.totals)}</span></div>
-    <details class="wiki-card" style="margin-top:6px"><summary><b>🎁 兌換內容（${sp.items.length} 項）· 點開</b></summary><div class="sp-body">${TS_COST_NOTE}${legend}${rows}</div></details>`;
+  const note = d.real ? TS_REAL_NOTE : TS_COST_NOTE;
+  return `<div class="kv"><span class="k">${d.real ? '復刻實際總花費' : '季節原價總花費'}</span><span class="v">${ft(d.totals)}</span></div>
+    <details class="wiki-card" style="margin-top:6px"><summary><b>🎁 兌換內容（${d.items.length} 項）· 點開</b></summary><div class="sp-body">${note}${legend}${d.items.map(itemRowHTML).join('')}</div></details>`;
 }
 // 復刻先祖兌換內容（直接列出，給行事曆展開用，不再多一層收合）
 function tsItemsInline(name) {
-  const sp = name ? spiritByName(name) : null;
-  if (!sp || !sp.items || !sp.items.length) return '<p class="note">（此先祖無兌換資料）</p>';
+  const d = name ? tsCostData(name) : null;
+  if (!d || !d.items.length) return '<p class="note">（此先祖無兌換資料）</p>';
   const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
   const legend = (typeof costLegendHTML === 'function') ? costLegendHTML() : '';
-  return `<div class="kv"><span class="k">季節原價總花費</span><span class="v">${ft(sp.totals)}</span></div>${TS_COST_NOTE}${legend}<div class="dex-items">${sp.items.map(itemRowHTML).join('')}</div>`;
+  const note = d.real ? TS_REAL_NOTE : TS_COST_NOTE;
+  return `<div class="kv"><span class="k">${d.real ? '復刻實際總花費' : '季節原價總花費'}</span><span class="v">${ft(d.totals)}</span></div>${note}${legend}<div class="dex-items">${d.items.map(itemRowHTML).join('')}</div>`;
 }
 // 地點文字（中文優先）："暮土 · 藏寶礁"
 function locText(loc) {
