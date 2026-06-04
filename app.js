@@ -447,10 +447,10 @@ function candleCard(label, emoji, obj) {
 }
 function dailyCandlesHTML() {
   const d = questState.data; if (!d) return '';
-  const t = candleCard('尋寶蠟燭（大蠟）', '🕯️', d.rotating_candles);
+  const t = candleCard('每日尋寶蠟燭（大蠟·輪換）', '🕯️', d.rotating_candles);
   const s = candleCard('季節蠟燭', '🌙', d.seasonal_candles);
   if (!t && !s) return '';
-  return `<div class="candle-today">${t}${s}<p class="note" style="margin:6px 0 0">每日輪換；尋寶蠟燭一進該國度入口就有一根，另 3 根散在該國度。</p></div>`;
+  return `<div class="candle-today">${t}${s}<p class="note" style="margin:6px 0 0">這是<b>每日輪換</b>的尋寶蠟燭（共 4 根：該國度入口 1 根＋散落 3 根），每天換國度與位置。<br>另有 <b>35 根「永久」尋寶蠟燭</b>固定不變、每天都能撿（不在此卡），是穩定刷燭光的路線。</p></div>`;
 }
 // 主畫面「今日蠟燭」卡內容（含載入/錯誤狀態）
 function ovCandleHTML() {
