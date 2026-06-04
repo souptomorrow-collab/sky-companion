@@ -338,6 +338,11 @@ input:focus { outline: none; border-color: var(--accent); }
 .dbl-banner > .sp-body { padding: 4px 11px 9px; border: 1px solid var(--line); border-top: none; border-radius: 0 0 12px 12px; }
 /* 今日蠟燭位置 */
 .candle-today .q-loc { margin-left: 0; }
+/* 永久尋寶蠟燭清單 */
+.perm-list { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+.perm-c { flex: 1 1 200px; max-width: 244px; }
+.perm-c-h { font-size: 13px; }
+.perm-c-n { display: inline-block; min-width: 18px; padding: 1px 7px; border-radius: 8px; background: var(--accent); color: #fff; font-size: 11.5px; font-weight: 700; text-align: center; }
 .q-claim { display: flex; align-items: center; gap: 10px; flex: 1 1 250px; font-size: 13px; }
 
 /* mobile */

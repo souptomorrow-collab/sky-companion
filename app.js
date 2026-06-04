@@ -454,12 +454,32 @@ function dailyCandlesHTML() {
   const t = candleCard('每日尋寶蠟燭（大蠟·輪換）', '🕯️', d.rotating_candles);
   const s = candleCard('季節蠟燭', '🌙', d.seasonal_candles);
   if (!t && !s) return '';
-  return `<div class="candle-today">${t}${s}<p class="note" style="margin:6px 0 0">這是<b>每日輪換</b>的尋寶蠟燭（共 4 根：該國度入口 1 根＋散落 3 根），每天換國度與位置。<br>另有 <b>35 根「永久」尋寶蠟燭</b>固定不變、每天都能撿（不在此卡），是穩定刷燭光的路線。</p></div>`;
+  return `<div class="candle-today">${t}${s}<p class="note" style="margin:6px 0 0">這是<b>每日輪換</b>的尋寶蠟燭（共 4 根：該國度入口 1 根＋散落 3 根），每天換國度與位置。<br>另有 <b>35 根「永久」尋寶蠟燭</b>固定不變、每天都能撿，路線在「地圖」分頁的<b>永久尋寶蠟燭</b>。</p></div>`;
 }
 // 主畫面「今日蠟燭」卡內容（含載入/錯誤狀態）
 function ovCandleHTML() {
   if (!questState.loaded || !questState.data) return questState.error ? '<p class="note">暫時無法取得（離線或來源失敗）</p>' : '<p class="muted">載入中…</p>';
   return dailyCandlesHTML() || '<p class="note">來源暫無今日蠟燭資料，請以遊戲內為準。</p>';
+}
+// 永久尋寶蠟燭（35 根固定路線，資料 window.PERM_CANDLES 來自 Wiki，靜態只渲染一次）
+function renderPermCandles() {
+  const box = $('#perm-candles-body'); if (!box || box.dataset.done) return;
+  const data = (typeof window !== 'undefined' && window.PERM_CANDLES) || [];
+  if (!data.length) { box.innerHTML = '<p class="note">永久蠟燭資料載入失敗，請重新整理。</p>'; return; }
+  const ri = realmIndex();
+  const realmsHtml = data.map(r => {
+    const rl = ri[r.realm];
+    const pin = (rl && rl.pos) ? `<div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(r.realmZh)}在世界地圖：</p>${posMiniMap(rl.pos, r.realmZh, rl.img)}</div>` : '';
+    const items = r.candles.map(c => `<div class="perm-c">
+        <div class="perm-c-h"><span class="perm-c-n">${escapeHtml(c.n)}</span> <b>${escapeHtml(c.areaZh)}</b> <span class="muted">${escapeHtml(c.area)}</span></div>
+        <p class="note" style="margin:2px 0 4px">${escapeHtml(c.desc)}</p>
+        ${imgThumb(c.img, r.realmZh + ' · ' + c.areaZh, 'shard-photo')}
+      </div>`).join('');
+    return `<details class="wiki-card" style="margin-bottom:8px"><summary><b>${escapeHtml(r.realmZh)}</b> <span class="muted">${escapeHtml(r.realm)} · ${r.count} 根</span></summary>
+      <div class="sp-body">${pin}<div class="perm-list">${items}</div></div></details>`;
+  }).join('');
+  box.innerHTML = `<p class="note">這 35 根<b>固定不變</b>、每天都能撿，是穩定刷燭光的路線（晨島最多 15 根；暮土沒有永久蠟燭）。點國度展開看各點位置圖。圖與位置取自 Sky Wiki。</p>${realmsHtml}`;
+  box.dataset.done = '1';
 }
 // 雙倍燭光活動（不定期，官方公告制）。手動維護已知場次；日期為太平洋日，每場約持續一週。
 const DOUBLE_EVENTS = [
@@ -852,7 +872,7 @@ function showTab(name) {
   if (name === 'spirits') renderSpirits(now);
   if (name === 'candles') bindCandles();
   if (name === 'dex') renderDex();
-  if (name === 'map') renderMap();
+  if (name === 'map') { renderMap(); renderPermCandles(); }
   if (name === 'wiki') renderWiki();
   updateCountdowns(now);
 }
