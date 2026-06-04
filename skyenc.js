@@ -22,12 +22,17 @@ function wlGot() { return Store.get('wl', {}); }
 function wlToggle(order) { const g = wlGot(); if (g[order]) delete g[order]; else g[order] = 1; Store.set('wl', g); }
 
 const COST_LABEL = {
-  c: ['🕯️', '蠟燭'], h: ['❤️', '愛心'], ac: ['✨', '升華'],
+  c: ['🕯️', '蠟燭'], h: ['❤️', '愛心'], ac: ['✨', '升華蠟燭'],
   sc: ['🌙', '季節蠟燭'], sh: ['💗', '季節愛心'], ec: ['🎟️', '活動幣'],
 };
 function fmtCost(cost) {
   const parts = Object.keys(cost || {}).map(k => `${(COST_LABEL[k] || ['', k])[0]}${cost[k]}`);
-  return parts.length ? parts.join(' ') : '<span class="muted">免費</span>';
+  return parts.length ? parts.join(' ') : '<span class="muted" title="無花費資料：多為樹起點/光翼免費，少數為資料缺漏">—</span>';
+}
+// 花費圖示說明（由 COST_LABEL 自動產生，永遠同步）
+function costLegendHTML() {
+  const items = Object.keys(COST_LABEL).map(k => `${COST_LABEL[k][0]} ${COST_LABEL[k][1]}`).join('　');
+  return `<p class="cost-legend">花費圖示：${items}　·　<b>—</b>＝無花費資料（多為樹起點／光翼免費，少數為資料缺漏）</p>`;
 }
 function fmtTotals(t) {
   const parts = Object.keys(t || {}).map(k => `${(COST_LABEL[k] || ['', k])[0]}${t[k]}`);
@@ -67,7 +72,7 @@ function spiritBadges(sp) {
 }
 function spiritBody(sp) {
   const itemsHtml = sp.items.length
-    ? '<div class="dex-items">' + sp.items.map(it => (typeof itemRowHTML === 'function') ? itemRowHTML(it) : `<div class="dex-item"><span>${escapeHtml(it.name)}</span><span class="cost">${fmtCost(it.cost)}</span></div>`).join('') + '</div>'
+    ? costLegendHTML() + '<div class="dex-items">' + sp.items.map(it => (typeof itemRowHTML === 'function') ? itemRowHTML(it) : `<div class="dex-item"><span>${escapeHtml(it.name)}</span><span class="cost">${fmtCost(it.cost)}</span></div>`).join('') + '</div>'
     : '<p class="note">（無兌換資料）</p>';
   const traveled = sp.traveled && sp.traveled.length
     ? `<p class="note">復刻 ${sp.traveled.length} 次：${sp.traveled.slice(-3).join('、')}${sp.traveled.length > 3 ? ' …' : ''}</p>` : '';

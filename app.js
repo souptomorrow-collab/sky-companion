@@ -105,15 +105,17 @@ function tsTreeHTML(name) {
   const fc = (typeof fmtCost === 'function') ? fmtCost : () => '';
   const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
   const rows = sp.items.map(itemRowHTML).join('');
+  const legend = (typeof costLegendHTML === 'function') ? costLegendHTML() : '';
   return `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(sp.totals)}</span></div>
-    <details class="wiki-card" style="margin-top:6px"><summary><b>🎁 兌換內容（${sp.items.length} 項）· 點開</b></summary><div class="sp-body">${rows}</div></details>`;
+    <details class="wiki-card" style="margin-top:6px"><summary><b>🎁 兌換內容（${sp.items.length} 項）· 點開</b></summary><div class="sp-body">${legend}${rows}</div></details>`;
 }
 // 復刻先祖兌換內容（直接列出，給行事曆展開用，不再多一層收合）
 function tsItemsInline(name) {
   const sp = name ? spiritByName(name) : null;
   if (!sp || !sp.items || !sp.items.length) return '<p class="note">（此先祖無兌換資料）</p>';
   const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
-  return `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(sp.totals)}</span></div><div class="dex-items">${sp.items.map(itemRowHTML).join('')}</div>`;
+  const legend = (typeof costLegendHTML === 'function') ? costLegendHTML() : '';
+  return `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(sp.totals)}</span></div>${legend}<div class="dex-items">${sp.items.map(itemRowHTML).join('')}</div>`;
 }
 // 地點文字（中文優先）："暮土 · 藏寶礁"
 function locText(loc) {
