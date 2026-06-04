@@ -212,6 +212,17 @@ const travelingSpirits = get('travelingSpirits')
   .map(t => ({ date: t.date, spirit: spiritName.get(t.spirit) || null, img: spiritImgG.get(t.spirit) || '' }))
   .filter(t => t.spirit)
   .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+// 補充近期復刻先祖（資料集快照較舊時，由 ts-extra.json 手動補上 {date:先祖名}）
+let TS_EXTRA = {};
+try { TS_EXTRA = JSON.parse(fs.readFileSync(path.join(__dirname, 'ts-extra.json'), 'utf8')); } catch (e) {}
+const spiritByName = new Map(get('spirits').map(s => [s.name, s]));
+Object.keys(TS_EXTRA).forEach(date => {
+  if (travelingSpirits.some(t => t.date === date)) return; // 資料集已有就不覆蓋
+  const name = TS_EXTRA[date];
+  const s = spiritByName.get(name);
+  if (s) travelingSpirits.push({ date, spirit: name, img: s.imageUrl || '' });
+});
+travelingSpirits.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
 // ---------- 人工整理：貨幣 / 碎石獎勵 / 每日攻略（資料集無，採社群/官方整理）----------
 const currencies = [
