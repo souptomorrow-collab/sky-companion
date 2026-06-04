@@ -439,11 +439,15 @@ function realmZhIn(str) { if (!str) return ''; for (const [en, zh] of REALM_ZH_M
 function candleCard(label, emoji, obj) {
   if (!obj || !obj.title) return '';
   const realm = realmZhIn(obj.title);
+  const en = (REALM_ZH_MAP.find(([e]) => obj.title.indexOf(e) >= 0) || [])[0] || '';
+  const ri = en ? realmIndex()[en] : null;
   const rot = (obj.title.match(/Rotation\s*\d+/i) || [''])[0];
   const rotZh = rot ? '・第' + rot.replace(/Rotation\s*/i, '') + '輪' : '';
   const img = obj.images && obj.images[0] && obj.images[0].url;
-  return `<details class="q-loc"><summary>${emoji} ${escapeHtml(label)}：<b>${escapeHtml(realm || obj.title)}</b>${rotZh}　<span class="muted">· 看地圖</span></summary>
-    <div class="shard-media q-media" style="margin-top:6px">${img ? imgThumb(img, label + ' ' + (realm || ''), 'shard-photo') : '<p class="note">（來源暫無圖，請以遊戲內為準）</p>'}</div></details>`;
+  const pin = (ri && ri.pos) ? `<div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 在哪個國度：</p>${posMiniMap(ri.pos, realm, ri.img)}</div>` : '';
+  const detail = img ? `<div class="shard-photo-wrap"><p class="note" style="margin:0 0 4px">🗺️ 國度內位置圖：</p>${imgThumb(img, label + ' ' + (realm || ''), 'shard-photo')}</div>` : '';
+  const media = (pin || detail) ? `<div class="shard-media q-media" style="margin-top:6px">${pin}${detail}</div>` : '<p class="note">（來源暫無圖，請以遊戲內為準）</p>';
+  return `<details class="q-loc"><summary>${emoji} ${escapeHtml(label)}：<b>${escapeHtml(realm || obj.title)}</b>${rotZh}　<span class="muted">· 看位置</span></summary>${media}</details>`;
 }
 function dailyCandlesHTML() {
   const d = questState.data; if (!d) return '';
