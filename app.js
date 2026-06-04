@@ -108,6 +108,13 @@ function tsTreeHTML(name) {
   return `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(sp.totals)}</span></div>
     <details class="wiki-card" style="margin-top:6px"><summary><b>🎁 兌換內容（${sp.items.length} 項）· 點開</b></summary><div class="sp-body">${rows}</div></details>`;
 }
+// 復刻先祖兌換內容（直接列出，給行事曆展開用，不再多一層收合）
+function tsItemsInline(name) {
+  const sp = name ? spiritByName(name) : null;
+  if (!sp || !sp.items || !sp.items.length) return '<p class="note">（此先祖無兌換資料）</p>';
+  const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
+  return `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(sp.totals)}</span></div><div class="dex-items">${sp.items.map(itemRowHTML).join('')}</div>`;
+}
 // 地點文字（中文優先）："暮土 · 藏寶礁"
 function locText(loc) {
   if (!loc) return '';
@@ -646,10 +653,21 @@ function renderSpirits(now) {
     const live = now.getTime() >= t.arrivalInst.getTime() && now.getTime() < t.departInst.getTime();
     const dep = addDays(t.cal.y, t.cal.mo, t.cal.d, 3); // 週日
     const who = tsSpiritOn(dateKey(t.cal));
-    list += `<div class="shard-day">
-      <span class="d-date">${dateKey(t.cal)} ~ ${pad(dep.mo)}/${pad(dep.d)}</span>
-      <span class="d-loc">${live ? '<span class="badge live">在場</span>' : past ? '<span class="badge none">已過</span>' : '<span class="badge black">即將</span>'} ${who ? nm(who) : '<span class="muted">（待官方公布）</span>'}</span>
-      ${who ? imgThumb(tsImgOn(dateKey(t.cal)), who, 'ts-portrait') : ''}</div>`;
+    const badge = live ? '<span class="badge live">在場</span>' : past ? '<span class="badge none">已過</span>' : '<span class="badge black">即將</span>';
+    if (who) {
+      // 已知先祖 → 可展開看兌換物品
+      list += `<details class="shard-day-x ts-cal">
+        <summary class="shard-day">
+          <span class="d-date">${dateKey(t.cal)} ~ ${pad(dep.mo)}/${pad(dep.d)}</span>
+          <span class="d-loc">${badge} ${nm(who)}</span>
+          ${imgThumb(tsImgOn(dateKey(t.cal)), who, 'ts-portrait')}</summary>
+        <div style="padding:6px 4px 2px">${tsItemsInline(who)}</div>
+      </details>`;
+    } else {
+      list += `<div class="shard-day">
+        <span class="d-date">${dateKey(t.cal)} ~ ${pad(dep.mo)}/${pad(dep.d)}</span>
+        <span class="d-loc">${badge} <span class="muted">（待官方公布）</span></span></div>`;
+    }
   }
   $('#ts-list').innerHTML = list;
 }
