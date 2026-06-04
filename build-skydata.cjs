@@ -156,6 +156,7 @@ Object.keys(TS_COST).forEach(name => {
     return out;
   });
   tsCosts[name] = { items, totals: o.totals || {} };
+  if (o.est) tsCosts[name].est = true; // Wiki 估算，前端標示「待校正」
 });
 
 // ---------- 季節 ----------
