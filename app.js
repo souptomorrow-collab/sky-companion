@@ -467,19 +467,27 @@ function renderPermCandles() {
   const data = (typeof window !== 'undefined' && window.PERM_CANDLES) || [];
   if (!data.length) { box.innerHTML = '<p class="note">永久蠟燭資料載入失敗，請重新整理。</p>'; return; }
   const ri = realmIndex();
+  const got = (typeof collGot === 'function') ? collGot('perm_got') : {};
+  let totG = 0, totN = 0;
   const realmsHtml = data.map(r => {
     const rl = ri[r.realm];
     const pin = (rl && rl.pos) ? `<div class="shard-map-wrap"><p class="note" style="margin:0 0 4px">📍 ${escapeHtml(r.realmZh)}在世界地圖：</p>${posMiniMap(rl.pos, r.realmZh, rl.img)}</div>` : '';
-    const items = r.candles.map(c => `<div class="perm-c">
-        <div class="perm-c-h"><span class="perm-c-n">${escapeHtml(c.n)}</span> <b>${escapeHtml(c.areaZh)}</b> <span class="muted">${escapeHtml(c.area)}</span></div>
+    let rg = 0;
+    const items = r.candles.map((c, i) => {
+      const id = r.realm + '#' + i, on = !!got[id];
+      if (on) { rg++; totG++; } totN++;
+      return `<div class="perm-c coll-row${on ? ' got' : ''}">
+        <div class="perm-c-h"><input type="checkbox" class="coll-check" data-coll="perm_got" data-id="${escapeHtml(id)}" ${on ? 'checked' : ''} aria-label="標記已撿" /> <span class="perm-c-n">${escapeHtml(c.n)}</span> <b>${escapeHtml(c.areaZh)}</b> <span class="muted">${escapeHtml(c.area)}</span></div>
         <p class="note" style="margin:2px 0 4px">${escapeHtml(c.desc)}</p>
         ${imgThumb(c.img, r.realmZh + ' · ' + c.areaZh, 'shard-photo')}
-      </div>`).join('');
-    return `<details class="wiki-card" style="margin-bottom:8px"><summary><b>${escapeHtml(r.realmZh)}</b> <span class="muted">${escapeHtml(r.realm)} · ${r.count} 根</span></summary>
+      </div>`;
+    }).join('');
+    return `<details class="wiki-card" style="margin-bottom:8px"><summary><b>${escapeHtml(r.realmZh)}</b> <span class="muted">${escapeHtml(r.realm)}</span> <span class="badge none coll-prog">${rg}/${r.candles.length}</span></summary>
       <div class="sp-body">${pin}<div class="perm-list">${items}</div></div></details>`;
   }).join('');
-  box.innerHTML = `<p class="note">這 35 根<b>固定不變</b>、每天都能撿，是穩定刷燭光的路線（晨島最多 15 根；暮土沒有永久蠟燭）。點國度展開看各點位置圖。圖與位置取自 Sky Wiki。</p>${realmsHtml}`;
+  box.innerHTML = `<p class="note">這 35 根<b>固定不變</b>、每天都能撿，是穩定刷燭光的路線（晨島最多 15 根；暮土沒有永久蠟燭）。打勾記錄已撿，已撿 <b data-colltotal="perm_got">${totG}/${totN}</b>。圖與位置取自 Sky Wiki。</p>${realmsHtml}`;
   box.dataset.done = '1';
+  if (typeof bindCollChecks === 'function') bindCollChecks($('#perm-candles'));
 }
 // 雙倍燭光活動（不定期，官方公告制）。手動維護已知場次；日期為太平洋日，每場約持續一週。
 const DOUBLE_EVENTS = [
