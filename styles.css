@@ -338,14 +338,9 @@ input:focus { outline: none; border-color: var(--accent); }
 .dbl-banner > .sp-body { padding: 4px 11px 9px; border: 1px solid var(--line); border-top: none; border-radius: 0 0 12px 12px; }
 /* 今日蠟燭位置 */
 .candle-today .q-loc { margin-left: 0; }
-/* 收集追蹤（祭壇/先祖/永久蠟燭：依國度分組 + 打勾進度） */
-.coll-list { display: flex; flex-direction: column; gap: 3px; }
-.coll-list .coll-row { display: flex; align-items: flex-start; gap: 8px; padding: 4px 4px; border-radius: 8px; cursor: pointer; }
-.coll-list .coll-row:hover { background: rgba(154,166,212,.1); }
-.coll-check { flex: 0 0 auto; width: 16px; height: 16px; margin-top: 2px; accent-color: var(--accent); cursor: pointer; }
-.coll-info { flex: 1 1 auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
-.coll-list .coll-row.got .coll-info { color: var(--muted); text-decoration: line-through; }
-.coll-row.got { opacity: .65; }
+/* 收集追蹤（祭壇/先祖/永久蠟燭：依國度分組 + 打勾進度）。列沿用 .wl-row/.wl-info 乾淨排版 */
+.coll-check { flex: 0 0 auto; width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.coll-row.got { opacity: .6; }
 .coll-layer > summary { cursor: pointer; }
 .coll-prog { font-variant-numeric: tabular-nums; }
 /* 永久尋寶蠟燭清單 */

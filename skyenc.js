@@ -36,7 +36,8 @@ function realmGroupHTML(items, opts) {
     const g = arr.filter(it => got[opts.idOf(it)]).length;
     const rows = arr.map(it => {
       const id = String(opts.idOf(it));
-      return `<div class="coll-row${got[id] ? ' got' : ''}"><input type="checkbox" class="coll-check" data-coll="${escapeHtml(opts.storeKey)}" data-id="${escapeHtml(id)}" ${got[id] ? 'checked' : ''} aria-label="標記已完成" /><div class="coll-info">${opts.rowHTML(it)}</div></div>`;
+      const thumb = opts.thumbHTML ? opts.thumbHTML(it) : '';
+      return `<div class="coll-row wl-row${got[id] ? ' got' : ''}"><input type="checkbox" class="coll-check wl-check" data-coll="${escapeHtml(opts.storeKey)}" data-id="${escapeHtml(id)}" ${got[id] ? 'checked' : ''} aria-label="標記已完成" /><div class="coll-info wl-info">${opts.rowHTML(it)}</div>${thumb}</div>`;
     }).join('');
     return `<details class="wiki-card"><summary><b>${escapeHtml(rk)}</b> <span class="badge none coll-prog">${g}/${arr.length}</span></summary><div class="sp-body coll-list">${rows}</div></details>`;
   }).join('');
@@ -422,7 +423,8 @@ function wikiWinged() {
   const shrineGot = shrineItems.filter(s => _shg[s.pos.join(',')]).length;
   const shrineTracker = shrineItems.length ? `<details class="wiki-card coll-layer" style="margin-top:12px"><summary>🔷 <b>祭壇收集</b> <span class="badge none" data-colltotal="shrine_got">${shrineGot}/${shrineItems.length}</span> <span class="muted">· 點亮各國度地圖神像</span></summary><div class="sp-body">${realmGroupHTML(shrineItems, {
     storeKey: 'shrine_got', realmOf: s => zhOf(s.realm) || s.realm, idOf: s => s.pos.join(','),
-    rowHTML: s => { const az = zhOf(s.area) || s.area || ''; return `<span><b>${escapeHtml(az)}</b>${s.desc ? ` <span class="muted">${escapeHtml(s.desc)}</span>` : ''}</span>${s.img ? IMGT(s.img, (zhOf(s.realm) || s.realm) + ' · ' + az, 'wl-thumb') : ''}`; }
+    rowHTML: s => { const az = zhOf(s.area) || s.area || ''; return `<b>${escapeHtml(az)}</b>${s.desc ? `<br><span class="muted">${escapeHtml(s.desc)}</span>` : ''}`; },
+    thumbHTML: s => s.img ? IMGT(s.img, (zhOf(s.realm) || s.realm) + ' · ' + (zhOf(s.area) || s.area || ''), '') : ''
   })}</div></details>` : '';
   // 先祖位置收集追蹤（與圖鑑分開記錄；依國度分組 + 進度）
   const spiritItems = (SD.spirits || []).filter(s => s.loc && s.loc.pos);
@@ -430,7 +432,8 @@ function wikiWinged() {
   const spiritGot = spiritItems.filter(s => _spg[s.name]).length;
   const spiritTracker = spiritItems.length ? `<details class="wiki-card coll-layer" style="margin-top:10px"><summary>🟢 <b>先祖位置收集</b> <span class="badge none" data-colltotal="spirit_got">${spiritGot}/${spiritItems.length}</span> <span class="muted">· 依地圖位置，與圖鑑分開</span></summary><div class="sp-body">${realmGroupHTML(spiritItems, {
     storeKey: 'spirit_got', realmOf: s => zhOf(s.loc.realm) || s.loc.realm, idOf: s => s.name,
-    rowHTML: s => { const nm2 = zhOf(s.name) || s.name; const az = zhOf(s.loc.area) || s.loc.area || ''; const img = s.locImg || s.loc.img; return `<span><b>${escapeHtml(nm2)}</b>${az ? ` <span class="muted">${escapeHtml(az)}</span>` : ''}</span>${img ? IMGT(img, nm2, 'wl-thumb') : ''}`; }
+    rowHTML: s => { const nm2 = zhOf(s.name) || s.name; const az = zhOf(s.loc.area) || s.loc.area || ''; return `<b>${escapeHtml(nm2)}</b>${az ? `<br><span class="muted">${escapeHtml(az)}</span>` : ''}`; },
+    thumbHTML: s => { const img = s.locImg || s.loc.img; return img ? IMGT(img, zhOf(s.name) || s.name, '') : ''; }
   })}</div></details>` : '';
   return `<p class="note" style="margin-top:0">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>。黃點＝光之翼、🟢＝先祖、🔷＝祭壇、🥟🦔＝蠟燭點、🔴⚫＝今日碎石，點標記看實景／名單；滾輪／雙指或右上 ＋－ 縮放、拖曳平移。用下方開關勾選要顯示的圖層。</p>
     ${layerBar}
