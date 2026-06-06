@@ -433,7 +433,8 @@ function wikiWinged() {
   const spiritTracker = spiritItems.length ? `<details class="wiki-card coll-layer" style="margin-top:10px"><summary>🟢 <b>先祖位置收集</b> <span class="badge none" data-colltotal="spirit_got">${spiritGot}/${spiritItems.length}</span> <span class="muted">· 依地圖位置，與圖鑑分開</span></summary><div class="sp-body">${realmGroupHTML(spiritItems, {
     storeKey: 'spirit_got', realmOf: s => zhOf(s.loc.realm) || s.loc.realm, idOf: s => s.name,
     rowHTML: s => { const nm2 = zhOf(s.name) || s.name; const az = zhOf(s.loc.area) || s.loc.area || ''; return `<b>${escapeHtml(nm2)}</b>${az ? `<br><span class="muted">${escapeHtml(az)}</span>` : ''}`; },
-    thumbHTML: s => { const img = s.locImg || s.loc.img; return img ? IMGT(img, zhOf(s.name) || s.name, '') : ''; }
+    // 縮圖：優先「位置教學圖」(有箭頭、各自不同) → 先祖頭像(各自不同) → 區域實景(同區共用)
+    thumbHTML: s => { const nm2 = zhOf(s.name) || s.name; const az = zhOf(s.loc.area) || s.loc.area || ''; const img = s.locImg || s.img || (s.loc && s.loc.img); return img ? IMGT(img, nm2 + (az ? ' · ' + az : ''), '') : ''; }
   })}</div></details>` : '';
   return `<p class="note" style="margin-top:0">共 ${total} 個光之翼，已拿 <b id="wl-count">${gotN}/${total}</b>。黃點＝光之翼、🟢＝先祖、🔷＝祭壇、🥟🦔＝蠟燭點、🔴⚫＝今日碎石，點標記看實景／名單；滾輪／雙指或右上 ＋－ 縮放、拖曳平移。用下方開關勾選要顯示的圖層。</p>
     ${layerBar}
