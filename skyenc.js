@@ -441,7 +441,7 @@ function wikiWinged() {
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
-    </div>${list}${shrineTracker}${spiritTracker}
+    </div><details class="wiki-card coll-layer" open style="margin-top:12px"><summary>✦ <b>光之翼收集</b> <span class="badge none wl-total">${gotN}/${total}</span> <span class="muted">· 點各國度展開／收合</span></summary><div class="sp-body">${list}</div></details>${shrineTracker}${spiritTracker}
     <details class="wiki-card" style="margin-top:14px"><summary><b>🕯️ 每日大蠟地圖</b> <span class="muted">各國度固定大蠟位置 · 點開查看</span></summary><div class="sp-body">${wikiCandleMaps()}</div></details>`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
@@ -471,11 +471,13 @@ function bindWlCollection() {
     const dot = root.querySelector(`.wl-mark[data-order="${order}"]`);
     if (dot) dot.classList.toggle('wl-got', on);
     const row = cb.closest('.wl-row'); if (row) row.classList.toggle('got', on);
-    const cnt = root.querySelector('#wl-count');
-    if (cnt) {
-      const g = wlGot(), all = (SD.wingedLights || []).filter(w => w.pos);
-      cnt.textContent = all.filter(w => g[w.order]).length + '/' + all.length;
-    }
+    const g = wlGot(), all = (SD.wingedLights || []).filter(w => w.pos);
+    const txt = all.filter(w => g[w.order]).length + '/' + all.length;
+    const cnt = root.querySelector('#wl-count'); if (cnt) cnt.textContent = txt;
+    const tot = root.querySelector('.wl-total'); if (tot) tot.textContent = txt;
+    // 同步更新該列所屬國度的進度徽章（過濾「只看未拿」時略過，避免計數失真）
+    const det = cb.closest('details');
+    if (det && !wlOnlyTodo) { const cs = $$('.wl-check', det); const b = det.querySelector('summary .badge'); if (b) b.textContent = cs.filter(c => c.checked).length + '/' + cs.length; }
     if (wlOnlyTodo && on) { if (dot) dot.style.display = 'none'; if (row) row.style.display = 'none'; }
   }));
 }
