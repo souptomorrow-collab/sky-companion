@@ -1002,7 +1002,8 @@ function init() {
   // 回到頂部：捲動超過一螢幕才顯示
   const toTop = $('#to-top');
   if (toTop) {
-    toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    const sb = () => (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) ? 'auto' : 'smooth';
+    toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: sb() }));
     const onScroll = () => toTop.classList.toggle('show', window.scrollY > 600);
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();

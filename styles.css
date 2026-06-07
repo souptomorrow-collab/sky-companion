@@ -360,6 +360,9 @@ input:focus { outline: none; border-color: var(--accent); }
 /* 離線提示 */
 #offline-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 70; background: rgba(76,92,130,.94); color: #fff; font-size: 13px; padding: 7px 14px; border-radius: 999px; box-shadow: 0 3px 12px rgba(0,0,0,.2); }
 #offline-bar[hidden] { display: none; }
+/* 鍵盤焦點環：focus-visible 只在鍵盤操作時顯示，滑鼠點擊不受影響 */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tab:focus-visible { outline-offset: -2px; }
 .yt-wrap { position: relative; width: 100%; max-width: 560px; aspect-ratio: 16 / 9; margin-top: 4px; }
 .yt-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 10px; background: #000; }
 /* 永久尋寶蠟燭清單 */
