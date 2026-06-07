@@ -147,7 +147,7 @@ function locText(loc) {
  */
 const WAX_EVENTS = [
   { key: 'urchin', name: '海膽', char: '膽', emoji: '🦔', color: '#a371ff', realmZh: '雲野 · 聖島', pos: [-352.25, 206.25], img: 'img/area/prairie-sanctuary.webp', minute: 5, dur: 10, note: '聖島受污染的間歇泉，燒掉噴出的污染物可得大量燭光' },
-  { key: 'bun', name: '饅頭', char: '饅', emoji: '🥟', color: '#ff9d42', realmZh: '雨林 · 團圓桌', pos: [-366.19, 117.44], img: 'img/area/forest-clearing.webp', minute: 35, dur: 10, note: '雨林「奶奶聚餐」長桌，點燃饅頭（餐點）可得大量燭光' },
+  { key: 'bun', name: '饅頭', char: '饅', emoji: '🥟', color: '#ff9d42', realmZh: '雨林 · 團圓桌', pos: [-366.19, 117.44], img: 'img/area/forest-clearing.webp', minute: 35, dur: 10, note: '雨林「奶奶聚餐」長桌：先祖約 :30 現身、:35 開飯，建議提早到；點燃饅頭可得大量燭光' },
 ];
 // 下一次出現（太平洋偶數整點的第 minute 分），逐一以 skyWallToDate 計算，DST 正確
 function nextWaxTime(minute, now) {
