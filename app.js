@@ -1007,6 +1007,12 @@ function init() {
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
   }
+  // 離線提示：離線時顯示一條「顯示快取資料」的小提示，連線後自動隱藏
+  const offBar = $('#offline-bar');
+  if (offBar) {
+    const updOff = () => { offBar.hidden = navigator.onLine; };
+    window.addEventListener('online', updOff); window.addEventListener('offline', updOff); updOff();
+  }
   reRenderDay(new Date());
   // 還原上次分頁
   const VALID_TABS = ['overview', 'shards', 'spirits', 'candles', 'dex', 'map', 'wiki', 'settings'];

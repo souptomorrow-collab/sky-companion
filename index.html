@@ -10,12 +10,12 @@
   <meta property="og:description" content="光·遇每日任務、碎石、復刻先祖、互動地圖、大蠟與定時蠟燭，一站搞定（繁中）" />
   <meta property="og:image" content="https://souptomorrow-collab.github.io/sky-companion/icon-512.png" />
   <meta property="og:type" content="website" />
-  <link rel="manifest" href="manifest.json?v=0605g" />
+  <link rel="manifest" href="manifest.json?v=0605h" />
   <link rel="icon" type="image/png" href="favicon-32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="光遇助手" />
-  <link rel="stylesheet" href="styles.css?v=0605g" />
+  <link rel="stylesheet" href="styles.css?v=0605h" />
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -226,6 +226,7 @@
   </footer>
 
   <button id="to-top" type="button" aria-label="回到頂部" title="回到頂部">↑</button>
+  <div id="offline-bar" role="status" hidden>📴 離線中 · 顯示快取資料，連線後自動更新</div>
 
   <div id="lightbox" class="lightbox" role="dialog" aria-label="位置照片">
     <img id="lightbox-img" alt="位置照片" referrerpolicy="no-referrer" />
@@ -238,15 +239,15 @@
     <div class="ml-host" id="map-lightbox-host"></div>
   </div>
 
-  <script src="util.js?v=0605g"></script>
-  <script src="shards.js?v=0605g"></script>
-  <script src="skydata.js?v=0605g"></script>
-  <script src="permcandles.js?v=0605g"></script>
-  <script src="zh.js?v=0605g"></script>
-  <script src="app.js?v=0605g"></script>
-  <script src="skyenc.js?v=0605g"></script>
-  <script src="firebase-config.js?v=0605g"></script>
-  <script src="auth.js?v=0605g"></script>
+  <script src="util.js?v=0605h"></script>
+  <script src="shards.js?v=0605h"></script>
+  <script src="skydata.js?v=0605h"></script>
+  <script src="permcandles.js?v=0605h"></script>
+  <script src="zh.js?v=0605h"></script>
+  <script src="app.js?v=0605h"></script>
+  <script src="skyenc.js?v=0605h"></script>
+  <script src="firebase-config.js?v=0605h"></script>
+  <script src="auth.js?v=0605h"></script>
   <script>
     /* PWA：註冊 Service Worker（離線可用、可安裝） */
     if ('serviceWorker' in navigator) {
