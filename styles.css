@@ -346,6 +346,7 @@ input:focus { outline: none; border-color: var(--accent); }
 .coll-row.got { opacity: .6; }
 .coll-layer > summary { cursor: pointer; }
 .coll-prog { font-variant-numeric: tabular-nums; }
+.yt-link { font-size: 12px; margin-left: 6px; white-space: nowrap; color: var(--ink-pink); }
 /* 永久尋寶蠟燭清單 */
 .perm-list { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
 .perm-c { flex: 1 1 200px; max-width: 244px; }
