@@ -610,9 +610,17 @@ function shardSummaryHTML(s, now) {
   if (!next) cdHtml = `<span class="muted">今日場次已全部結束</span>`;
   else if (now.getTime() < next.start.getTime()) cdHtml = `下次出現 ${cd(next.start.getTime())}`;
   else cdHtml = `進行中，結束於 ${cd(next.end.getTime())}`;
+  const loc = s.location[0], cap = s.realmZh.split(' ')[0] + ' · ' + s.location[1];
+  const photo = (typeof shardImg === 'function') ? shardImg(loc) : '';
+  const mini = (typeof shardMiniMap === 'function') ? shardMiniMap(loc, cap) : '';
+  const media = (photo || mini) ? `<details class="q-loc"><summary>📍 ${escapeHtml(s.location[1])}（${escapeHtml(loc)}）在哪　<span class="muted">· 看位置圖／地圖</span></summary>
+    <div class="shard-media q-media" style="margin-top:6px">
+      ${photo ? `<div class="shard-photo-wrap">${imgThumb(photo, cap, 'shard-photo')}</div>` : ''}
+      ${mini ? `<div class="shard-map-wrap">${mini}</div>` : ''}
+    </div></details>` : '';
   return `${typeBadge} ${s.realmZh.split(' ')[0]} · ${s.location[1]}
     <div class="kv"><span class="k">地圖</span><span class="v">${s.location[1]} (${s.location[0]})</span></div>
-    <div class="kv"><span class="k">狀態</span><span class="v">${cdHtml}</span></div>`;
+    <div class="kv"><span class="k">狀態</span><span class="v">${cdHtml}</span></div>${media}`;
 }
 
 function tsSummaryHTML(now) {
