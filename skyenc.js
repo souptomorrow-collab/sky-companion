@@ -32,7 +32,7 @@ function ytSearchLink(realmZh, cat, label) {
 }
 // 各圖層的內嵌教學影片（YouTube，點開直接看免下載）。影片 id 由實際搜尋取得
 const LAYER_VIDEO = {
-  wl: { id: 'ygDJA4bQEjg', title: '光之翼完整收集教學（2026 · 全國度）' },
+  wl: { id: 'CZu1EXzKkbQ', title: '光之翼完整收集教學（2026 · 全 120 顆）' },
   shrine: { id: 'Oyf2dRoTSFY', title: '全地圖神壇＋光之翼位置教學' },
   spirit: { id: 'AZu48m9VVqM', title: '先祖位置與回憶教學（含季節）' }
 };
