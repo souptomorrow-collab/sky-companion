@@ -1016,8 +1016,14 @@ function init() {
   reRenderDay(new Date());
   // 還原上次分頁
   const VALID_TABS = ['overview', 'shards', 'spirits', 'candles', 'dex', 'map', 'wiki', 'settings'];
-  const lastTab = Store.get('last_tab', 'overview');
-  if (lastTab && lastTab !== 'overview' && VALID_TABS.indexOf(lastTab) >= 0) showTab(lastTab);
+  // PWA 捷徑：?tab=xxx 直接開該分頁；否則還原上次分頁
+  const urlTab = new URLSearchParams(location.search).get('tab');
+  if (urlTab && VALID_TABS.indexOf(urlTab) >= 0) {
+    showTab(urlTab);
+  } else {
+    const lastTab = Store.get('last_tab', 'overview');
+    if (lastTab && lastTab !== 'overview' && VALID_TABS.indexOf(lastTab) >= 0) showTab(lastTab);
+  }
   setInterval(tick, 1000);
 }
 

@@ -9,10 +9,16 @@
   "orientation": "portrait-primary",
   "background_color": "#d6effc",
   "theme_color": "#aedcf0",
+  "categories": ["games", "utilities"],
   "icons": [
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "今日碎石", "short_name": "碎石", "url": "./?tab=shards&source=shortcut", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "復刻先祖", "short_name": "復刻", "url": "./?tab=spirits&source=shortcut", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] },
+    { "name": "互動地圖", "short_name": "地圖", "url": "./?tab=map&source=shortcut", "icons": [{ "src": "icon-192.png", "sizes": "192x192" }] }
   ]
 }
