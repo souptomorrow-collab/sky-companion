@@ -1,7 +1,7 @@
 {
   "name": "光遇助手 · Sky Companion",
   "short_name": "光遇助手",
-  "description": "光·遇 每日任務、碎石、復刻先祖、光之翼地圖、大蠟與定時蠟燭一站式工具",
+  "description": "光·遇 每日任務、碎石、復刻先祖、互動地圖、大蠟與定時蠟燭一站式工具",
   "lang": "zh-Hant",
   "start_url": "./?source=pwa",
   "scope": "./",
