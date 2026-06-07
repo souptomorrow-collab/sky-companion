@@ -30,6 +30,18 @@ function ytSearchLink(realmZh, cat, label) {
   const q = 'Sky Children of the Light ' + (REALM_EN[realmZh] || realmZh) + ' ' + cat;
   return `<a class="wiki-link yt-link" href="https://www.youtube.com/results?search_query=${encodeURIComponent(q)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">🎬 ${escapeHtml(label || '收集教學')}↗</a>`;
 }
+// 各圖層的內嵌教學影片（YouTube，點開直接看免下載）。影片 id 由實際搜尋取得
+const LAYER_VIDEO = {
+  wl: { id: 'ygDJA4bQEjg', title: '光之翼完整收集教學（2026 · 全國度）' },
+  shrine: { id: 'Oyf2dRoTSFY', title: '全地圖神壇＋光之翼位置教學' },
+  spirit: { id: 'AZu48m9VVqM', title: '先祖位置與回憶教學（含季節）' }
+};
+function ytEmbed(v) {
+  if (!v) return '';
+  return `<details class="wiki-card vid-card"><summary>🎬 <b>${escapeHtml(v.title)}</b>　<span class="muted">· 點開直接看（免下載）</span></summary>
+    <div class="sp-body"><div class="yt-wrap"><iframe src="https://www.youtube-nocookie.com/embed/${v.id}" title="${escapeHtml(v.title)}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+      <p class="note" style="margin:5px 0 0">看不到？<a class="wiki-link" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">在 YouTube 開啟↗</a></p></div></details>`;
+}
 function collGot(key) { return Store.get(key, {}); }
 function collToggle(key, id) { const g = Store.get(key, {}); if (g[id]) delete g[id]; else g[id] = 1; Store.set(key, g); }
 // 依國度分組產生 <details> 清單。opts: realmOf(it), idOf(it), rowHTML(it), storeKey
@@ -388,7 +400,7 @@ function wikiWinged() {
   // 真實遊戲世界地圖底圖 + SVG 疊層（viewBox 對齊底圖 540×540 座標）
   const svg = `<div class="wl-map">
     <img class="wl-map-bg" src="img/map.webp" alt="光遇世界地圖" draggable="false" />
-    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="光之翼位置地圖">${defs}${showBoundary ? polys + pathLine : ''}${showSpirits ? spiritDots : ''}${showShrines ? shrineDots : ''}${showWax ? waxMarks : ''}${showShards ? shardMark : ''}${showWL ? dots : ''}</svg>
+    <svg class="wl-map-svg" viewBox="0 0 540 540" preserveAspectRatio="none" role="img" aria-label="互動世界地圖">${defs}${showBoundary ? polys + pathLine : ''}${showSpirits ? spiritDots : ''}${showShrines ? shrineDots : ''}${showWax ? waxMarks : ''}${showShards ? shardMark : ''}${showWL ? dots : ''}</svg>
   </div>`;
   // 定時蠟燭倒數面板（台灣時間 + 即時倒數；倒數用 .cd 由主迴圈每秒更新）
   const waxPanel = wax.length ? `<div class="wax-panel">${wax.map(w => {
@@ -411,7 +423,7 @@ function wikiWinged() {
       ${w.img ? `<img class="wl-thumb" src="${escapeHtml(w.img)}" data-full="${escapeHtml(w.img)}" data-cap="${escapeHtml(w.realm + ' ' + idxMap[w.order] + '　' + (w.descZh || w.desc))}" loading="lazy" alt="位置照片" onerror="this.style.display='none'" />` : ''}
     </div>`).join('');
     return `<details class="wiki-card">
-      <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${rgot}/${arr.length}</span> ${ytSearchLink(rk, 'all winged lights guide')}</summary>
+      <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${rgot}/${arr.length}</span></summary>
       <div class="sp-body">${rows || '<p class="muted">此國度已全部拿完 ✓</p>'}</div>
     </details>`;
   }).join('');
@@ -429,8 +441,8 @@ function wikiWinged() {
   const shrineItems = (SD.mapShrines || []).filter(s => s.pos);
   const _shg = collGot('shrine_got');
   const shrineGot = shrineItems.filter(s => _shg[s.pos.join(',')]).length;
-  const shrineTracker = shrineItems.length ? `<details class="wiki-card coll-layer" style="margin-top:12px"><summary>🔷 <b>祭壇收集</b> <span class="badge none" data-colltotal="shrine_got">${shrineGot}/${shrineItems.length}</span> <span class="muted">· 點亮各國度地圖神像</span></summary><div class="sp-body">${realmGroupHTML(shrineItems, {
-    storeKey: 'shrine_got', videoCat: 'map shrine locations guide', realmOf: s => zhOf(s.realm) || s.realm, idOf: s => s.pos.join(','),
+  const shrineTracker = shrineItems.length ? `<details class="wiki-card coll-layer" style="margin-top:12px"><summary>🔷 <b>祭壇收集</b> <span class="badge none" data-colltotal="shrine_got">${shrineGot}/${shrineItems.length}</span> <span class="muted">· 點亮各國度地圖神像</span></summary><div class="sp-body">${ytEmbed(LAYER_VIDEO.shrine)}${realmGroupHTML(shrineItems, {
+    storeKey: 'shrine_got', realmOf: s => zhOf(s.realm) || s.realm, idOf: s => s.pos.join(','),
     rowHTML: s => { const az = zhOf(s.area) || s.area || ''; return `<b>${escapeHtml(az)}</b>${s.desc ? `<br><span class="muted">${escapeHtml(s.desc)}</span>` : ''}`; },
     thumbHTML: s => s.img ? IMGT(s.img, (zhOf(s.realm) || s.realm) + ' · ' + (zhOf(s.area) || s.area || ''), '') : ''
   })}</div></details>` : '';
@@ -438,8 +450,8 @@ function wikiWinged() {
   const spiritItems = (SD.spirits || []).filter(s => s.loc && s.loc.pos);
   const _spg = collGot('spirit_got');
   const spiritGot = spiritItems.filter(s => _spg[s.name]).length;
-  const spiritTracker = spiritItems.length ? `<details class="wiki-card coll-layer" style="margin-top:10px"><summary>🟢 <b>先祖位置收集</b> <span class="badge none" data-colltotal="spirit_got">${spiritGot}/${spiritItems.length}</span> <span class="muted">· 依地圖位置，與圖鑑分開</span></summary><div class="sp-body">${realmGroupHTML(spiritItems, {
-    storeKey: 'spirit_got', videoCat: 'spirit locations guide', realmOf: s => zhOf(s.loc.realm) || s.loc.realm, idOf: s => s.name,
+  const spiritTracker = spiritItems.length ? `<details class="wiki-card coll-layer" style="margin-top:10px"><summary>🟢 <b>先祖位置收集</b> <span class="badge none" data-colltotal="spirit_got">${spiritGot}/${spiritItems.length}</span> <span class="muted">· 依地圖位置，與圖鑑分開</span></summary><div class="sp-body">${ytEmbed(LAYER_VIDEO.spirit)}${realmGroupHTML(spiritItems, {
+    storeKey: 'spirit_got', realmOf: s => zhOf(s.loc.realm) || s.loc.realm, idOf: s => s.name,
     rowHTML: s => { const nm2 = zhOf(s.name) || s.name; const az = zhOf(s.loc.area) || s.loc.area || ''; return `<b>${escapeHtml(nm2)}</b>${az ? `<br><span class="muted">${escapeHtml(az)}</span>` : ''}`; },
     // 縮圖：優先「位置教學圖」(有箭頭、各自不同) → 先祖頭像(各自不同) → 區域實景(同區共用)
     thumbHTML: s => { const nm2 = zhOf(s.name) || s.name; const az = zhOf(s.loc.area) || s.loc.area || ''; const img = s.locImg || s.img || (s.loc && s.loc.img); return img ? IMGT(img, nm2 + (az ? ' · ' + az : ''), '') : ''; }
@@ -450,7 +462,7 @@ function wikiWinged() {
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
-    </div><details class="wiki-card coll-layer" open style="margin-top:12px"><summary>✦ <b>光之翼收集</b> <span class="badge none wl-total">${gotN}/${total}</span> <span class="muted">· 點各國度展開／收合</span></summary><div class="sp-body">${list}</div></details>${shrineTracker}${spiritTracker}
+    </div><details class="wiki-card coll-layer" open style="margin-top:12px"><summary>✦ <b>光之翼收集</b> <span class="badge none wl-total">${gotN}/${total}</span> <span class="muted">· 點各國度展開／收合</span></summary><div class="sp-body">${ytEmbed(LAYER_VIDEO.wl)}${list}</div></details>${shrineTracker}${spiritTracker}
     <details class="wiki-card" style="margin-top:14px"><summary><b>🕯️ 每日大蠟地圖</b> <span class="muted">各國度固定大蠟位置 · 點開查看</span></summary><div class="sp-body">${wikiCandleMaps()}</div></details>`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
