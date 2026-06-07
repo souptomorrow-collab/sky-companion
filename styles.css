@@ -329,6 +329,9 @@ input:focus { outline: none; border-color: var(--accent); }
 .q-loc > summary::-webkit-details-marker { display: none; }
 .q-loc[open] > summary { color: var(--ink); }
 .q-claims { display: flex; flex-wrap: wrap; gap: 12px; }
+/* 任務影片攻略：內嵌播放器（免下載直接看） */
+.q-vid > summary { color: var(--ink-pink); }
+.q-video { width: 100%; max-width: 480px; margin-top: 6px; border-radius: 10px; border: 1px solid var(--line); background: #000; display: block; }
 /* 雙倍燭光活動橫幅 */
 .dbl-banner { margin: 0 0 10px; border-radius: 12px; font-size: 13px; }
 .dbl-banner.on { padding: 9px 12px; background: linear-gradient(100deg, rgba(255,214,102,.22), rgba(255,170,205,.18)); border: 1px solid rgba(255,193,99,.5); color: var(--ink); }

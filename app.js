@@ -521,8 +521,11 @@ function renderQuests(now) {
     const questRow = (q, i, withCheck, done) => {
       const en = (q.title || '').replace(/\s*[-–]\s*video guide\s*$/i, '').replace(/\s*[-–]\s*$/, '').trim();
       const zh = escapeHtml(qZh(en) || ('任務 ' + (i + 1)));
-      const media = q.images && q.images[0] && q.images[0].url;
-      const isVid = media && /\.(mov|mp4|webm)(\?|$)/i.test(media); // 有些任務附的是影片，不能當 <img>
+      // 任務附件可能同時有「圖片」與「影片」，分開取：圖當縮圖、影片內嵌播放器
+      const urls = (q.images || []).map(im => im && im.url).filter(Boolean);
+      const isVidUrl = u => /\.(mov|mp4|webm|m4v)(\?|$)/i.test(u);
+      const vid = urls.find(isVidUrl);
+      const pic = urls.find(u => !isVidUrl(u));
       // 由文字偵測地點 → 每項任務都標地點：明確區域 → 隱含國度 → 不限地點
       // 預設只顯示一行「📍 地點」，點開才看實景照＋地圖（避免卡片太長）
       const mediaBlock = (label, img, pos) => `<details class="q-loc"><summary>📍 ${escapeHtml(label)}　<span class="muted">· 看地點圖</span></summary>
@@ -546,13 +549,19 @@ function renderQuests(now) {
           locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 所有區域皆可（此任務不限定地點；如有攻略圖/影片可參考最省路線）</p>`;
         }
       }
+      // 影片攻略：內嵌播放器（免下載直接看）。放收合內 + preload=none，未點開不耗流量
+      const vidBlock = vid ? `<details class="q-loc q-vid"><summary>🎬 影片攻略　<span class="muted">· 點開直接看（免下載）</span></summary>
+          <video class="q-video" controls preload="none" playsinline><source src="${escapeHtml(vid)}" /></video>
+          <p class="note" style="margin:3px 0 0 0">無法播放（如 .mov 格式）？<a class="wiki-link" href="${escapeHtml(vid)}" target="_blank" rel="noopener">在新分頁開啟↗</a></p>
+        </details>` : '';
       return `<div class="q-item">
         <div class="wl-row">
           ${withCheck ? `<input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />` : ''}
-          <span class="wl-info" title="${escapeHtml(en)}">${zh}${isVid ? ` <a class="wiki-link" href="${escapeHtml(media)}" target="_blank" rel="noopener">🎬 影片攻略↗</a>` : ''}</span>
-          ${media && !isVid ? `<img class="wl-thumb" src="${escapeHtml(media)}" data-full="${escapeHtml(media)}" data-cap="${zh}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
+          <span class="wl-info" title="${escapeHtml(en)}">${zh}${vid ? ` <span class="muted">🎬</span>` : ''}</span>
+          ${pic ? `<img class="wl-thumb" src="${escapeHtml(pic)}" data-full="${escapeHtml(pic)}" data-cap="${zh}" loading="lazy" referrerpolicy="no-referrer" alt="任務攻略圖" onerror="this.style.display='none'" />` : ''}
         </div>
         ${locMedia}
+        ${vidBlock}
       </div>`;
     };
     // 其他來源對照連結（SkyHelper 慢/不全時可一鍵去別家看）
