@@ -32,19 +32,26 @@ function ytSearchLink(realmZh, cat, label) {
 }
 // 各圖層的內嵌教學影片（YouTube，點開直接看免下載）。影片 id 經 oEmbed 驗證可嵌入
 const LAYER_VIDEO = {
-  wl: { id: 'QgHNnrEjX1g', title: '光之翼完整收集教學（依國度分段）' },
+  wl: { id: 'i6to-GramW4', title: '光之翼完整收集教學（依區域分段）' },
   shrine: { id: 'Oyf2dRoTSFY', title: '全地圖神壇＋光之翼位置教學' },
   spirit: { id: 'AZu48m9VVqM', title: '先祖位置與回憶教學（含季節）' }
 };
-// 光之翼影片各國度章節起點（秒）。讓每個國度可「跳到影片該段」播放
-const WL_SEG = { '晨島': 10, '雲野': 876, '雨林': 2334, '霞谷': 3537, '暮土': 4716, '禁閣': 5921, '伊甸之眼': 7096 };
+// 光之翼影片各國度起點（秒）：給國度群組的「🎬 影片段落」鈕
+const WL_SEG = { '晨島': 50, '雲野': 850, '雨林': 2057, '霞谷': 2950, '暮土': 3850, '禁閣': 4813, '伊甸之眼': 5904 };
+// 更細的「區域」章節（影片作者標註），做成可點章節 chips
+const WL_CHAPTERS = [
+  { s: 50, z: '晨島' }, { s: 850, z: '雲野' }, { s: 1285, z: '聖島' }, { s: 1595, z: '雲頂' },
+  { s: 2057, z: '雨林' }, { s: 2950, z: '霞谷' }, { s: 3515, z: '村莊劇院' }, { s: 3612, z: '夢想村' },
+  { s: 3850, z: '暮土' }, { s: 4629, z: '被遺忘方舟' }, { s: 4813, z: '禁閣' }, { s: 5904, z: '伊甸之眼' }, { s: 6427, z: '碎石記憶' }
+];
 function ytEmbed(v, opts) {
   if (!v) return '';
   opts = opts || {};
   const fid = opts.frameId ? ` id="${opts.frameId}"` : '';
   const cid = opts.cardId ? ` id="${opts.cardId}"` : '';
+  const chaps = (opts.chapters && opts.chapters.length) ? `<div class="vid-chapters"><span class="muted" style="font-size:12px">跳章節：</span>${opts.chapters.map(c => `<button type="button" class="vid-seg" data-start="${c.s}">${escapeHtml(c.z)}</button>`).join('')}</div>` : '';
   return `<details class="wiki-card vid-card"${cid}><summary>🎬 <b>${escapeHtml(v.title)}</b>　<span class="muted">· 點開直接看（免下載）</span></summary>
-    <div class="sp-body"><div class="yt-wrap"><iframe${fid} src="https://www.youtube-nocookie.com/embed/${v.id}" title="${escapeHtml(v.title)}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    <div class="sp-body"><div class="yt-wrap"><iframe${fid} src="https://www.youtube-nocookie.com/embed/${v.id}" title="${escapeHtml(v.title)}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>${chaps}
       <p class="note" style="margin:5px 0 0">看不到？<a class="wiki-link" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">在 YouTube 開啟↗</a></p></div></details>`;
 }
 function collGot(key) { return Store.get(key, {}); }
@@ -467,7 +474,7 @@ function wikiWinged() {
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
-    </div><details class="wiki-card coll-layer" open style="margin-top:12px"><summary>✦ <b>光之翼收集</b> <span class="badge none wl-total">${gotN}/${total}</span> <span class="muted">· 點各國度展開／收合</span></summary><div class="sp-body">${ytEmbed(LAYER_VIDEO.wl, { frameId: 'wlvid-frame', cardId: 'wlvid-card' })}${list}</div></details>${shrineTracker}${spiritTracker}
+    </div><details class="wiki-card coll-layer" open style="margin-top:12px"><summary>✦ <b>光之翼收集</b> <span class="badge none wl-total">${gotN}/${total}</span> <span class="muted">· 點各國度展開／收合</span></summary><div class="sp-body">${ytEmbed(LAYER_VIDEO.wl, { frameId: 'wlvid-frame', cardId: 'wlvid-card', chapters: WL_CHAPTERS })}${list}</div></details>${shrineTracker}${spiritTracker}
     <details class="wiki-card" style="margin-top:14px"><summary><b>🕯️ 每日大蠟地圖</b> <span class="muted">各國度固定大蠟位置 · 點開查看</span></summary><div class="sp-body">${wikiCandleMaps()}</div></details>`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
