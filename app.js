@@ -949,6 +949,17 @@ function init() {
   $('#tabs').addEventListener('click', e => {
     const btn = e.target.closest('.tab'); if (btn) showTab(btn.dataset.tab);
   });
+  // 鍵盤左右／Home／End 在分頁列移動（ARIA tablist 標準）
+  $('#tabs').addEventListener('keydown', e => {
+    if (['ArrowRight', 'ArrowLeft', 'Home', 'End'].indexOf(e.key) < 0) return;
+    const tabs = $$('.tab'); const cur = tabs.findIndex(t => t.classList.contains('active')); if (cur < 0) return;
+    let i = cur;
+    if (e.key === 'ArrowRight') i = (cur + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft') i = (cur - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') i = 0;
+    else i = tabs.length - 1;
+    e.preventDefault(); showTab(tabs[i].dataset.tab); tabs[i].focus();
+  });
   // 光之翼地圖點 / 縮圖 → 點擊跳出燈箱大圖 + 說明（點任意處或 Esc 關閉）
   const lb = $('#lightbox'), lbImg = $('#lightbox-img'), lbCap = $('#lightbox-cap');
   const mlb = $('#map-lightbox');
