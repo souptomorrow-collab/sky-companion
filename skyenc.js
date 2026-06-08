@@ -32,18 +32,15 @@ function ytSearchLink(realmZh, cat, label) {
 }
 // 各圖層的內嵌教學影片（YouTube，點開直接看免下載）。影片 id 經 oEmbed 驗證可嵌入
 const LAYER_VIDEO = {
-  wl: { id: 'i6to-GramW4', title: '光之翼完整收集教學（依區域分段）' },
   shrine: { id: 'Oyf2dRoTSFY', title: '全地圖神壇＋光之翼位置教學' },
   spirit: { id: 'AZu48m9VVqM', title: '先祖位置與回憶教學（含季節）' }
 };
-// 光之翼影片各國度起點（秒）：給國度群組的「🎬 影片段落」鈕
-const WL_SEG = { '晨島': 50, '雲野': 850, '雨林': 2057, '霞谷': 2950, '暮土': 3850, '禁閣': 4813, '伊甸之眼': 5904 };
-// 更細的「區域」章節（影片作者標註），做成可點章節 chips
-const WL_CHAPTERS = [
-  { s: 50, z: '晨島' }, { s: 850, z: '雲野' }, { s: 1285, z: '聖島' }, { s: 1595, z: '雲頂' },
-  { s: 2057, z: '雨林' }, { s: 2950, z: '霞谷' }, { s: 3515, z: '村莊劇院' }, { s: 3612, z: '夢想村' },
-  { s: 3850, z: '暮土' }, { s: 4629, z: '被遺忘方舟' }, { s: 4813, z: '禁閣' }, { s: 5904, z: '伊甸之眼' }, { s: 6427, z: '碎石記憶' }
-];
+// 光之翼：每個國度各一支「專屬」教學影片（PlayParadigm 播放清單，已逐支驗證可嵌入）。
+// 比單支大影片貼題——展開哪個國度就嵌入那個國度的影片，只講該國度的光之翼。
+const WL_REALM_VIDEO = {
+  '晨島': 'IQ9JDyJXZp8', '雲野': '8V8Vlw_4lJo', '雨林': 'SvNWyNdmmDI', '霞谷': 'h6YC3lr7-d8',
+  '暮土': 'u9sa8HeAPLo', '禁閣': 'ssIzCcdY1cc', '伊甸之眼': 'syx-uSIeCa8'
+};
 function ytEmbed(v, opts) {
   if (!v) return '';
   opts = opts || {};
@@ -434,9 +431,10 @@ function wikiWinged() {
         ${w.wiki ? `<a class="wiki-link" href="${w.wiki}" target="_blank" rel="noopener">位置圖↗</a>` : ''}${w.img && w.imgC === 'low' ? ' <span class="muted" style="font-size:11px">（照片自動比對，可能不準）</span>' : ''}</div>
       ${w.img ? `<img class="wl-thumb" src="${escapeHtml(w.img)}" data-full="${escapeHtml(w.img)}" data-cap="${escapeHtml(w.realm + ' ' + idxMap[w.order] + '　' + (w.descZh || w.desc))}" loading="lazy" alt="位置照片" onerror="this.style.display='none'" />` : ''}
     </div>`).join('');
+    const realmVid = WL_REALM_VIDEO[rk] ? ytEmbed({ id: WL_REALM_VIDEO[rk], title: rk + ' · 光之翼收集教學' }) : '';
     return `<details class="wiki-card">
-      <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${rgot}/${arr.length}</span>${WL_SEG[rk] != null ? ` <button type="button" class="vid-seg" data-start="${WL_SEG[rk]}" title="跳到影片的${escapeHtml(rk)}段落">🎬 影片段落</button>` : ''}</summary>
-      <div class="sp-body">${rows || '<p class="muted">此國度已全部拿完 ✓</p>'}</div>
+      <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${rgot}/${arr.length}</span>${realmVid ? ' <span class="muted" style="font-size:11px">🎬 內含教學</span>' : ''}</summary>
+      <div class="sp-body">${realmVid}${rows || '<p class="muted">此國度已全部拿完 ✓</p>'}</div>
     </details>`;
   }).join('');
   const layerBar = `<div class="layer-bar"><span class="lb-label">顯示圖層</span>
@@ -474,7 +472,7 @@ function wikiWinged() {
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
-    </div><details class="wiki-card coll-layer" open style="margin-top:12px"><summary>✦ <b>光之翼收集</b> <span class="badge none wl-total">${gotN}/${total}</span> <span class="muted">· 點各國度展開／收合</span></summary><div class="sp-body">${ytEmbed(LAYER_VIDEO.wl, { frameId: 'wlvid-frame', cardId: 'wlvid-card', chapters: WL_CHAPTERS })}${list}</div></details>${shrineTracker}${spiritTracker}
+    </div><details class="wiki-card coll-layer" open style="margin-top:12px"><summary>✦ <b>光之翼收集</b> <span class="badge none wl-total">${gotN}/${total}</span> <span class="muted">· 點各國度展開／收合</span></summary><div class="sp-body"><p class="note" style="margin:2px 0 8px">每個國度展開後，內含<b>該國度專屬</b>的光之翼收集教學影片（點開直接看）；每顆右側「位置圖」是逐顆精準位置。</p>${list}</div></details>${shrineTracker}${spiritTracker}
     <details class="wiki-card" style="margin-top:14px"><summary><b>🕯️ 每日大蠟地圖</b> <span class="muted">各國度固定大蠟位置 · 點開查看</span></summary><div class="sp-body">${wikiCandleMaps()}</div></details>`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
@@ -487,13 +485,6 @@ function bindWlCollection() {
   if (!root) return;
   const fb = root.querySelector('[data-wlfilter]');
   if (fb) fb.addEventListener('click', () => { wlOnlyTodo = !wlOnlyTodo; Store.set('map_todo', wlOnlyTodo); renderMap(); });
-  // 光之翼「🎬 影片段落」：把上方那支內嵌播放器跳到該國度章節並播放（單一播放器，不另開）
-  $$('.vid-seg', root).forEach(b => b.addEventListener('click', e => {
-    e.preventDefault(); e.stopPropagation();
-    const card = root.querySelector('#wlvid-card'), fr = root.querySelector('#wlvid-frame');
-    if (fr) fr.src = 'https://www.youtube-nocookie.com/embed/' + LAYER_VIDEO.wl.id + '?start=' + b.dataset.start + '&autoplay=1';
-    if (card) { card.open = true; card.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-  }));
   $$('[data-layer]', root).forEach(b => b.addEventListener('click', () => {
     const L = b.dataset.layer;
     if (L === 'wl') { showWL = !showWL; Store.set('map_wl', showWL); }
