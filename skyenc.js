@@ -41,6 +41,46 @@ const WL_REALM_VIDEO = {
   '晨島': 'IQ9JDyJXZp8', '雲野': '8V8Vlw_4lJo', '雨林': 'SvNWyNdmmDI', '霞谷': 'h6YC3lr7-d8',
   '暮土': 'u9sa8HeAPLo', '禁閣': 'ssIzCcdY1cc', '伊甸之眼': 'syx-uSIeCa8'
 };
+// 光之翼「逐顆跳段」：這 5 個國度改用「逐區域章節」教學影片（同一頻道系列，描述附時間軸，
+// 皆經 oEmbed 驗證可嵌入）。每顆光之翼用描述裡的區域關鍵字對應到影片秒數，
+// 點清單該顆的 ▶ 直接跳到講那一區的段落（晨島/伊甸無章節影片，維持整支國度影片）。
+// chapters:[章節名, 秒]（影片下方的跳章節 chips）；segs:[關鍵字, 秒, 換影片id?]（逐顆對應，
+// 由上往下first-match，順序刻意安排避免誤配，如「地下洞窟…風行道隧道上方」要先配地下洞窟）。
+const WL_SEG_VIDEO = {
+  '雲野': {
+    id: 'zr1CWbMkirI',
+    chapters: [['蝴蝶平原', 50], ['雲野洞穴', 109], ['村落浮島', 158], ['八人謎題', 276], ['雲野神廟', 373], ['鳥巢', 446], ['聖島群', 486]],
+    segs: [['雲頂', 0, 'MIxrWO3ysks'], ['蝴蝶平原', 50], ['雲野洞穴', 109], ['村落', 158], ['八人謎題', 276], ['神廟', 373], ['鳥巢', 446], ['聖島', 486], ['社交大廳', 0]]
+  },
+  '雨林': {
+    id: 'eXgEtnFnS_g',
+    chapters: [['樹屋', 50], ['雨林空地', 150], ['溪流區', 218], ['高處空地', 320], ['地下洞窟', 419], ['骸骨區', 663], ['雨林神廟', 811]],
+    segs: [['地下洞窟', 419], ['風行道', 0, 'rNrMI8haYKk'], ['主島', 0, 'rNrMI8haYKk'], ['溪流', 218], ['高處空地', 320], ['樹屋', 50], ['空地', 150], ['雨區', 150], ['骸骨', 663], ['樹隧道', 663], ['斷橋', 663], ['終點', 811], ['神廟', 811]]
+  },
+  '霞谷': {
+    id: 'Ylhdm02UDhs',
+    chapters: [['溜冰場', 0], ['城堡', 127], ['飛行賽道', 212], ['競技場', 445], ['霞谷神廟', 565], ['夢想村', 647], ['村莊劇院', 720], ['隱士谷', 976], ['滑行賽道', 1089]],
+    segs: [['飛行賽道', 212], ['滑行賽道', 1089], ['溜冰場', 0], ['城堡', 127], ['競技場', 445], ['賽道', 445], ['神廟', 565], ['夢想村', 647], ['隱士', 976], ['劇院', 720]]
+  },
+  '暮土': {
+    id: 'ONHZ7DtHr4k',
+    chapters: [['寶藏礁', 0], ['外城', 280], ['被遺忘方舟', 410], ['磷蝦區', 606], ['螃蟹平原', 681], ['墓地', 776], ['戰場', 851], ['暮土神廟', 949]],
+    segs: [['磷蝦區', 606], ['螃蟹平原', 681], ['戰場', 851], ['神廟', 949], ['方舟', 410], ['寶藏礁', 0], ['外城', 280], ['墓土', 776], ['肋骨', 776]]
+  },
+  '禁閣': {
+    id: 'ctUwsoamJyk',
+    chapters: [['書庫', 50], ['開場/社交', 220], ['星光沙漠', 255], ['新月綠洲', 500], ['庇護所', 749], ['三樓', 940], ['四樓', 993], ['五樓', 1150], ['神廟(頂峰)', 1227]],
+    segs: [['星光沙漠', 255], ['新月綠洲', 500], ['月牙綠洲', 500], ['書庫', 50], ['庇護所', 749], ['三樓', 940], ['四樓', 993], ['五樓', 1150], ['神廟', 1227], ['開場', 220]]
+  }
+};
+function wlFmtSec(t) { return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
+// 找這顆光之翼對應的影片段落（first-match）；嚕嚕米山谷等新區域不在影片裡→回 null（不顯示 ▶）
+function wlSegOf(rk, desc) {
+  const v = WL_SEG_VIDEO[rk];
+  if (!v || !desc) return null;
+  for (const s of v.segs) { if (desc.indexOf(s[0]) >= 0) return { vid: s[2] || v.id, s: s[1] }; }
+  return null;
+}
 function ytEmbed(v, opts) {
   if (!v) return '';
   opts = opts || {};
@@ -422,16 +462,24 @@ function wikiWinged() {
   }).join('')}<p class="note" style="margin:4px 0 0">饅頭/海膽每 2 小時出現一次（太平洋偶數整點，已換算台灣時間），持續約 10 分鐘，可燒得大量燭光。點地圖上的 🥟🦔 看實景。</p></div>` : '';
   const byRealm = {};
   (SD.wingedLights || []).forEach(w => { (byRealm[w.realm] = byRealm[w.realm] || []).push(w); });
-  const list = Object.keys(byRealm).map(rk => {
+  const list = Object.keys(byRealm).map((rk, ri) => {
     const arr = byRealm[rk];
     const rgot = arr.filter(w => got[w.order]).length;
-    const rows = arr.filter(w => !(wlOnlyTodo && got[w.order])).map(w => `<div class="wl-row${got[w.order] ? ' got' : ''}">
+    const segV = WL_SEG_VIDEO[rk];
+    const frameId = segV ? `wlv-${ri}` : '';
+    const rows = arr.filter(w => !(wlOnlyTodo && got[w.order])).map(w => {
+      const seg = segV ? wlSegOf(rk, w.descZh || w.desc) : null;
+      const segBtn = seg ? ` <button type="button" class="vid-seg wl-seg" data-frame="${frameId}" data-vid="${seg.vid}" data-start="${seg.s}" title="影片跳到這顆所在區域的段落">▶ 影片 ${wlFmtSec(seg.s)}</button>` : '';
+      return `<div class="wl-row${got[w.order] ? ' got' : ''}">
       <input type="checkbox" class="wl-check" data-wl="${w.order}" ${got[w.order] ? 'checked' : ''} aria-label="標記已拿" />
       <div class="wl-info"><b class="wl-n">${idxMap[w.order]}</b> ${escapeHtml(w.descZh || w.desc)}
-        ${w.wiki ? `<a class="wiki-link" href="${w.wiki}" target="_blank" rel="noopener">位置圖↗</a>` : ''}${w.img && w.imgC === 'low' ? ' <span class="muted" style="font-size:11px">（照片自動比對，可能不準）</span>' : ''}</div>
+        ${w.wiki ? `<a class="wiki-link" href="${w.wiki}" target="_blank" rel="noopener">位置圖↗</a>` : ''}${segBtn}${w.img && w.imgC === 'low' ? ' <span class="muted" style="font-size:11px">（照片自動比對，可能不準）</span>' : ''}</div>
       ${w.img ? `<img class="wl-thumb" src="${escapeHtml(w.img)}" data-full="${escapeHtml(w.img)}" data-cap="${escapeHtml(w.realm + ' ' + idxMap[w.order] + '　' + (w.descZh || w.desc))}" loading="lazy" alt="位置照片" onerror="this.style.display='none'" />` : ''}
-    </div>`).join('');
-    const realmVid = WL_REALM_VIDEO[rk] ? ytEmbed({ id: WL_REALM_VIDEO[rk], title: rk + ' · 光之翼收集教學' }) : '';
+    </div>`;
+    }).join('');
+    const realmVid = segV
+      ? ytEmbed({ id: segV.id, title: rk + ' · 光之翼分區教學' }, { frameId, chapters: segV.chapters.map(c => ({ s: c[1], z: c[0] + ' ' + wlFmtSec(c[1]) })) })
+      : (WL_REALM_VIDEO[rk] ? ytEmbed({ id: WL_REALM_VIDEO[rk], title: rk + ' · 光之翼收集教學' }) : '');
     return `<details class="wiki-card">
       <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${rgot}/${arr.length}</span>${realmVid ? ' <span class="muted" style="font-size:11px">🎬 內含教學</span>' : ''}</summary>
       <div class="sp-body">${realmVid}${rows || '<p class="muted">此國度已全部拿完 ✓</p>'}</div>
@@ -472,7 +520,7 @@ function wikiWinged() {
     <div class="wl-map-wrap">
       <div class="wl-zoom-ctrl"><button type="button" data-z="in" aria-label="放大">＋</button><button type="button" data-z="out" aria-label="縮小">－</button><button type="button" data-z="reset" aria-label="重設">⟲</button></div>
       ${svg}
-    </div><details class="wiki-card coll-layer" open style="margin-top:12px"><summary>✦ <b>光之翼收集</b> <span class="badge none wl-total">${gotN}/${total}</span> <span class="muted">· 點各國度展開／收合</span></summary><div class="sp-body"><p class="note" style="margin:2px 0 8px">每個國度展開後，內含<b>該國度專屬</b>的光之翼收集教學影片（點開直接看）；每顆右側「位置圖」是逐顆精準位置。</p>${list}</div></details>${shrineTracker}${spiritTracker}
+    </div><details class="wiki-card coll-layer" open style="margin-top:12px"><summary>✦ <b>光之翼收集</b> <span class="badge none wl-total">${gotN}/${total}</span> <span class="muted">· 點各國度展開／收合</span></summary><div class="sp-body"><p class="note" style="margin:2px 0 8px">每個國度展開後，內含<b>該國度專屬</b>的教學影片（點開直接看）；每顆的「位置圖」是逐顆精準位置，<b style="color:var(--ink-pink)">▶ 影片 m:ss</b> 會把影片直接跳到<b>講那一顆所在區域</b>的段落（依描述自動對應，少數可能略有出入）。</p>${list}</div></details>${shrineTracker}${spiritTracker}
     <details class="wiki-card" style="margin-top:14px"><summary><b>🕯️ 每日大蠟地圖</b> <span class="muted">各國度固定大蠟位置 · 點開查看</span></summary><div class="sp-body">${wikiCandleMaps()}</div></details>`;
 }
 // 地圖分頁（光之翼），獨立於最上層導覽
@@ -483,6 +531,23 @@ function renderMap() {
 function bindWlCollection() {
   const root = $('#map-root');
   if (!root) return;
+  // 影片跳段：每顆光之翼的 ▶（data-frame 指向該國度 iframe）與影片下方章節 chips
+  // （無 data-frame，找同卡片內的 iframe）。換 src 帶 start+autoplay，展開影片卡並捲過去。
+  root.addEventListener('click', e => {
+    const b = e.target.closest('.vid-seg');
+    if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    let frame = b.dataset.frame ? root.querySelector('#' + b.dataset.frame) : null;
+    if (!frame) { const card = b.closest('.vid-card'); frame = card && card.querySelector('iframe'); }
+    if (!frame) return;
+    const vid = b.dataset.vid || (frame.src.match(/embed\/([\w-]{11})/) || [])[1];
+    if (!vid) return;
+    frame.src = 'https://www.youtube-nocookie.com/embed/' + vid + '?start=' + (parseInt(b.dataset.start, 10) || 0) + '&autoplay=1';
+    const card = frame.closest('details'); if (card) card.open = true;
+    const smooth = !(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    const wrap = frame.closest('.yt-wrap') || frame;
+    wrap.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'center' });
+  });
   const fb = root.querySelector('[data-wlfilter]');
   if (fb) fb.addEventListener('click', () => { wlOnlyTodo = !wlOnlyTodo; Store.set('map_todo', wlOnlyTodo); renderMap(); });
   $$('[data-layer]', root).forEach(b => b.addEventListener('click', () => {
