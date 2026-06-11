@@ -422,7 +422,8 @@ function fetchQuests(dk) {
   if (questState.loading) return;
   questState.loading = true; questState.error = false;
   // 加時間戳 + no-store，避免瀏覽器回傳快取舊資料（否則來源更新了也抓不到，看似「沒自動更新」）
-  fetch('https://api.skyhelper.xyz/update/quests?_=' + Date.now(), { cache: 'no-store' })
+  // signal：10 秒沒回應就中止，走 error + 5 分鐘重試流程，避免「載入中…」卡死
+  fetch('https://api.skyhelper.xyz/update/quests?_=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined })
     .then(r => r.ok ? r.json() : Promise.reject(r.status))
     .then(d => { questState = { day: dk, loaded: true, loading: false, error: false, data: d }; renderQuests(new Date()); })
     .catch(() => { questState.loading = false; questState.error = true; renderQuests(new Date()); });

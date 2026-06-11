@@ -36,10 +36,26 @@ self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(req).then(cached => {
       const net = fetch(req).then(r => {
-        if (r && r.ok) { const c = r.clone(); caches.open(CACHE).then(ca => ca.put(req, c)); }
+        if (r && r.ok) {
+          const c = r.clone();
+          caches.open(CACHE).then(async ca => {
+            await ca.put(req, c);
+            prunePathVersions(ca, url);
+          });
+        }
         return r;
       }).catch(() => cached);
       return cached || net;
     })
   );
 });
+
+// 同一路徑只留最新版本：?v= 改版後刪掉舊版號的快取條目，避免快取無限長大
+async function prunePathVersions(ca, url) {
+  if (!url.search) return;
+  const keys = await ca.keys();
+  for (const k of keys) {
+    const ku = new URL(k.url);
+    if (ku.pathname === url.pathname && ku.search !== url.search) await ca.delete(k);
+  }
+}
