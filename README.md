@@ -55,15 +55,35 @@ node build-skydata.cjs
 
 `everything.json` 等原始檔不入庫（見 `.gitignore`），只提交處理後的 `skydata.js`。
 
-## 檔案結構
+## 檔案結構與載入順序
+
+無打包、classic script 共享全域。**index.html 的 `<script>` 順序就是依賴順序**，調整前先看依賴方向（A → B 表示 A 用到 B 的全域）：
 
 ```
-index.html    介面與分頁
-styles.css    樣式（星空主題、行動裝置友善）
-util.js       太平洋時區／DST 換算、localStorage 封裝
-shards.js     碎石預測演算法與資料表
-app.js        主程式：分頁、時鐘、倒數、各功能渲染
+index.html       介面與分頁
+styles.css       樣式（大耳狗淺色主題＋深色模式；字級固定 4 級 CSS 變數，勿再新增字級）
+util.js          太平洋時區／DST 換算、Store（localStorage 封裝，key 一律 sky_ 前綴）
+shards.js        碎石預測演算法與資料表            → util
+skydata.js       遊戲資料（build-skydata.cjs 產生，勿手改）
+permcandles.js   永久尋寶蠟燭資料
+zh.js            英文名 → 中文對照（SKYZH）
+app.js           主程式：分頁、時鐘、倒數、任務、toast → util, shards, skydata, zh
+skyenc.js        圖鑑＋百科＋互動地圖＋光之翼影片跳段   → app, util, skydata, zh
+firebase-config.js / auth.js  Google 登入＋雲端同步（自動同步所有 sky_ 前綴 key）
+sw.js            Service Worker（HTML 網路優先、靜態 cache-first、舊版號自動清）
 ```
+
+## 維護腳本與 CI
+
+```bash
+node verify.cjs        # 部署前驗證：JS 語法、資源/圖片存在、?v= 一致、影片段落對應
+node check-health.cjs  # 外部依賴健檢：YouTube 影片可嵌入、SkyHelper API、wikia 圖床
+node bump-version.cjs  # 自動 bump index.html 的 ?v= 版本號（改 JS/CSS 後執行，別靠記性）
+node build-skydata.cjs # 由 everything.json 重新產生 skydata.js
+node opt-images.cjs    # 壓縮 img/ 下的 WebP
+```
+
+GitHub Actions：每次 push 自動跑 `verify.cjs`（壞了擋下＋寄信）；每週一自動跑 `check-health.cjs`（影片被刪、API 掛掉會寄信，不用等使用者回報）。
 
 ## 免責
 

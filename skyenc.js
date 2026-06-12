@@ -86,7 +86,7 @@ function ytEmbed(v, opts) {
   opts = opts || {};
   const fid = opts.frameId ? ` id="${opts.frameId}"` : '';
   const cid = opts.cardId ? ` id="${opts.cardId}"` : '';
-  const chaps = (opts.chapters && opts.chapters.length) ? `<div class="vid-chapters"><span class="muted" style="font-size:12px">跳章節：</span>${opts.chapters.map(c => `<button type="button" class="vid-seg" data-start="${c.s}">${escapeHtml(c.z)}</button>`).join('')}</div>` : '';
+  const chaps = (opts.chapters && opts.chapters.length) ? `<div class="vid-chapters"><span class="muted fs-tag">跳章節：</span>${opts.chapters.map(c => `<button type="button" class="vid-seg" data-start="${c.s}">${escapeHtml(c.z)}</button>`).join('')}</div>` : '';
   return `<details class="wiki-card vid-card"${cid}><summary>🎬 <b>${escapeHtml(v.title)}</b>　<span class="muted">· 點開直接看（免下載）</span></summary>
     <div class="sp-body"><div class="yt-wrap"><iframe${fid} src="https://www.youtube-nocookie.com/embed/${v.id}" title="${escapeHtml(v.title)}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>${chaps}
       <p class="note" style="margin:5px 0 0">看不到？<a class="wiki-link" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">在 YouTube 開啟↗</a></p></div></details>`;
@@ -116,6 +116,7 @@ function bindCollChecks(root) {
   if (!root) return;
   $$('.coll-check', root).forEach(cb => cb.addEventListener('change', () => {
     collToggle(cb.dataset.coll, cb.dataset.id);
+    if (typeof showToast === 'function') showToast(cb.checked ? '已標記完成 ✓' : '已取消標記', () => cb.click());
     const row = cb.closest('.coll-row'); if (row) row.classList.toggle('got', cb.checked);
     const det = cb.closest('details');
     if (det) { const cs = $$('.coll-check', det); const b = det.querySelector('.coll-prog'); if (b) b.textContent = cs.filter(c => c.checked).length + '/' + cs.length; }
@@ -473,7 +474,7 @@ function wikiWinged() {
       return `<div class="wl-row${got[w.order] ? ' got' : ''}">
       <input type="checkbox" class="wl-check" data-wl="${w.order}" ${got[w.order] ? 'checked' : ''} aria-label="標記已拿" />
       <div class="wl-info"><b class="wl-n">${idxMap[w.order]}</b> ${escapeHtml(w.descZh || w.desc)}
-        ${w.wiki ? `<a class="wiki-link" href="${w.wiki}" target="_blank" rel="noopener">位置圖↗</a>` : ''}${segBtn}${w.img && w.imgC === 'low' ? ' <span class="muted" style="font-size:11px">（照片自動比對，可能不準）</span>' : ''}</div>
+        ${w.wiki ? `<a class="seg-link" href="${w.wiki}" target="_blank" rel="noopener">📍 位置圖↗</a>` : ''}${segBtn}${w.img && w.imgC === 'low' ? ' <span class="muted fs-tag">（照片自動比對，可能不準）</span>' : ''}</div>
       ${w.img ? `<img class="wl-thumb" src="${escapeHtml(w.img)}" data-full="${escapeHtml(w.img)}" data-cap="${escapeHtml(w.realm + ' ' + idxMap[w.order] + '　' + (w.descZh || w.desc))}" loading="lazy" alt="位置照片" onerror="this.style.display='none'" />` : ''}
     </div>`;
     }).join('');
@@ -481,7 +482,7 @@ function wikiWinged() {
       ? ytEmbed({ id: segV.id, title: rk + ' · 光之翼分區教學' }, { frameId, chapters: segV.chapters.map(c => ({ s: c[1], z: c[0] + ' ' + wlFmtSec(c[1]) })) })
       : (WL_REALM_VIDEO[rk] ? ytEmbed({ id: WL_REALM_VIDEO[rk], title: rk + ' · 光之翼收集教學' }) : '');
     return `<details class="wiki-card">
-      <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${rgot}/${arr.length}</span>${realmVid ? ' <span class="muted" style="font-size:11px">🎬 內含教學</span>' : ''}</summary>
+      <summary><b>${escapeHtml(rk)}</b> <span class="badge none">${rgot}/${arr.length}</span>${realmVid ? ' <span class="muted fs-tag">🎬 內含教學</span>' : ''}</summary>
       <div class="sp-body">${realmVid}${rows || '<p class="muted">此國度已全部拿完 ✓</p>'}</div>
     </details>`;
   }).join('');
@@ -564,6 +565,7 @@ function bindWlCollection() {
     const order = cb.dataset.wl;
     wlToggle(order);
     const on = !!wlGot()[order];
+    if (typeof showToast === 'function') showToast(on ? '已標記 1 顆光之翼 ✓' : '已取消標記', () => cb.click());
     const dot = root.querySelector(`.wl-mark[data-order="${order}"]`);
     if (dot) dot.classList.toggle('wl-got', on);
     const row = cb.closest('.wl-row'); if (row) row.classList.toggle('got', on);

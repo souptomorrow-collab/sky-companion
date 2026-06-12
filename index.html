@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#aedcf0" />
-  <meta name="color-scheme" content="light" />
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#aedcf0" />
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1a2238" />
+  <meta name="color-scheme" content="light dark" />
   <title>光遇助手 · Sky Companion</title>
   <meta name="description" content="光·遇（Sky）繁中工具：每日任務、碎石、復刻先祖、互動地圖、大蠟與饅頭海膽時間，一站搞定。" />
   <meta property="og:title" content="光遇助手 · Sky Companion 🐶" />
@@ -13,12 +14,12 @@
   <meta property="og:url" content="https://souptomorrow-collab.github.io/sky-companion/" />
   <meta property="og:type" content="website" />
   <link rel="canonical" href="https://souptomorrow-collab.github.io/sky-companion/" />
-  <link rel="manifest" href="manifest.json?v=0612b" />
+  <link rel="manifest" href="manifest.json?v=0612c" />
   <link rel="icon" type="image/png" href="favicon-32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="光遇助手" />
-  <link rel="stylesheet" href="styles.css?v=0612b" />
+  <link rel="stylesheet" href="styles.css?v=0612c" />
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -32,7 +33,7 @@
     <div class="title">
       <img class="pup-logo" src="img/cinna/cinna-main.webp" alt="大耳狗" />
       <div>
-        <h1>光遇助手 <span style="font-size:16px">🐶</span></h1>
+        <h1>光遇助手 <span class="fs-title">🐶</span></h1>
         <p class="subtitle">Sky Companion · 大耳狗陪你跑圖 ☁️</p>
       </div>
     </div>
@@ -48,6 +49,8 @@
     </div>
   </header>
 
+  <div class="tabs-shell">
+  <span class="tabs-more" aria-hidden="true">›</span>
   <nav class="tabs" id="tabs" role="tablist" aria-label="主要分頁">
     <button class="tab active" id="tab-btn-overview" role="tab" aria-controls="tab-overview" aria-selected="true" data-tab="overview">總覽</button>
     <button class="tab" id="tab-btn-shards" role="tab" aria-controls="tab-shards" aria-selected="false" tabindex="-1" data-tab="shards">碎石</button>
@@ -58,6 +61,7 @@
     <button class="tab" id="tab-btn-wiki" role="tab" aria-controls="tab-wiki" aria-selected="false" tabindex="-1" data-tab="wiki">百科</button>
     <button class="tab" id="tab-btn-settings" role="tab" aria-controls="tab-settings" aria-selected="false" tabindex="-1" data-tab="settings">設定</button>
   </nav>
+  </div>
 
   <main>
     <!-- 總覽 -->
@@ -107,7 +111,7 @@
     <!-- 碎石 -->
     <section id="tab-shards" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-shards">
       <div class="card" id="shard-today"><h2>今日碎石</h2><div class="card-body">載入中…</div></div>
-      <div class="card"><h2>未來 7 天 <span class="muted" style="font-size:13px">· 首次出現（台灣時間）</span></h2><div class="card-body" id="shard-upcoming">載入中…</div></div>
+      <div class="card"><h2>未來 7 天 <span class="muted fs-sub">· 首次出現（台灣時間）</span></h2><div class="card-body" id="shard-upcoming">載入中…</div></div>
       <p class="note">碎石為社群推算（PlutoyDev/sky-shards 演算法），非官方保證；時間以遊戲 Sky 時間（美國太平洋時區，含日光節約）為準，並換算成你的當地時間。</p>
     </section>
 
@@ -149,7 +153,7 @@
     <!-- 先祖圖鑑 -->
     <section id="tab-dex" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-dex">
       <div class="card">
-        <h2>先祖圖鑑 <span class="muted" style="font-size:13px">點 ☆ 標記已解鎖</span></h2>
+        <h2>先祖圖鑑 <span class="muted fs-sub">點 ☆ 標記已解鎖</span></h2>
         <div class="card-body">
           <div id="dex-root">載入中…</div>
         </div>
@@ -159,11 +163,11 @@
     <!-- 互動地圖：光之翼／祭壇／先祖／蠟燭／碎石 -->
     <section id="tab-map" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-map">
       <div class="card">
-        <h2>互動地圖 <span class="muted" style="font-size:13px">· 光之翼／祭壇／先祖／蠟燭／碎石</span></h2>
+        <h2>互動地圖 <span class="muted fs-sub">· 光之翼／祭壇／先祖／蠟燭／碎石</span></h2>
         <div class="card-body"><div id="map-root">載入中…</div></div>
       </div>
       <div class="card" id="perm-candles">
-        <h2>🕯️ 永久尋寶蠟燭 <span class="muted" style="font-size:13px">· 35 根固定路線</span></h2>
+        <h2>🕯️ 永久尋寶蠟燭 <span class="muted fs-sub">· 35 根固定路線</span></h2>
         <div class="card-body"><div id="perm-candles-body">載入中…</div></div>
       </div>
     </section>
@@ -230,6 +234,7 @@
 
   <button id="to-top" type="button" aria-label="回到頂部" title="回到頂部">↑</button>
   <div id="offline-bar" role="status" hidden>📴 離線中 · 顯示快取資料，連線後自動更新</div>
+  <div id="toast" role="status" hidden><span id="toast-msg"></span><button type="button" id="toast-undo" class="btn small">復原</button></div>
 
   <div id="lightbox" class="lightbox" role="dialog" aria-label="位置照片">
     <img id="lightbox-img" alt="位置照片" referrerpolicy="no-referrer" />
@@ -242,15 +247,15 @@
     <div class="ml-host" id="map-lightbox-host"></div>
   </div>
 
-  <script src="util.js?v=0612b"></script>
-  <script src="shards.js?v=0612b"></script>
-  <script src="skydata.js?v=0612b"></script>
-  <script src="permcandles.js?v=0612b"></script>
-  <script src="zh.js?v=0612b"></script>
-  <script src="app.js?v=0612b"></script>
-  <script src="skyenc.js?v=0612b"></script>
-  <script src="firebase-config.js?v=0612b"></script>
-  <script src="auth.js?v=0612b"></script>
+  <script src="util.js?v=0612c"></script>
+  <script src="shards.js?v=0612c"></script>
+  <script src="skydata.js?v=0612c"></script>
+  <script src="permcandles.js?v=0612c"></script>
+  <script src="zh.js?v=0612c"></script>
+  <script src="app.js?v=0612c"></script>
+  <script src="skyenc.js?v=0612c"></script>
+  <script src="firebase-config.js?v=0612c"></script>
+  <script src="auth.js?v=0612c"></script>
   <script>
     /* PWA：註冊 Service Worker（離線可用、可安裝） */
     if ('serviceWorker' in navigator) {

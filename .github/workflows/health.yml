@@ -1,0 +1,16 @@
+# 每週一 09:00（台灣時間，UTC+8 → cron 用 UTC 01:00）健檢外部依賴：
+# YouTube 影片是否還能嵌入、SkyHelper API、wikia 熱鏈圖。失敗 GitHub 會寄信通知。
+name: health
+on:
+  schedule:
+    - cron: '0 1 * * 1'
+  workflow_dispatch:
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node check-health.cjs

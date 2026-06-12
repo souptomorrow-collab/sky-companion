@@ -831,7 +831,7 @@ function computeCandles() {
     <div class="kv"><span class="k">還需要</span><span class="v">${need} 根</span></div>
     <div class="kv"><span class="k">預計可獲得（含現有）</span><span class="v">${obtainable} 根</span></div>
     <div class="kv"><span class="k">每天至少需</span><span class="v">${perdayText}</span></div>
-    <p class="result ${ok ? 'ok' : 'bad'}" style="font-size:16px;margin-top:10px">
+    <p class="result ${ok ? 'ok' : 'bad'}" class="fs-title" style="margin-top:10px">
       ${ok ? `✓ 來得及！預計多出 ${obtainable - target} 根。` : `✗ 進度不足，照目前每日 ${perDay} 根會差 ${target - obtainable} 根。`}
     </p>`;
 }
@@ -946,9 +946,41 @@ function tick() {
   }
 }
 
+/* 操作回饋 toast：顯示訊息 + 「復原」鈕（防誤觸勾選），4 秒自動消失 */
+let toastTimer = null, toastUndoFn = null;
+function showToast(msg, undoFn) {
+  const t = $('#toast'), m = $('#toast-msg'), u = $('#toast-undo');
+  if (!t || !m) return;
+  m.textContent = msg;
+  toastUndoFn = undoFn || null;
+  if (u) u.hidden = !undoFn;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; toastUndoFn = null; }, 4000);
+}
+/* 分頁列溢出提示：兩側可捲時顯示漸層 + 右緣箭頭（手機上「設定」常在畫面外） */
+function bindTabsFade() {
+  const t = $('#tabs'); const shell = t && t.closest('.tabs-shell');
+  if (!t || !shell) return;
+  const upd = () => {
+    shell.classList.toggle('can-l', t.scrollLeft > 4);
+    shell.classList.toggle('can-r', t.scrollLeft + t.clientWidth < t.scrollWidth - 4);
+  };
+  t.addEventListener('scroll', upd, { passive: true });
+  window.addEventListener('resize', upd);
+  upd();
+}
+
 function init() {
   $('#tabs').addEventListener('click', e => {
     const btn = e.target.closest('.tab'); if (btn) showTab(btn.dataset.tab);
+  });
+  bindTabsFade();
+  const tu = $('#toast-undo');
+  if (tu) tu.addEventListener('click', () => {
+    const t = $('#toast'); if (t) t.hidden = true;
+    clearTimeout(toastTimer);
+    if (toastUndoFn) { const f = toastUndoFn; toastUndoFn = null; f(); }
   });
   // 鍵盤左右／Home／End 在分頁列移動（ARIA tablist 標準）
   $('#tabs').addEventListener('keydown', e => {
