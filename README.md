@@ -61,7 +61,7 @@ node build-skydata.cjs
 
 ```
 index.html       介面與分頁
-styles.css       樣式（大耳狗淺色主題＋深色模式；字級固定 4 級 CSS 變數，勿再新增字級）
+styles.css       樣式（大耳狗淺色主題；介面色與字級皆 CSS 變數，字級固定 4 級勿再新增）
 util.js          太平洋時區／DST 換算、Store（localStorage 封裝，key 一律 sky_ 前綴）
 shards.js        碎石預測演算法與資料表            → util
 skydata.js       遊戲資料（build-skydata.cjs 產生，勿手改）

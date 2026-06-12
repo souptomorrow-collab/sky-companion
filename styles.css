@@ -21,7 +21,7 @@
   --fs-body: 14px;        /* 內文 */
   --fs-sub: 13px;         /* 輔助說明 */
   --fs-tag: 12px;         /* 徽章/標籤/小字 */
-  /* 介面色（深色模式只要覆寫這批變數） */
+  /* 介面色（集中成變數；整站固定大耳狗淺色，不做深色模式） */
   --page-bg: linear-gradient(180deg, #d6effc 0%, #eaf7ff 42%, #fff4fa 100%);
   --tint: rgba(88, 182, 236, .10);        /* 區塊底色 */
   --tint-hover: rgba(88, 182, 236, .12);  /* 滑過底色 */
@@ -437,32 +437,4 @@ input:focus { outline: none; border-color: var(--accent); }
 @media (max-width: 560px) {
   .cinna-deco .pup { opacity: .5; }
   .cinna-deco .p1 { width: 60px; } .cinna-deco .p2 { width: 68px; } .cinna-deco .p3 { width: 58px; }
-}
-
-/* ============ 深色模式：跟隨系統（晚上邊玩邊查不刺眼）。只覆寫變數＋少數特例 ============ */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --page-bg: linear-gradient(180deg, #151b2e 0%, #1a2238 50%, #241f33 100%);
-    --panel: rgba(31, 39, 62, 0.85);
-    --panel-solid: #20283f;
-    --line: rgba(120, 175, 222, 0.22);
-    --text: #ccd6ee;
-    --muted: #93a4c7;
-    --ink: #7cc2f2;
-    --ink-pink: #ff9ec7;
-    --chip-bg: rgba(255, 255, 255, .06);
-    --input-bg: rgba(0, 0, 0, .28);
-    --bar-bg: rgba(31, 39, 62, .72);
-    --float-bg: rgba(42, 52, 80, .92);
-    --btn-grad: linear-gradient(180deg, #2c3a5c, #25304d);
-    --btn-danger-grad: linear-gradient(180deg, #5a2b3a, #46222e);
-    --card-shadow: 0 10px 26px rgba(0, 0, 0, .35);
-    --cloud-op: .12;
-    --fade: rgba(24, 31, 51, .95);
-  }
-  .cinna-deco .pup { opacity: .45; }
-  .cinna-strip img { border-color: var(--panel-solid); }
-  .cinna-strip .ov-trophy { background: #dfe7f4; } /* 獎盃圖透明底，保留淺色襯底才看得清 */
-  .badge.none { background: rgba(154,166,212,.12); }
-  .cost-legend { background: rgba(120,175,222,.12); }
 }
