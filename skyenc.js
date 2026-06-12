@@ -377,7 +377,7 @@ function wikiWinged() {
   const orderNames = Object.keys(ORDER).sort((a, b) => ORDER[a] - ORDER[b]);
   const pathPts = orderNames.map(n => { const s = shapes.find(x => x.name === n); return s ? (s.pos || (s.boundary && s.boundary[0])) : null; }).filter(Boolean);
   const pathLine = pathPts.length > 1 ? `<polyline class="wl-path" points="${pathPts.map(p => X(p) + ',' + Y(p)).join(' ')}" marker-mid="url(#arr)" marker-end="url(#arr)" />` : '';
-  const defs = `<defs><marker id="arr" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(243,210,122,.85)"/></marker></defs>`;
+  const defs = `<defs><marker id="arr" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(255,158,199,.9)"/></marker></defs>`;
   // 各國度內的編號（與下方清單一致）
   const idxMap = {}; const _t = {};
   (SD.wingedLights || []).forEach(w => { _t[w.realm] = (_t[w.realm] || 0) + 1; idxMap[w.order] = _t[w.realm]; });

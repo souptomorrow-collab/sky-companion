@@ -252,14 +252,14 @@ input:focus { outline: none; border-color: var(--accent); }
 .tips li { margin: 4px 0; color: var(--muted); font-size: var(--fs-sub); }
 
 /* 光之翼地圖 */
-.wl-map-wrap { position: relative; background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: 12px; padding: 0; margin: 8px auto 14px; max-width: 640px; overflow: hidden; }
+.wl-map-wrap { position: relative; background: rgba(174,220,240,.4); border: 1px solid var(--line); border-radius: 12px; padding: 0; margin: 8px auto 14px; max-width: 640px; overflow: hidden; }
 .wl-map { position: relative; width: 100%; display: block; touch-action: none; transform-origin: 0 0; cursor: grab; }
 .wl-map-bg { display: block; width: 100%; height: auto; user-select: none; -webkit-user-drag: none; }
 .wl-map-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .wl-zoom-ctrl { position: absolute; top: 12px; right: 12px; z-index: 3; display: flex; flex-direction: column; gap: 6px; }
-.wl-zoom-ctrl button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: rgba(16,22,46,.85); color: var(--text); font-size: 18px; cursor: pointer; line-height: 1; }
+.wl-zoom-ctrl button { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,.92); color: var(--ink); font-size: 18px; cursor: pointer; line-height: 1; }
 .wl-zoom-ctrl button:hover { border-color: var(--accent); color: var(--gold-soft); }
-.wl-path { fill: none; stroke: rgba(243,210,122,.55); stroke-width: 1; stroke-dasharray: 3 3; }
+.wl-path { fill: none; stroke: rgba(255,158,199,.75); stroke-width: 1; stroke-dasharray: 3 3; }
 .wl-map text { pointer-events: none; font-weight: 700; }
 .wl-mark { cursor: pointer; }
 .wl-mark circle { fill: #ffd76b; stroke: #1a1326; stroke-width: 0.5; transition: fill .1s; }
@@ -311,34 +311,34 @@ input:focus { outline: none; border-color: var(--accent); }
 .wl-thumb.loc-guide { width: 100%; max-width: 560px; height: auto; border-color: var(--accent); }
 .shard-media { display: flex; flex-wrap: wrap; gap: 14px; margin: 6px 0 10px; }
 .shard-media > div { flex: 1 1 270px; margin: 0; }
-.shard-map { position: relative; width: 100%; max-width: 340px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: rgba(0,0,0,.35); }
+.shard-map { position: relative; width: 100%; max-width: 340px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: rgba(174,220,240,.4); }
 .shard-day-x > summary { list-style: none; cursor: pointer; }
 .shard-day-x > summary::-webkit-details-marker { display: none; }
 .shard-day-x > summary:hover { background: var(--tint-hover); border-radius: 8px; }
 .shard-day-x[open] > summary .d-date::after { content: ' ▾'; color: var(--muted); }
-.wl-thumb.sp-portrait { width: auto; height: 130px; max-width: 100%; object-fit: contain; background: rgba(0,0,0,.18); }
-.wl-thumb.ts-portrait { width: 56px; height: 56px; object-fit: contain; background: rgba(0,0,0,.2); }
+.wl-thumb.sp-portrait { width: auto; height: 130px; max-width: 100%; object-fit: contain; background: rgba(120,175,222,.14); }
+.wl-thumb.ts-portrait { width: 56px; height: 56px; object-fit: contain; background: rgba(120,175,222,.14); }
 .wl-thumb.season-icon { width: 24px; height: 24px; object-fit: contain; display: inline-block; vertical-align: middle; margin-right: 6px; border: none; cursor: zoom-in; }
 
 /* 燈箱（點地圖點或縮圖看大圖 + 說明） */
-.lightbox { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.9); flex-direction: column; align-items: center; justify-content: center; gap: 14px; cursor: zoom-out; padding: 20px; }
+.lightbox { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(214,236,250,.96); flex-direction: column; align-items: center; justify-content: center; gap: 14px; cursor: zoom-out; padding: 20px; }
 .lightbox.open { display: flex; }
-#lightbox-img { max-width: 94vw; max-height: 82vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
-#lightbox-cap { color: #f3f5ff; font-size: var(--fs-body); text-align: center; max-width: 90vw; line-height: 1.5; }
+#lightbox-img { max-width: 94vw; max-height: 82vh; border-radius: 10px; box-shadow: 0 10px 40px rgba(96,140,190,.45); }
+#lightbox-cap { color: var(--text); font-size: var(--fs-body); text-align: center; max-width: 90vw; line-height: 1.5; }
 
 /* 可縮放地圖放大層（碎石 / 先祖 / 區域 位置點地圖後開啟，含實景照片） */
-.map-lightbox { display: none; position: fixed; inset: 0; z-index: 110; background: rgba(0,0,0,.92); flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; overflow-y: auto; }
+.map-lightbox { display: none; position: fixed; inset: 0; z-index: 110; background: rgba(214,236,250,.97); flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 16px; overflow-y: auto; }
 .map-lightbox.open { display: flex; }
-.map-lightbox .ml-cap { color: #f3f5ff; font-size: var(--fs-body); text-align: center; max-width: 92vw; line-height: 1.5; }
+.map-lightbox .ml-cap { color: var(--text); font-size: var(--fs-body); text-align: center; max-width: 92vw; line-height: 1.5; }
 .map-lightbox .ml-host { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.map-lightbox .ml-photo { display: block; width: auto; max-width: min(92vw, 640px); max-height: 30vh; height: auto; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,.55); }
+.map-lightbox .ml-photo { display: block; width: auto; max-width: min(92vw, 640px); max-height: 30vh; height: auto; border-radius: 10px; box-shadow: 0 8px 30px rgba(96,140,190,.4); }
 .map-lightbox .wl-map-wrap { width: min(92vw, 58vh); max-width: 640px; margin: 0; }
 .map-lightbox .wl-map-wrap.wide { width: min(94vw, 880px); max-width: 880px; max-height: 84vh; }
-.ml-close { position: absolute; top: 14px; right: 16px; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: rgba(16,22,46,.9); color: var(--text); font-size: 20px; cursor: pointer; z-index: 3; line-height: 1; }
+.ml-close { position: absolute; top: 14px; right: 16px; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line); background: rgba(255,255,255,.95); color: var(--ink); font-size: 20px; cursor: pointer; z-index: 3; line-height: 1; }
 .ml-close:hover { border-color: var(--accent); color: var(--gold-soft); }
 /* 小地圖：可點放大提示 */
 .mini-map { cursor: zoom-in; }
-.mini-map-hint { position: absolute; right: 6px; bottom: 6px; background: rgba(0,0,0,.62); color: #fff; font-size: var(--fs-tag); padding: 2px 7px; border-radius: 999px; pointer-events: none; }
+.mini-map-hint { position: absolute; right: 6px; bottom: 6px; background: rgba(255,255,255,.9); color: var(--ink); font-size: var(--fs-tag); padding: 2px 7px; border-radius: 999px; pointer-events: none; }
 .sp-loc { margin: 4px 0 10px; }
 .pill-loc { cursor: pointer; }
 .pill-loc:hover { border-color: var(--accent); color: var(--ink-pink); }
@@ -366,7 +366,7 @@ input:focus { outline: none; border-color: var(--accent); }
 .q-claims { display: flex; flex-wrap: wrap; gap: 12px; }
 /* 任務影片攻略：內嵌播放器（免下載直接看） */
 .q-vid > summary { color: var(--ink-pink); }
-.q-video { width: 100%; max-width: 480px; margin-top: 6px; border-radius: 10px; border: 1px solid var(--line); background: #000; display: block; }
+.q-video { width: 100%; max-width: 480px; margin-top: 6px; border-radius: 10px; border: 1px solid var(--line); background: #eaf4fd; display: block; }
 /* 雙倍燭光活動橫幅 */
 .dbl-banner { margin: 0 0 10px; border-radius: 12px; font-size: var(--fs-sub); }
 .dbl-banner.on { padding: 9px 12px; background: linear-gradient(100deg, rgba(255,214,102,.22), rgba(255,170,205,.18)); border: 1px solid rgba(255,193,99,.5); color: var(--ink); }
@@ -396,17 +396,17 @@ input:focus { outline: none; border-color: var(--accent); }
 #to-top:hover { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { #to-top { transition: none; } }
 /* 離線提示 */
-#offline-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 70; background: rgba(76,92,130,.94); color: #fff; font-size: var(--fs-sub); padding: 7px 14px; border-radius: 999px; box-shadow: 0 3px 12px rgba(0,0,0,.2); }
+#offline-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: 14px; z-index: 70; background: rgba(255,255,255,.95); color: var(--text); border: 1px solid var(--line); font-size: var(--fs-sub); padding: 7px 14px; border-radius: 999px; box-shadow: 0 4px 14px rgba(120,170,220,.3); }
 #offline-bar[hidden] { display: none; }
 /* 操作回饋 toast（勾選收集後顯示，附「復原」防誤觸） */
-#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 64px; z-index: 80; display: flex; align-items: center; gap: 10px; background: rgba(76,92,130,.96); color: #fff; font-size: var(--fs-sub); padding: 8px 10px 8px 16px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 64px; z-index: 80; display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.96); color: var(--text); border: 1px solid rgba(255,158,199,.55); font-size: var(--fs-sub); padding: 8px 10px 8px 16px; border-radius: 999px; box-shadow: 0 4px 14px rgba(120,170,220,.3); }
 #toast[hidden] { display: none; }
-#toast .btn.small { background: rgba(255,255,255,.16); color: #fff; border-color: rgba(255,255,255,.35); }
+#toast .btn.small { background: linear-gradient(180deg, #ffe3f0, #ffd0e6); color: var(--ink-pink); border-color: rgba(255,158,199,.5); }
 /* 鍵盤焦點環：focus-visible 只在鍵盤操作時顯示，滑鼠點擊不受影響 */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tab:focus-visible { outline-offset: -2px; }
 .yt-wrap { position: relative; width: 100%; max-width: 560px; aspect-ratio: 16 / 9; margin-top: 4px; }
-.yt-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 10px; background: #000; }
+.yt-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; border-radius: 10px; background: #eaf4fd; }
 /* 永久尋寶蠟燭清單 */
 .perm-list { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
 .perm-c { flex: 1 1 200px; max-width: 244px; }
