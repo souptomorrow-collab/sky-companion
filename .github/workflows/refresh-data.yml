@@ -1,0 +1,45 @@
+# 每天自動重抓社群資料集（skygame-data），有變動才 rebuild + bump + commit 推上線。
+# 資料集是社群維護的，新季節/活動/復刻先祖確認後會陸續收錄，這個 job 讓網頁自動跟上，免手動。
+# everything.json 不入庫（.gitignore），所以只有 skydata.js / index.html 會出現在 commit。
+# cron 用 UTC：02:00 UTC = 台灣 10:00。
+name: refresh-data
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # 允許 GITHUB_TOKEN 推 commit
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 重抓最新資料集並重建 skydata.js
+        run: |
+          curl -fsSL https://unpkg.com/skygame-data@latest/assets/everything.json -o everything.json
+          node build-skydata.cjs
+
+      - name: 有變動才 bump + 驗證 + 提交
+        run: |
+          if git diff --quiet -- skydata.js; then
+            echo "skydata.js 無變動，今天沒有新資料，跳過。"
+            exit 0
+          fi
+          echo "偵測到 skydata.js 變動，進行 bump + 驗證 + 提交。"
+          node bump-version.cjs
+          node verify.cjs   # 失敗 → job 失敗、不提交，GitHub 會寄信通知
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add skydata.js index.html
+          git commit -m "自動更新圖鑑資料（skygame-data 每日重抓）"
+          git push
