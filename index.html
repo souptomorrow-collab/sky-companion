@@ -13,12 +13,12 @@
   <meta property="og:url" content="https://souptomorrow-collab.github.io/sky-companion/" />
   <meta property="og:type" content="website" />
   <link rel="canonical" href="https://souptomorrow-collab.github.io/sky-companion/" />
-  <link rel="manifest" href="manifest.json?v=0625f" />
+  <link rel="manifest" href="manifest.json?v=0625g" />
   <link rel="icon" type="image/png" href="favicon-32.png" />
   <link rel="apple-touch-icon" href="apple-touch-icon.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="光遇助手" />
-  <link rel="stylesheet" href="styles.css?v=0625f" />
+  <link rel="stylesheet" href="styles.css?v=0625g" />
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
@@ -185,6 +185,12 @@
     <!-- 設定 -->
     <section id="tab-settings" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-settings">
       <div class="card">
+        <h2>👤 帳號（本機檔案）</h2>
+        <div class="card-body">
+          <div id="profile-box"><p class="muted">載入中…</p></div>
+        </div>
+      </div>
+      <div class="card">
         <h2>☁️ 帳號同步</h2>
         <div class="card-body">
           <div id="account-box"><p class="muted">載入中…</p></div>
@@ -202,11 +208,11 @@
       <div class="card">
         <h2>資料備份</h2>
         <div class="card-body">
-          <p class="note">所有紀錄只存在這台裝置的瀏覽器（localStorage）。換裝置或清快取前，請先匯出。</p>
+          <p class="note">所有紀錄只存在這台裝置的瀏覽器（localStorage）。匯出／匯入為「全部帳號」的整機備份；換裝置或清快取前請先匯出。清除只會清「目前帳號」。</p>
           <div class="row">
             <button class="btn" id="export-data">⬇ 匯出資料</button>
             <button class="btn" id="import-data">⬆ 匯入資料</button>
-            <button class="btn danger" id="reset-data">🗑 清除全部</button>
+            <button class="btn danger" id="reset-data">🗑 清除此帳號</button>
           </div>
           <input type="file" id="import-file" accept="application/json" hidden />
         </div>
@@ -247,15 +253,15 @@
     <div class="ml-host" id="map-lightbox-host"></div>
   </div>
 
-  <script src="util.js?v=0625f"></script>
-  <script src="shards.js?v=0625f"></script>
-  <script src="skydata.js?v=0625f"></script>
-  <script src="permcandles.js?v=0625f"></script>
-  <script src="zh.js?v=0625f"></script>
-  <script src="app.js?v=0625f"></script>
-  <script src="skyenc.js?v=0625f"></script>
-  <script src="firebase-config.js?v=0625f"></script>
-  <script src="auth.js?v=0625f"></script>
+  <script src="util.js?v=0625g"></script>
+  <script src="shards.js?v=0625g"></script>
+  <script src="skydata.js?v=0625g"></script>
+  <script src="permcandles.js?v=0625g"></script>
+  <script src="zh.js?v=0625g"></script>
+  <script src="app.js?v=0625g"></script>
+  <script src="skyenc.js?v=0625g"></script>
+  <script src="firebase-config.js?v=0625g"></script>
+  <script src="auth.js?v=0625g"></script>
   <script>
     /* PWA：註冊 Service Worker（離線可用、可安裝） */
     if ('serviceWorker' in navigator) {

@@ -893,8 +893,47 @@ function computeCandles() {
 /* 先祖圖鑑（先祖/物品/花費）已改為資料驅動，見 skyenc.js 的 renderDex()。 */
 function escapeHtml(s) { return String(s).replace(/[&<>"]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[m])); }
 
+/* ---------- 帳號（本機多檔案）---------- */
+function renderProfiles() {
+  const box = $('#profile-box');
+  if (!box || typeof Profiles === 'undefined') return;
+  const list = Profiles.list();
+  const curId = Profiles.currentId();
+  const opts = list.map(p => `<option value="${escapeHtml(p.id)}"${p.id === curId ? ' selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
+  box.innerHTML = `<div class="kv"><span class="k">目前帳號</span><span class="v"><select id="prof-sel" class="prof-sel">${opts}</select></span></div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn" id="prof-add">➕ 新增</button>
+      <button class="btn" id="prof-rename">✏️ 改名</button>
+      <button class="btn danger" id="prof-del">🗑 刪除</button>
+    </div>
+    <p class="note">每個帳號各自獨立記錄光之翼、圖鑑、任務勾選、蠟燭預算、設定等（主帳／小帳分開存）。切換會重新載入頁面。登入 Google（上方）時會把所有帳號一起雲端備份。</p>`;
+  $('#prof-sel').onchange = e => { Profiles.switch(e.target.value); location.reload(); };
+  $('#prof-add').onclick = () => {
+    const n = prompt('新帳號名稱？', '帳號 ' + (list.length + 1));
+    if (n === null) return;
+    const id = Profiles.add(n);
+    Profiles.switch(id);
+    location.reload();
+  };
+  $('#prof-rename').onclick = () => {
+    const p = Profiles.current();
+    const n = prompt('帳號改名為？', p ? p.name : '');
+    if (n === null || !n.trim()) return;
+    Profiles.rename(Profiles.currentId(), n);
+    renderProfiles();
+  };
+  $('#prof-del').onclick = () => {
+    if (Profiles.list().length <= 1) { alert('至少要保留一個帳號。'); return; }
+    const p = Profiles.current();
+    if (!confirm(`刪除帳號「${p ? p.name : ''}」及其所有資料？此動作無法復原。`)) return;
+    Profiles.remove(Profiles.currentId());
+    location.reload();
+  };
+}
+
 /* ---------- 設定 ---------- */
 function bindSettings() {
+  renderProfiles();
   const anchor = $('#ts-anchor');
   anchor.value = Store.get('ts_anchor', TS_ANCHOR_DEFAULT);
   anchor.addEventListener('change', () => {
@@ -904,8 +943,9 @@ function bindSettings() {
   $('#import-data').addEventListener('click', () => $('#import-file').click());
   $('#import-file').addEventListener('change', importData);
   $('#reset-data').addEventListener('click', () => {
-    if (!confirm('確定清除這台裝置上的全部紀錄？此動作無法復原。')) return;
-    Store.allKeys().forEach(k => localStorage.removeItem(k));
+    const p = (typeof Profiles !== 'undefined') && Profiles.current();
+    if (!confirm(`確定清除目前帳號「${p ? p.name : ''}」的全部紀錄？此動作無法復原（其他帳號不受影響）。`)) return;
+    Profiles.clearCurrent();
     location.reload();
   });
 }
