@@ -269,6 +269,17 @@ const specialVisits = get('specialVisits')
   })
   .filter(sv => sv.spirits.length)
   .sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+// 補充近期集體復刻（資料集快照較舊時，由 sv-extra.json 手動補上；est=社群整理待官方收錄）
+let SV_EXTRA = {};
+try { SV_EXTRA = JSON.parse(fs.readFileSync(path.join(__dirname, 'sv-extra.json'), 'utf8')); } catch (e) {}
+Object.keys(SV_EXTRA).forEach(start => {
+  if (start.startsWith('_')) return;
+  if (specialVisits.some(sv => sv.start === start)) return; // 資料集已有同起始日就不覆蓋
+  const o = SV_EXTRA[start];
+  const sp = (o.spirits || []).map(name => { const s = spiritByName.get(name); return { name, img: (s && s.imageUrl) || '' }; });
+  if (sp.length) specialVisits.push({ n: o.n || null, start, end: o.end || start, spirits: sp, wiki: o.wiki || null, est: true });
+});
+specialVisits.sort((a, b) => (a.start || '').localeCompare(b.start || ''));
 
 // ---------- 人工整理：貨幣 / 碎石獎勵 / 每日攻略（資料集無，採社群/官方整理）----------
 const currencies = [

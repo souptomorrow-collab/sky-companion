@@ -804,13 +804,14 @@ function renderSpecialVisits(now) {
     const upcoming = sv.start > today;
     const badge = live ? '<span class="badge live">在場</span>' : upcoming ? '<span class="badge black">即將</span>' : '<span class="badge none">已過</span>';
     const title = sv.n ? `集體復刻 #${sv.n}` : '集體復刻';
+    const tag = sv.est ? ' <span class="muted">· 社群整理</span>' : '';
     const end = sv.end.length >= 10 ? sv.end.slice(5).replace('-', '/') : sv.end;
     const portraits = sv.spirits.map(s => imgThumb(s.img, s.name, 'ts-portrait')).join('');
     const names = sv.spirits.map(s => nm(s.name)).join('、');
     html += `<details class="shard-day-x ts-cal"${live || upcoming ? ' open' : ''}>
       <summary class="shard-day">
         <span class="d-date">${sv.start} ~ ${end}</span>
-        <span class="d-loc">${badge} ${title} <span class="muted">（${sv.spirits.length} 位）</span></span></summary>
+        <span class="d-loc">${badge} ${title}${tag} <span class="muted">（${sv.spirits.length} 位）</span></span></summary>
       <div style="padding:6px 4px 2px">
         <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">${portraits}</div>
         <p>${names}</p>
