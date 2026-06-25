@@ -234,8 +234,15 @@ const events = get('events').map(e => ({
 }));
 
 // ---------- 復刻先祖歷史 ----------
+// 每場 travelingSpirit 都帶該「次復刻」專屬兌換樹(t.tree)，walk 它取得實際復刻價(普通蠟燭/愛心/升華)。
 const travelingSpirits = get('travelingSpirits')
-  .map(t => ({ date: t.date, spirit: spiritName.get(t.spirit) || null, img: spiritImgG.get(t.spirit) || '' }))
+  .map(t => {
+    const tree = t.tree ? treesMap.get(t.tree) : null;
+    const items = tree && tree.node ? walkTree(tree.node) : [];
+    const totals = {};
+    items.forEach(x => { for (const k in x.cost) totals[k] = (totals[k] || 0) + x.cost[k]; });
+    return { date: t.date, spirit: spiritName.get(t.spirit) || null, img: spiritImgG.get(t.spirit) || '', items, totals };
+  })
   .filter(t => t.spirit)
   .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 // 補充近期復刻先祖（資料集快照較舊時，由 ts-extra.json 手動補上 {date:先祖名}）
@@ -246,7 +253,7 @@ Object.keys(TS_EXTRA).forEach(date => {
   if (travelingSpirits.some(t => t.date === date)) return; // 資料集已有就不覆蓋
   const name = TS_EXTRA[date];
   const s = spiritByName.get(name);
-  if (s) travelingSpirits.push({ date, spirit: name, img: s.imageUrl || '' });
+  if (s) travelingSpirits.push({ date, spirit: name, img: s.imageUrl || '', items: [], totals: {} }); // 手動補的場次無專屬樹 → 前端退回 ts-cost/季節原價
 });
 travelingSpirits.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
