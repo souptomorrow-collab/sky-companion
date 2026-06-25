@@ -1,14 +1,3 @@
 {
-  "_note": "手動補上資料集尚未收錄的近期『集體復刻』(回歸先祖)。key=到達日(YYYY-MM-DD)。資料集收錄同一起始日後會自動以官方版取代。先祖名須與資料集英文名一致才能帶出頭像。",
-  "2026-06-19": {
-    "n": 13,
-    "end": "2026-07-02",
-    "spirits": [
-      "Vestige of a Deserted Oasis",
-      "Memory of a Lost Village",
-      "Echo of an Abandoned Refuge",
-      "Remnant of a Forgotten Haven"
-    ],
-    "wiki": "https://sky-children-of-the-light.fandom.com/wiki/Returning_Spirits"
-  }
+  "_note": "手動補上資料集尚未收錄的近期『集體復刻』(回歸先祖)。key=到達日(YYYY-MM-DD),值={n,end,spirits:[英文先祖名],wiki}。資料集收錄同一起始日後會自動以官方版(含實際復刻價)取代,可再把這裡的手動筆移除。先祖名須與資料集英文名一致才能帶出頭像。目前無待補項目。"
 }
