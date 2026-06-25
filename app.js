@@ -900,13 +900,16 @@ function renderProfiles() {
   const list = Profiles.list();
   const curId = Profiles.currentId();
   const opts = list.map(p => `<option value="${escapeHtml(p.id)}"${p.id === curId ? ' selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
+  const ro = Profiles.isRO(curId);
   box.innerHTML = `<div class="kv"><span class="k">目前帳號</span><span class="v"><select id="prof-sel" class="prof-sel">${opts}</select></span></div>
+    ${ro ? '<p class="note" style="color:var(--ink-pink)">🔒 這是別人分享給你的帳號（唯讀）。你的改動不會回存到對方；切回自己的帳號可正常記錄。</p>' : ''}
     <div class="row" style="margin-top:8px">
       <button class="btn" id="prof-add">➕ 新增</button>
       <button class="btn" id="prof-rename">✏️ 改名</button>
-      <button class="btn danger" id="prof-del">🗑 刪除</button>
+      ${ro ? '' : '<button class="btn" id="prof-share">🔗 分享</button>'}
+      <button class="btn danger" id="prof-del">🗑 ${ro ? '移除' : '刪除'}</button>
     </div>
-    <p class="note">每個帳號各自獨立記錄光之翼、圖鑑、任務勾選、蠟燭預算、設定等（主帳／小帳分開存）。切換會重新載入頁面。登入 Google（上方）時會把所有帳號一起雲端備份。</p>`;
+    <p class="note">每個帳號各自獨立記錄光之翼、圖鑑、任務勾選、蠟燭預算、設定等（主帳／小帳分開存）。切換會重新載入頁面。登入 Google（上方）後每個帳號各自雲端同步、可跨裝置；「🔗 分享」會產生唯讀連結給朋友看你的進度。</p>`;
   $('#prof-sel').onchange = e => { Profiles.switch(e.target.value); location.reload(); };
   $('#prof-add').onclick = () => {
     const n = prompt('新帳號名稱？', '帳號 ' + (list.length + 1));
@@ -922,10 +925,22 @@ function renderProfiles() {
     Profiles.rename(Profiles.currentId(), n);
     renderProfiles();
   };
+  const shareBtn = $('#prof-share');
+  if (shareBtn) shareBtn.onclick = () => {
+    if (!(window.SkySync && window.SkySync.ready)) { alert('雲端同步未啟用，無法分享。'); return; }
+    if (!window.SkySync.user || !window.SkySync.user()) { alert('請先在上方「帳號同步」以 Google 登入，才能分享此帳號。'); return; }
+    shareBtn.disabled = true; shareBtn.textContent = '上傳中…';
+    window.SkySync.shareCurrentProfile().then(link => {
+      shareBtn.disabled = false; shareBtn.textContent = '🔗 分享';
+      if (navigator.clipboard) { try { navigator.clipboard.writeText(link); } catch (e) {} }
+      prompt('分享連結（已複製）。貼給朋友，對方開啟即可「唯讀」檢視此帳號的進度（隨你更新）：', link);
+    }).catch(e => { shareBtn.disabled = false; shareBtn.textContent = '🔗 分享'; alert('分享失敗：' + e.message); });
+  };
   $('#prof-del').onclick = () => {
     if (Profiles.list().length <= 1) { alert('至少要保留一個帳號。'); return; }
     const p = Profiles.current();
-    if (!confirm(`刪除帳號「${p ? p.name : ''}」及其所有資料？此動作無法復原。`)) return;
+    const word = (p && p.ro) ? '移除這個別人分享的帳號' : `刪除帳號「${p ? p.name : ''}」及其所有資料`;
+    if (!confirm(`確定${word}？此動作無法復原${(p && p.ro) ? '（只移除你本機的副本，不影響對方）' : ''}。`)) return;
     Profiles.remove(Profiles.currentId());
     location.reload();
   };

@@ -117,6 +117,30 @@ const Profiles = {
   },
   switch(id) { if (this.list().some(p => p.id === id)) { localStorage.setItem(this.CUR, id); this._setPrefix(); } },
   clearCurrent() { const pre = _curPrefix; Object.keys(localStorage).filter(k => k.indexOf(pre) === 0).forEach(k => localStorage.removeItem(k)); },
+  // ---- 雲端同步 / 分享用 ----
+  get(id) { return this.list().find(p => p.id === id) || null; },
+  findByCloud(cloudId) { return cloudId ? this.list().find(p => p.cloudId === cloudId) || null : null; },
+  cloudIdOf(id) { const p = this.get(id); return p && p.cloudId || null; },
+  isRO(id) { const p = this.get(id); return !!(p && p.ro); },
+  _genCloudId() {
+    try { const a = new Uint8Array(16); crypto.getRandomValues(a); return Array.from(a, b => ('0' + b.toString(36)).slice(-2)).join(''); }
+    catch (e) { return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 14); }
+  },
+  ensureCloud(id) { const list = this.list(); const p = list.find(x => x.id === id); if (!p) return null; if (!p.cloudId) { p.cloudId = this._genCloudId(); this._save(list); } return p.cloudId; },
+  setMeta(id, patch) { const list = this.list(); const p = list.find(x => x.id === id); if (p) { Object.assign(p, patch); this._save(list); } },
+  // 新增一個「連到雲端文件」的本機帳號（restore 或 收到分享時用）；同 cloudId 已存在就回傳既有 id
+  addRemote(name, cloudId, ro) {
+    const list = this.list();
+    if (cloudId) { const ex = list.find(p => p.cloudId === cloudId); if (ex) { if (ro && !ex.ro) { ex.ro = true; this._save(list); } return ex.id; } }
+    const id = this._genId();
+    list.push({ id, name: (name || '').trim() || ('帳號 ' + (list.length + 1)), cloudId: cloudId || undefined, ro: !!ro });
+    this._save(list);
+    return id;
+  },
+  // 取某帳號的全部 app 資料（去前綴）→ { appkey: 原始字串值 }
+  dataOf(id) { const pre = 'sky_@' + id + '_'; const o = {}; Object.keys(localStorage).forEach(k => { if (k.indexOf(pre) === 0) o[k.slice(pre.length)] = localStorage.getItem(k); }); return o; },
+  // 以雲端資料覆寫某帳號（先清該帳號既有鍵，再寫入）
+  writeDataTo(id, data) { const pre = 'sky_@' + id + '_'; Object.keys(localStorage).filter(k => k.indexOf(pre) === 0).forEach(k => localStorage.removeItem(k)); Object.keys(data || {}).forEach(k => { try { localStorage.setItem(pre + k, String(data[k])); } catch (e) {} }); },
   _init() {
     let list = this.list();
     if (!list.length) {
