@@ -92,17 +92,12 @@
     return pushProfile(user, pid).then(() => upsertIndex(user)).then(() => status('已同步 · ' + time())).catch(e => status('同步失敗：' + e.message));
   }
 
-  // 上推目前帳號：先讀雲端、逐項合併（集合聯集、純量本機優先），再寫回雲端 —— 不會蓋掉對方在雲端的新增。
   function pushProfile(user, pid) {
     const cloudId = Profiles.ensureCloud(pid);
     const p = Profiles.get(pid);
     const ref = DB.collection('profiles').doc(cloudId);
-    const localData = Profiles.dataOf(pid);
-    return ref.get().then(doc => {
-      const remoteData = (doc.exists && doc.data() && doc.data().data) || {};
-      const merged = mergeProfileData(localData, remoteData, true); // 本機純量優先、集合聯集
-      return ref.set({ owner: user.uid, name: p.name, data: merged, updated: firebase.firestore.FieldValue.serverTimestamp() });
-    }).then(() => ref.get())
+    return ref.set({ owner: user.uid, name: p.name, data: Profiles.dataOf(pid), updated: firebase.firestore.FieldValue.serverTimestamp() })
+      .then(() => ref.get())
       .then(doc => { const u = doc.data() && doc.data().updated; setSyncTs(cloudId, u && u.toMillis ? u.toMillis() : Date.now()); });
   }
 
@@ -125,20 +120,18 @@
         return DB.collection('profiles').doc(e.cloudId).get().then(pd => {
           if (!pd.exists) return;
           const d = pd.data(); const rMs = d.updated && d.updated.toMillis ? d.updated.toMillis() : 0;
-          const remoteNewer = rMs > getSyncTs(e.cloudId);
-          const localData = Profiles.dataOf(localId);
-          const merged = mergeProfileData(localData, d.data || {}, !remoteNewer); // 集合聯集；純量較新者勝
-          if (JSON.stringify(merged) !== JSON.stringify(localData)) {
-            Profiles.writeDataTo(localId, merged);
+          if (rMs > getSyncTs(e.cloudId) && d.data) {
+            Profiles.writeDataTo(localId, d.data);
+            if (d.name) Profiles.setMeta(localId, { name: d.name });
+            setSyncTs(e.cloudId, rMs);
             if (localId === curId) curChanged = true;
           }
-          if (d.name) Profiles.setMeta(localId, { name: d.name });
         });
       });
       return Promise.all(tasks);
     }).then(() => {
-      // 把（已合併的）本機所有帳號推回雲端，讓雲端也納入本機獨有的項目 → 雙向收斂
-      const pushes = Profiles.list().filter(p => !p.ro).map(p => pushProfile(user, p.id).catch(() => {}));
+      // 推「本機獨有（雲端還沒有）」的帳號：沒 cloudId 或從未同步過
+      const pushes = Profiles.list().filter(p => !p.ro && (!p.cloudId || getSyncTs(p.cloudId) === 0)).map(p => pushProfile(user, p.id));
       return Promise.all(pushes);
     }).then(() => upsertIndex(user))
       .then(() => refreshShared()) // 順便更新唯讀分享來的帳號
