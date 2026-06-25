@@ -250,6 +250,26 @@ Object.keys(TS_EXTRA).forEach(date => {
 });
 travelingSpirits.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
+// ---------- 集體復刻（Returning Spirits / Special Visits，一次回來一組先祖）----------
+// specialVisits[].spirits 存的是 specialVisitSpirits 的 guid（中介表），需再轉成真正的先祖 guid → 名稱。
+const svToSpirit = new Map(get('specialVisitSpirits').map(x => [x.guid, x.spirit]));
+const specialVisits = get('specialVisits')
+  .filter(sv => sv.date && sv.endDate && sv.endDate > sv.date && (sv.spirits || []).length >= 2) // 排除 "TS Error" 等異常單筆
+  .map(sv => {
+    const m = /#(\d+)/.exec(sv.name || '');
+    return {
+      n: m ? Number(m[1]) : null,
+      start: sv.date,
+      end: sv.endDate,
+      spirits: (sv.spirits || [])
+        .map(g => { const sg = svToSpirit.get(g); return sg ? { name: spiritName.get(sg) || null, img: spiritImgG.get(sg) || '' } : null; })
+        .filter(x => x && x.name),
+      wiki: sv._wiki ? sv._wiki.href : null,
+    };
+  })
+  .filter(sv => sv.spirits.length)
+  .sort((a, b) => (a.start || '').localeCompare(b.start || ''));
+
 // ---------- 人工整理：貨幣 / 碎石獎勵 / 每日攻略（資料集無，採社群/官方整理）----------
 const currencies = [
   { name: '蠟燭', en: 'Candle', earn: '收集各國度的「光之碎片(wax)」於先祖星座旁火堆鍛造；完成每日任務、跑酷競速、Harmony Hall 音樂挑戰、黑石碎石等亦可得。每日 00:00 PT 重置。', cap: '約 20 根/天（Daily Light 系統，3 個 chevron 越早收越便宜）', use: '通用貨幣：加好友、向先祖兌換動作/外觀/法術、購買祝福；可 3 蠟燭換 1 愛心。' },
@@ -297,9 +317,9 @@ const SKYDATA = {
     source: 'Silverfeelin/SkyGame-Data (MIT License)',
     url: 'https://github.com/Silverfeelin/SkyGame-Data',
     note: '先祖/季節/物品/花費/國度/活動為資料集擷取；貨幣/碎石/每日攻略為社群整理。數值可能隨遊戲更新而變動。',
-    counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length, wingedLights: wingedLights.length },
+    counts: { spirits: spirits.length, seasons: seasons.length, realms: realms.length, events: events.length, travelingSpirits: travelingSpirits.length, specialVisits: specialVisits.length, wingedLights: wingedLights.length },
   },
-  seasons, spirits, realms, events, travelingSpirits, currencies, shards, daily, dailyQuests,
+  seasons, spirits, realms, events, travelingSpirits, specialVisits, currencies, shards, daily, dailyQuests,
   wingedLights, realmShapes, mapShrines, candleMaps, tsCosts, shardImages: SHARD_IMG, shardPos: SHARD_POS,
 };
 

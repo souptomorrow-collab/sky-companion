@@ -787,6 +787,38 @@ function renderSpirits(now) {
     }
   }
   $('#ts-list').innerHTML = list;
+  renderSpecialVisits(now);
+}
+
+// 集體復刻（回歸先祖）：一次回來一組過往先祖、停留約兩週。列出全部場次（新→舊），標在場/即將/已過。
+function renderSpecialVisits(now) {
+  const el = $('#sv-list');
+  if (!el) return;
+  const list = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.specialVisits) || [];
+  if (!list.length) { el.innerHTML = '<p class="muted">尚無集體復刻資料。</p>'; return; }
+  const p = skyParts(now);
+  const today = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+  let html = '';
+  for (const sv of list.slice().reverse()) { // 新到舊
+    const live = sv.start <= today && today <= sv.end;
+    const upcoming = sv.start > today;
+    const badge = live ? '<span class="badge live">在場</span>' : upcoming ? '<span class="badge black">即將</span>' : '<span class="badge none">已過</span>';
+    const title = sv.n ? `集體復刻 #${sv.n}` : '集體復刻';
+    const end = sv.end.length >= 10 ? sv.end.slice(5).replace('-', '/') : sv.end;
+    const portraits = sv.spirits.map(s => imgThumb(s.img, s.name, 'ts-portrait')).join('');
+    const names = sv.spirits.map(s => nm(s.name)).join('、');
+    html += `<details class="shard-day-x ts-cal"${live || upcoming ? ' open' : ''}>
+      <summary class="shard-day">
+        <span class="d-date">${sv.start} ~ ${end}</span>
+        <span class="d-loc">${badge} ${title} <span class="muted">（${sv.spirits.length} 位）</span></span></summary>
+      <div style="padding:6px 4px 2px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">${portraits}</div>
+        <p>${names}</p>
+        ${sv.wiki ? `<p class="note"><a href="${escapeHtml(sv.wiki)}" target="_blank" rel="noopener">Wiki 詳情 ↗</a></p>` : ''}
+      </div>
+    </details>`;
+  }
+  el.innerHTML = html;
 }
 
 /* ---------- 渲染：蠟燭預算 ---------- */
