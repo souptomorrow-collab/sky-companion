@@ -790,6 +790,20 @@ function renderSpirits(now) {
   renderSpecialVisits(now);
 }
 
+// 集體復刻實際兌換價警語（由該次復刻專屬樹擷取，可信）
+const SV_REAL_NOTE = '<p class="note" style="color:var(--green)">✅ 此次復刻的實際兌換價（普通蠟燭🕯️＋愛心❤️＋升華🕊️），由遊戲內樹狀圖擷取。</p>';
+// 單一集體復刻先祖：可展開看兌換內容。有專屬復刻樹 → 顯示實際復刻價；無（手動補的場次）→ 退回季節原價（tsItemsInline 自帶⚠️警語）。
+function svSpiritHTML(s) {
+  let body;
+  if (s.items && s.items.length) {
+    const ft = (typeof fmtTotals === 'function') ? fmtTotals : () => '';
+    const legend = (typeof costLegendHTML === 'function') ? costLegendHTML() : '';
+    body = `<div class="kv"><span class="k">兌換總花費</span><span class="v">${ft(s.totals || {})}</span></div>${SV_REAL_NOTE}${legend}<div class="dex-items">${s.items.map(itemRowHTML).join('')}</div>`;
+  } else {
+    body = tsItemsInline(s.name);
+  }
+  return `<details class="wiki-card" style="margin-top:6px"><summary>${imgThumb(s.img, s.name, 'ts-portrait')} ${nm(s.name)}</summary><div class="sp-body">${body}</div></details>`;
+}
 // 集體復刻（回歸先祖）：一次回來一組過往先祖、停留約兩週。列出全部場次（新→舊），標在場/即將/已過。
 function renderSpecialVisits(now) {
   const el = $('#sv-list');
@@ -806,16 +820,13 @@ function renderSpecialVisits(now) {
     const title = sv.n ? `集體復刻 #${sv.n}` : '集體復刻';
     const tag = sv.est ? ' <span class="muted">· 社群整理</span>' : '';
     const end = sv.end.length >= 10 ? sv.end.slice(5).replace('-', '/') : sv.end;
-    const portraits = sv.spirits.map(s => imgThumb(s.img, s.name, 'ts-portrait')).join('');
-    const names = sv.spirits.map(s => nm(s.name)).join('、');
     html += `<details class="shard-day-x ts-cal"${live || upcoming ? ' open' : ''}>
       <summary class="shard-day">
         <span class="d-date">${sv.start} ~ ${end}</span>
         <span class="d-loc">${badge} ${title}${tag} <span class="muted">（${sv.spirits.length} 位）</span></span></summary>
       <div style="padding:6px 4px 2px">
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px">${portraits}</div>
-        <p>${names}</p>
-        ${sv.wiki ? `<p class="note"><a href="${escapeHtml(sv.wiki)}" target="_blank" rel="noopener">Wiki 詳情 ↗</a></p>` : ''}
+        ${sv.spirits.map(svSpiritHTML).join('')}
+        ${sv.wiki ? `<p class="note" style="margin-top:8px"><a href="${escapeHtml(sv.wiki)}" target="_blank" rel="noopener">Wiki 詳情 ↗</a></p>` : ''}
       </div>
     </details>`;
   }

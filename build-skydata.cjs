@@ -251,8 +251,9 @@ Object.keys(TS_EXTRA).forEach(date => {
 travelingSpirits.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
 
 // ---------- 集體復刻（Returning Spirits / Special Visits，一次回來一組先祖）----------
-// specialVisits[].spirits 存的是 specialVisitSpirits 的 guid（中介表），需再轉成真正的先祖 guid → 名稱。
-const svToSpirit = new Map(get('specialVisitSpirits').map(x => [x.guid, x.spirit]));
+// specialVisits[].spirits 存的是 specialVisitSpirits 的 guid（中介表）；每筆有 spirit(真正先祖) 與
+// tree(該「次復刻」專屬兌換樹，含實際復刻價：普通蠟燭/愛心/升華，與季節原價不同)。
+const svRec = new Map(get('specialVisitSpirits').map(x => [x.guid, x]));
 const specialVisits = get('specialVisits')
   .filter(sv => sv.date && sv.endDate && sv.endDate > sv.date && (sv.spirits || []).length >= 2) // 排除 "TS Error" 等異常單筆
   .map(sv => {
@@ -262,7 +263,15 @@ const specialVisits = get('specialVisits')
       start: sv.date,
       end: sv.endDate,
       spirits: (sv.spirits || [])
-        .map(g => { const sg = svToSpirit.get(g); return sg ? { name: spiritName.get(sg) || null, img: spiritImgG.get(sg) || '' } : null; })
+        .map(g => {
+          const rec = svRec.get(g);
+          if (!rec || !rec.spirit) return null;
+          const tree = rec.tree ? treesMap.get(rec.tree) : null;
+          const items = tree && tree.node ? walkTree(tree.node) : [];
+          const totals = {};
+          items.forEach(t => { for (const k in t.cost) totals[k] = (totals[k] || 0) + t.cost[k]; });
+          return { name: spiritName.get(rec.spirit) || null, img: spiritImgG.get(rec.spirit) || '', items, totals };
+        })
         .filter(x => x && x.name),
       wiki: sv._wiki ? sv._wiki.href : null,
     };
@@ -276,7 +285,7 @@ Object.keys(SV_EXTRA).forEach(start => {
   if (start.startsWith('_')) return;
   if (specialVisits.some(sv => sv.start === start)) return; // 資料集已有同起始日就不覆蓋
   const o = SV_EXTRA[start];
-  const sp = (o.spirits || []).map(name => { const s = spiritByName.get(name); return { name, img: (s && s.imageUrl) || '' }; });
+  const sp = (o.spirits || []).map(name => { const s = spiritByName.get(name); return { name, img: (s && s.imageUrl) || '', items: [], totals: {} }; }); // 無專屬復刻樹，items 留空 → 前端退回季節原價
   if (sp.length) specialVisits.push({ n: o.n || null, start, end: o.end || start, spirits: sp, wiki: o.wiki || null, est: true });
 });
 specialVisits.sort((a, b) => (a.start || '').localeCompare(b.start || ''));
