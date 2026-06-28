@@ -64,7 +64,16 @@
     window.SkySync.shareCurrentProfile = shareCurrent;
     // 先處理分享連結（不需登入即可唯讀載入）
     handleShareLink();
-    AUTH.onAuthStateChanged(u => u ? signedIn(u) : signedOut());
+    AUTH.onAuthStateChanged(u => {
+      const uid = u ? u.uid : '';
+      // 換 Google 帳號（或登入/登出）→ 切換顯示分區，重新載入讓 Profiles 以新 uid 過濾
+      if ((localStorage.getItem('sky__uid') || '') !== uid) {
+        localStorage.setItem('sky__uid', uid);
+        location.reload();
+        return;
+      }
+      u ? signedIn(u) : signedOut();
+    });
   }
 
   function signedOut() {
@@ -107,34 +116,40 @@
     return DB.collection('users').doc(user.uid).set({ index, updated: firebase.firestore.FieldValue.serverTimestamp() });
   }
 
-  // 登入時完整同步：拉遠端索引→建/拉本機；推本機獨有；更新索引；刷新唯讀分享帳號
+  // 登入時完整同步：拉我的索引→（依雲端 owner 修正誤認/汙染）建/拉屬於我的帳號；推我獨有；重寫索引（自我修復）
   function fullSync(user) {
     let curChanged = false;
     const curId = Profiles.currentId();
     DB.collection('users').doc(user.uid).get().then(doc => {
       const index = (doc.exists && doc.data().index) || [];
       const tasks = index.map(e => {
-        let local = Profiles.findByCloud(e.cloudId);
-        if (!local) { const id = Profiles.addRemote(e.name, e.cloudId, false); local = Profiles.get(id); }
-        const localId = local.id;
         return DB.collection('profiles').doc(e.cloudId).get().then(pd => {
           if (!pd.exists) return;
-          const d = pd.data(); const rMs = d.updated && d.updated.toMillis ? d.updated.toMillis() : 0;
+          const d = pd.data();
+          const localP = Profiles.findByCloud(e.cloudId);
+          // 雲端文件不是我的（索引被汙染）→ 把本機這份的擁有者修正為真正 owner，使其不再顯示在我底下
+          if (d.owner && d.owner !== user.uid) { if (localP) Profiles.setOwner(localP.id, d.owner); return; }
+          // 是我的：確保本機有、歸我、拉較新
+          const lid = localP ? localP.id : Profiles.addRemote(e.name, e.cloudId, false);
+          Profiles.setOwner(lid, user.uid);
+          const rMs = d.updated && d.updated.toMillis ? d.updated.toMillis() : 0;
           if (rMs > getSyncTs(e.cloudId) && d.data) {
-            Profiles.writeDataTo(localId, d.data);
-            if (d.name) Profiles.setMeta(localId, { name: d.name });
+            Profiles.writeDataTo(lid, d.data);
+            if (d.name) Profiles.setMeta(lid, { name: d.name });
             setSyncTs(e.cloudId, rMs);
-            if (localId === curId) curChanged = true;
+            if (lid === curId) curChanged = true;
           }
-        });
+        }).catch(() => {});
       });
       return Promise.all(tasks);
     }).then(() => {
-      // 推「本機獨有（雲端還沒有）」的帳號：沒 cloudId 或從未同步過
+      Profiles.ensureCurrent(); // 確保我這邊至少有一個帳號 + 有效的目前帳號
+      if (Profiles.currentId() !== curId) curChanged = true; // 目前帳號被修正掉 → 需重整
+      // 推「我的、雲端還沒有或沒同步過」的帳號
       const pushes = Profiles.list().filter(p => !p.ro && (!p.cloudId || getSyncTs(p.cloudId) === 0)).map(p => pushProfile(user, p.id));
       return Promise.all(pushes);
-    }).then(() => upsertIndex(user))
-      .then(() => refreshShared()) // 順便更新唯讀分享來的帳號
+    }).then(() => upsertIndex(user))   // index 由「我可見的帳號」重寫 → 自動移除被汙染的別人帳號
+      .then(() => refreshShared())
       .then(() => {
         if (curChanged) { status('已從雲端更新，重整中…'); setTimeout(() => location.reload(), 700); }
         else status('已同步 · ' + time());

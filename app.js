@@ -901,7 +901,12 @@ function renderProfiles() {
   const curId = Profiles.currentId();
   const opts = list.map(p => `<option value="${escapeHtml(p.id)}"${p.id === curId ? ' selected' : ''}>${escapeHtml(p.name)}</option>`).join('');
   const ro = Profiles.isRO(curId);
+  const uid = (Profiles.UID && Profiles.UID()) || '';
+  const scopeNote = uid
+    ? '<p class="note" style="color:var(--green)">☁️ 顯示的是「你登入的 Google 帳號」底下的帳號；換個 Google 帳號會是另一組（互不混到）。</p>'
+    : '<p class="note">👤 目前未登入，顯示的是「本機暫存」帳號。登入 Google（上方）後會看到你雲端的帳號；本機暫存與雲端各自獨立。</p>';
   box.innerHTML = `<div class="kv"><span class="k">目前帳號</span><span class="v"><select id="prof-sel" class="prof-sel">${opts}</select></span></div>
+    ${scopeNote}
     ${ro ? '<p class="note" style="color:var(--ink-pink)">🔒 這是別人分享給你的帳號（唯讀）。你的改動不會回存到對方；切回自己的帳號可正常記錄。</p>' : ''}
     <div class="row" style="margin-top:8px">
       <button class="btn" id="prof-add">➕ 新增</button>
