@@ -143,10 +143,11 @@
       });
       return Promise.all(tasks);
     }).then(() => {
-      Profiles.ensureCurrent(); // 確保我這邊至少有一個帳號 + 有效的目前帳號
+      Profiles.dropAutoIfRedundant(); // 清掉與雲端拉回重複的「空自動起始帳號」
+      Profiles.ensureCurrent();       // 確保我這邊至少有一個帳號 + 有效的目前帳號
       if (Profiles.currentId() !== curId) curChanged = true; // 目前帳號被修正掉 → 需重整
-      // 推「我的、雲端還沒有或沒同步過」的帳號
-      const pushes = Profiles.list().filter(p => !p.ro && (!p.cloudId || getSyncTs(p.cloudId) === 0)).map(p => pushProfile(user, p.id));
+      // 只推「有實質資料」或「已連雲但這台沒同步過」的帳號（空的起始帳號不上雲，雲端不長一堆空帳號）
+      const pushes = Profiles.list().filter(p => !p.ro && ((p.cloudId && getSyncTs(p.cloudId) === 0) || (!p.cloudId && Profiles._hasData(p.id)))).map(p => pushProfile(user, p.id));
       return Promise.all(pushes);
     }).then(() => upsertIndex(user))   // index 由「我可見的帳號」重寫 → 自動移除被汙染的別人帳號
       .then(() => refreshShared())

@@ -86,7 +86,8 @@ const WD_ZH = ['日', '一', '二', '三', '四', '五', '六'];
  * - 每個帳號記 owner=擁有它的 Google uid（登出時建立的為 ''＝訪客）。目前登入的 uid 存在 sky__uid（auth.js 設定）。
  * - 看得到/能管理的帳號 = owner 等於目前 uid 的（加上「唯讀分享」帳號永遠可見）。換 Google 只是換過濾條件，資料完全不搬。
  * - 帳號「資料」命名空間 sky_@<pid>_<key>（pid 全域唯一）。清單存在 sky__profiles（全部帳號一起，靠 owner 區分）。
- * - 登入時 adoptGuests() 把「無歸屬」帳號樂觀認養到目前 uid；auth.js 的 fullSync 再依雲端文件的 owner 自我修正。
+ * - 帳號只靠雲端文件的 owner 認領（auth.js fullSync 依 owner 把屬於你的帳號歸到你名下、別人的修正掉），不做「樂觀認養」以免把你的帳號塞進別人 Google。
+ * - 空的自動起始帳號（_auto）不上雲、且與雲端拉回重複時自動清掉。
  * - 首次載入把舊版扁平 sky_<key> 遷移成「帳號 1」。
  */
 let _curPrefix = 'sky_'; // 後備（_init 後會換成 sky_@<id>_）
@@ -122,16 +123,23 @@ const Profiles = {
   },
   switch(id) { if (this.list().some(p => p.id === id)) { localStorage.setItem(this.CUR, id); this._setPrefix(); } },
   clearCurrent() { const pre = _curPrefix; Object.keys(localStorage).filter(k => k.indexOf(pre) === 0).forEach(k => localStorage.removeItem(k)); },
-  // 登入時把「無歸屬（owner 空）且非唯讀」的帳號樂觀認養到目前 uid（fullSync 會依雲端 owner 修正誤認）
-  adoptGuests() {
-    if (this.UID() === '') return 0;
-    const all = this._all(); let n = 0;
-    all.forEach(p => { if (!p.ro && (p.owner || '') === '') { p.owner = this.UID(); n++; } });
-    if (n) this._saveAll(all);
-    return n;
-  },
   // 把某帳號的擁有者改成指定 uid（fullSync 依雲端文件 owner 修正用）
   setOwner(id, uid) { const all = this._all(); const p = all.find(x => x.id === id); if (p && (p.owner || '') !== (uid || '')) { p.owner = uid || ''; this._saveAll(all); } },
+  // 該帳號是否有「實質」資料（忽略只是 UI 偏好的 last_tab / map_*）
+  _hasData(id) { const d = this.dataOf(id); return Object.keys(d).some(k => k !== 'last_tab' && k.indexOf('map_') !== 0); },
+  // 清掉「自動建立、且空的」起始帳號——只在目前分區已有其他真帳號時（避免登入後既有空佔位與雲端拉回的重複）
+  dropAutoIfRedundant() {
+    const list = this.list();
+    if (list.length <= 1) return;
+    const real = list.filter(p => p.cloudId || p.ro || this._hasData(p.id));
+    if (!real.length) return; // 全都是空的 → 不動（至少留一個）
+    const drop = list.filter(p => p._auto && !p.cloudId && !p.ro && !this._hasData(p.id)).map(p => p.id);
+    if (!drop.length) return;
+    drop.forEach(id => { const pre = 'sky_@' + id + '_'; Object.keys(localStorage).filter(k => k.indexOf(pre) === 0).forEach(k => localStorage.removeItem(k)); });
+    this._saveAll(this._all().filter(p => drop.indexOf(p.id) < 0));
+    const v = this.list();
+    if (!v.some(p => p.id === this.currentId()) && v[0]) { localStorage.setItem(this.CUR, v[0].id); this._setPrefix(); }
+  },
   // ---- 雲端同步 / 分享用（get/findByCloud 用「全部」，因同步時會碰到非目前 uid 的帳號）----
   get(id) { return this._all().find(p => p.id === id) || null; },
   findByCloud(cloudId) { return cloudId ? this._all().find(p => p.cloudId === cloudId) || null : null; },
@@ -159,17 +167,16 @@ const Profiles = {
   // 確保「目前 uid」至少有一個可用帳號 + 有效的目前帳號（fullSync 修正完後呼叫）
   ensureCurrent() {
     let list = this.list();
-    if (!list.length) { const id = this._genId(); const all = this._all(); all.push({ id, name: '帳號 1', owner: this.UID() }); this._saveAll(all); localStorage.setItem(this.CUR, id); list = this.list(); }
+    if (!list.length) { const id = this._genId(); const all = this._all(); all.push({ id, name: '帳號 1', owner: this.UID(), _auto: true }); this._saveAll(all); localStorage.setItem(this.CUR, id); list = this.list(); }
     if (!this.currentId() || !list.some(p => p.id === this.currentId())) localStorage.setItem(this.CUR, list[0].id);
     this._setPrefix();
   },
   _init() {
-    this.adoptGuests(); // 已登入則先把無歸屬帳號歸到目前 uid（避免先建空佔位再認養造成重複）
     const list = this.list();
     if (!list.length) {
       const id = this._genId();
       const all = this._all();
-      all.push({ id, name: '帳號 1', owner: this.UID() });
+      all.push({ id, name: '帳號 1', owner: this.UID(), _auto: true });
       this._saveAll(all);
       localStorage.setItem(this.CUR, id);
       if (this.UID() === '' && all.length === 1) { // 首次（訪客、全空）→ 遷移舊版扁平資料
