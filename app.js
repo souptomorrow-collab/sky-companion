@@ -406,6 +406,34 @@ function detectQuestRealm(en) {
 // 不限地點（社交/通用動作，所有區域皆可）的任務
 const QUEST_ANYWHERE = /melt \d* ?darkness|light \d+ candles?|forge \d+ candles?|make \d+ (?:new )?friends?|bow (?:to|at)|wave (?:to|at)|give a hug|hug a|high[- ]?five|send (?:a )?gift|hold hands?/i;
 
+// SkyHelper 是把 Discord 頻道的每一則訊息當一筆任務回傳：同一個任務常出現兩次
+// （先發純文字清單，之後再補帶圖／影片那則），標題差在 the／a／Quest／後綴說明，
+// 直接列會變成 7 筆而不是每日應有的 4 個。正規化標題後合併。
+function questKey(t) {
+  return (t || '')
+    .replace(/\s*[-–]\s*video guide\s*$/i, '') // 影片版的尾巴
+    .split(/\s+[-–]\s+/)[0]                    // 砍掉「 - 補充說明／地點」
+    .toLowerCase()
+    .replace(/\b(?:a|an|the|quest)\b/g, ' ')   // 冠詞與 Quest 兩版不一致
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+// 合併重複任務：標題取較短的（純文字版是任務原名，帶圖那則常黏著補充說明），
+// 附件取聯集。回傳全新物件，不動到 questState.data，重繪多次結果一致。
+function dedupeQuests(list) {
+  const byKey = new Map(), order = [];
+  for (const q of list) {
+    const k = questKey(q.title);
+    const m = byKey.get(k);
+    if (!m) { byKey.set(k, { title: q.title, images: (q.images || []).slice() }); order.push(k); continue; }
+    if ((q.title || '').length < (m.title || '').length) m.title = q.title;
+    for (const im of (q.images || [])) {
+      if (im && im.url && !m.images.some(x => x && x.url === im.url)) m.images.push(im);
+    }
+  }
+  return order.map(k => byKey.get(k));
+}
+
 // 今日任務即時資料（來源：SkyHelper API，CORS 開放、每日重置後更新）
 let questState = { day: null, loaded: false, loading: false, error: false, data: null };
 let questsRetry = null; // 來源尚未發布當日任務時，定時自動重抓直到拿到當日資料
@@ -574,7 +602,7 @@ function renderQuests(now) {
       // 也不保證完整 → 老實標成「任務圖解」，不宣稱完整。實際任務以文字列 + 遊戲內為準。
       const isGuide = q => /daily quest guide/i.test(q.title || '');
       const guideImg = (qs.find(q => isGuide(q) && q.images && q.images[0] && q.images[0].url) || {}).images;
-      const tasks = qs.filter(q => !isGuide(q));
+      const tasks = dedupeQuests(qs.filter(q => !isGuide(q)));
       if (tasks.length >= 4) clearQuestsRetry(); else scheduleQuestsRetry(); // 不足 4 個＝來源還在補，續抓
       const done = Store.get('quests_' + dk, {});
       const cnt = tasks.filter((q, i) => done[i]).length;
