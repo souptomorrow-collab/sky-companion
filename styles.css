@@ -357,7 +357,11 @@ input:focus { outline: none; border-color: var(--accent); }
 /* 每日任務卡 */
 .q-prog { margin: 8px 0 6px; font-weight: 600; color: var(--ink-pink); font-size: var(--fs-body); }
 .q-types { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
-.q-item { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sub); cursor: pointer; }
+/* 注意：.q-item 是「一整個任務區塊」（標題列＋地點＋影片三個子區塊，垂直堆疊），
+   不是單一列。曾經它自己就是那一列（故有下面的 .q-item input 規則），改成用 .wl-row
+   包住標題列後，殘留的 display:flex 會把三個子區塊橫向並排，把畫面拉成四欄、標題被
+   擠成多行，且 .q-loc/.q-media 的 28px 縮排完全失效。維持區塊堆疊即可。 */
+.q-item { font-size: var(--fs-sub); cursor: pointer; }
 .q-item input { width: 16px; height: 16px; accent-color: var(--gold); flex: 0 0 auto; }
 .q-item { border-bottom: 1px dashed var(--line); padding-bottom: 6px; margin-bottom: 2px; }
 .q-item:last-child { border-bottom: none; }
@@ -371,6 +375,11 @@ input:focus { outline: none; border-color: var(--accent); }
 .q-claims { display: flex; flex-wrap: wrap; gap: 12px; }
 /* 任務影片攻略：內嵌播放器（免下載直接看） */
 .q-vid > summary { color: var(--ink-pink); }
+/* 沒有內嵌影片、只給搜尋連結的那一列。刻意與 .q-loc/.q-vid 對齊同樣的縮排、字級與
+   標籤顏色 —— 兩者是同一個功能（教學影片），差別只在能不能就地展開，不該讓其中一種
+   看起來比較重要。 */
+.q-vid-line { margin: 2px 0 2px 28px; font-size: var(--fs-sub); color: var(--muted); }
+.q-vid-line b { color: var(--ink-pink); font-weight: 600; }
 .q-video { width: 100%; max-width: 480px; margin-top: 6px; border-radius: 10px; border: 1px solid var(--line); background: #eaf4fd; display: block; }
 /* 雙倍燭光活動橫幅 */
 .dbl-banner { margin: 0 0 10px; border-radius: 12px; font-size: var(--fs-sub); }

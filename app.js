@@ -322,12 +322,27 @@ const QUEST_VOCAB = [
 // 翻譯句中地點/物件片段
 function qLoc(s) {
   let out = (s || '').trim();
+  // 先查 SKYZH（zh.js 的 449 筆官方對照，涵蓋區域名與先祖名）。QUEST_VOCAB 只是逐詞替換的
+  // 粗略退路，碰到 Frozen Lake／Lower Valley Track／Bowing Medalist 這種專有名詞翻不出來。
+  const zhOf = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || '';
+  const bare = out.replace(/^(?:the|a|an)\s+/i, '').replace(/[.,;:!?]+$/, '').trim();
+  const exact = zhOf(bare) || zhOf(out);
+  if (exact) return exact;
   for (const [re, zh] of QUEST_VOCAB) out = out.replace(re, zh);
-  return out.replace(/\s+/g, '').trim() || (s || '').trim();
+  // 只把「中文與中文之間」的空白拿掉（雲野 洞穴 → 雲野洞穴）。原本是無差別移除所有空白，
+  // 導致沒翻到的英文專有名詞被黏成一團（Tumbling Troublemaker → TumblingTroublemaker）。
+  out = out.replace(/\s+/g, ' ').trim().replace(/([㐀-鿿])\s+(?=[㐀-鿿])/g, '$1');
+  return out || (s || '').trim();
 }
 // 完整句型模板（語序自然）
 const QUEST_TEMPLATES = [
   [/^Daily Quest Guide/i, () => '每日任務總覽圖'],
+  // SkyHelper 專有的包裝格式（不是遊戲內任務原文），先於一般句型比對：
+  [/^Relive Spirit Quest\b.*?[-–]\s*(.+)$/i, m => '重溫先祖回憶：' + qLoc(m[1])],
+  [/^Visiting (?:the )?Social Light Area(?:\s*[-–]\s*(.+))?$/i, m => '造訪社交光區' + (m[1] ? '（' + qLoc(m[1]) + '）' : '')],
+  [/^Catch (?:the )?wandering lights?(?:\s+(?:along|around|at|in|near|on)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '接遊蕩的光'],
+  [/^Fly with (?:many )?butterfl(?:y|ies)(?:\s+(?:in|at|near|through)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '與蝴蝶齊飛'],
+  [/^Ride (?:a |an |the )?Manta(?: Quest)?(?:\s+(?:in|at|near)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '騎蝠鱝'],
   [/^Catch (?:the )?(\d+) lights?(?: in (.+))?$/i, m => (m[2] ? '在' + qLoc(m[2]) : '') + '接 ' + m[1] + ' 個光'],
   [/^Catch the lights?(?: in (.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '接光'],
   [/^Collect (\d+) (\w+) lights?(?: in (.+))?$/i, m => (m[3] ? '在' + qLoc(m[3]) : '') + '收集 ' + m[1] + ' 個' + qLoc(m[2] + ' Light')],
@@ -337,7 +352,7 @@ const QUEST_TEMPLATES = [
   [/^Reli(?:ev|v)e (?:a )?spirit['’]?s memory(?: in (.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '喚回一位先祖的記憶'],
   [/^Tidy up (.+?)(?: in (.+))?$/i, m => '整理' + qLoc(m[1]) + (m[2] ? '（' + qLoc(m[2]) + '）' : '')],
   [/^Propose a kite design(?: in (.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '設計風箏'],
-  [/^Meditat(?:e|ion)\b.*?(?:at|in|by|near) (.+)$/i, m => '在' + qLoc(m[1]) + '冥想'],
+  [/^Meditat(?:e|ion)\b.*?(?:overlooking|atop|at|in|by|near|on) (?:the )?(.+)$/i, m => '在' + qLoc(m[1]) + '冥想'],
   [/^Meet up with (.+?)(?: in (.+))?$/i, m => (m[2] ? '在' + qLoc(m[2]) : '') + '與' + qLoc(m[1]) + '會合'],
   [/^Read a book together with (.+)$/i, m => '與' + qLoc(m[1]) + '一起讀書'],
   [/^Make (\d+) (?:new )?friends?/i, m => '結交 ' + m[1] + ' 位新朋友'],
@@ -348,6 +363,11 @@ const QUEST_TEMPLATES = [
 ];
 function qZh(s) {
   s = (s || '').replace(/\s*[-–]\s*video guide\s*$/i, '').replace(/\s*[-–]\s*$/i, '').trim();
+  // SkyHelper 常包一層「<類型> Quest Guide <國度> - <區域>（真正的任務句）」。真正的任務在
+  // 括號裡，不先剝掉的話模板會比對到外層，翻出「Meditation Quest 嚮導 霞谷 · Ice Rink」這種
+  // 半英半中的結果。只在括號內容看起來是任務句（含任務動詞）時才取，避免誤吃 (IAP) 這類註記。
+  const par = s.match(/\(([^()]{6,})\)\s*$/);
+  if (par && /\b(?:meditate|catch|collect|melt|light|forge|reliv|relieve|fly|ride|visit|meet|bow|wave|make|read|tidy|propose|practice|pay|sit|hug)\w*\b/i.test(par[1])) s = par[1].trim();
   for (const [re, fn] of QUEST_TEMPLATES) { const m = s.match(re); if (m) return fn(m); }
   let out = s;
   for (const [re, zh] of QUEST_VOCAB) out = out.replace(re, zh);
@@ -428,7 +448,7 @@ function questVideoSearch(en, locZh) {
   const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
   const zhQ = ['光遇', locZh, questKindZh(en)].filter(Boolean).join(' ');
   const enQ = 'Sky Children of the Light ' + (en || '').replace(/\s*[-–]\s*video guide\s*$/i, '').trim();
-  return { zh: yt(zhQ), en: yt(enQ), zhQ: zhQ };
+  return { zh: yt(zhQ), en: yt(enQ), zhQ: zhQ, enQ: enQ };
 }
 // 精選教學影片：任務類型 → 國度 → YouTube id。一支影片涵蓋該國度該類型的所有點位，
 // 所以按「類型×國度」收而不是逐一任務收（每日任務池約 250 個，逐一收不可維護）。
@@ -634,7 +654,9 @@ function renderQuests(now) {
       // 皆放收合內 + preload/lazy，未點開不耗流量。
       const sr = questVideoSearch(en, locZh);
       const ytId = questVideoOf(en, realmZh);
-      const searchLine = `<a class="wiki-link" href="${escapeHtml(sr.zh)}" target="_blank" rel="noopener">中文搜尋↗</a>　<a class="wiki-link" href="${escapeHtml(sr.en)}" target="_blank" rel="noopener">英文搜尋↗</a>`;
+      // 查詢字串放 title 屬性（滑過才看得到），不直接印在畫面上 —— 那是實作細節，
+      // 印出來只會把這一列撐長變吵，對使用者沒幫助。
+      const searchLine = `<a class="wiki-link" href="${escapeHtml(sr.zh)}" title="YouTube 搜尋：${escapeHtml(sr.zhQ)}" target="_blank" rel="noopener">中文搜尋↗</a>　<a class="wiki-link" href="${escapeHtml(sr.en)}" title="YouTube search: ${escapeHtml(sr.enQ)}" target="_blank" rel="noopener">英文搜尋↗</a>`;
       let vidBlock;
       if (vid) {
         vidBlock = `<details class="q-loc q-vid"><summary>🎬 影片攻略　<span class="muted">· 點開直接看（免下載）</span></summary>
@@ -648,7 +670,7 @@ function renderQuests(now) {
           <p class="note" style="margin:5px 0 0">這支涵蓋${escapeHtml(realmZh)}全部${escapeHtml(questKindZh(en))}點位，非今日任務專屬。<a class="wiki-link" href="https://www.youtube.com/watch?v=${escapeHtml(ytId)}" target="_blank" rel="noopener">在 YouTube 開啟↗</a>　找更多：${searchLine}</p>
         </details>`;
       } else {
-        vidBlock = `<p class="note" style="margin:2px 0 4px 28px">🎬 教學影片：${searchLine} <span class="muted">·「${escapeHtml(sr.zhQ)}」（來源今日未附影片）</span></p>`;
+        vidBlock = `<p class="q-vid-line">🎬 <b>教學影片</b>：${searchLine}</p>`;
       }
       return `<div class="q-item">
         <div class="wl-row">
@@ -675,7 +697,8 @@ function renderQuests(now) {
       const gUrl = guideImg && guideImg[0] && guideImg[0].url;
       const guideHtml = gUrl ? `<p class="note" style="margin:8px 0 4px">📋 任務玩法圖解（SkyHelper 提供，點看大圖）</p><img class="wl-thumb shard-photo" src="${escapeHtml(gUrl)}" data-full="${escapeHtml(gUrl)}" data-cap="任務玩法圖解" loading="lazy" referrerpolicy="no-referrer" alt="任務玩法圖解" onerror="this.style.display='none'" />` : '';
       const partial = tasks.length < 4 ? `<p class="note">ℹ️ SkyHelper 今日只收錄到 ${tasks.length} 個任務（完整有 4 個），第 ${tasks.length + 1}~4 個它還沒補。<b>完整當日任務請以遊戲內（家的返回神像／地圖神像黃色圖示）為準</b>，或點下方其他來源對照。頁面會自動補抓。</p>` : '';
-      questsHtml = `<div class="q-prog">📝 今日任務 ${cnt}/${tasks.length}${tasks.length < 4 ? '（來源僅收錄此數）' : ''}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}${partial}${guideHtml}${altLinks}`;
+      // 收錄不足 4 個的說明只在下方 partial 那條講一次就好，標題不再重複掛
+      questsHtml = `<div class="q-prog">📝 今日任務 ${cnt}/${tasks.length}　<span class="muted">更新 ${escapeHtml(upd)}</span></div>${rows}${partial}${guideHtml}${altLinks}`;
     } else {
       scheduleQuestsRetry(); // 來源還沒發布今日任務，定時自動重抓，發布後自動換上
       const prev = qs.map((q, i) => questRow(q, i, false)).join('');
