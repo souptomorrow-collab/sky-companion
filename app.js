@@ -337,10 +337,17 @@ function qLoc(s) {
 // 完整句型模板（語序自然）
 const QUEST_TEMPLATES = [
   [/^Daily Quest Guide/i, () => '每日任務總覽圖'],
-  // SkyHelper 專有的包裝格式（不是遊戲內任務原文），先於一般句型比對：
-  [/^Relive Spirit Quest\b.*?[-–]\s*(.+)$/i, m => '重溫先祖回憶：' + qLoc(m[1])],
+  // 以下句型比照「遊戲內顯示的官方繁中任務名」寫，不要自己另創講法：
+  // 玩家在遊戲裡看到什麼，網頁上就顯示什麼；而且攻略影片也是拿官方任務名當標題，
+  // 這樣同一個字串既是畫面標題、也是命中率最高的搜尋關鍵字。
+  //   在俯瞰冰封湖的位置冥想 ／ 沿著霞谷下層賽道捕捉四散的光 ／ 重溫鞠躬季軍在霞谷的記憶
+  [/^Meditate overlooking (?:the )?(.+)$/i, m => '在俯瞰' + qLoc(m[1]) + '的位置冥想'],
+  [/^Relive Spirit Quest\s+(.+?)\s*[-–]\s*(.+)$/i, m => '重溫' + qLoc(m[2]) + '在' + qLoc(m[1]) + '的記憶'],
+  [/^Reli(?:ev|v)e (.+?)['’]?s memory from (.+)$/i, m => '重溫' + qLoc(m[1]) + '在' + qLoc(m[2]) + '的記憶'],
+  [/^Relive Spirit Quest\b.*?[-–]\s*(.+)$/i, m => '重溫' + qLoc(m[1]) + '的記憶'],
   [/^Visiting (?:the )?Social Light Area(?:\s*[-–]\s*(.+))?$/i, m => '造訪社交光區' + (m[1] ? '（' + qLoc(m[1]) + '）' : '')],
-  [/^Catch (?:the )?wandering lights?(?:\s+(?:along|around|at|in|near|on)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '抓住散落的光'],
+  [/^Catch (?:the )?wandering lights?\s+along\s+(?:the )?(.+)$/i, m => '沿著' + qLoc(m[1]) + '捕捉四散的光'],
+  [/^Catch (?:the )?wandering lights?(?:\s+(?:around|at|in|near|on)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '捕捉四散的光'],
   [/^Fly with (?:many )?butterfl(?:y|ies)(?:\s+(?:in|at|near|through)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '與蝴蝶齊飛'],
   [/^Ride (?:a |an |the )?Manta(?: Quest)?(?:\s+(?:in|at|near)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '騎蝠鱝'],
   [/^Catch (?:the )?(\d+) lights?(?: in (.+))?$/i, m => (m[2] ? '在' + qLoc(m[2]) : '') + '接 ' + m[1] + ' 個光'],
@@ -460,11 +467,6 @@ function questQueryZh(en, realmZh) {
   const t = (qZh(en) || '').replace(/^在/, '').replace(/[：:·・，,、（）()]/g, ' ')
     .replace(/\s+/g, ' ').trim();
   const hasZh = /[㐀-鿿]/.test(t);
-  // 重溫先祖回憶例外：任務流程很單純（找到先祖點亮），玩家真正缺的是「先祖在哪」，
-  // 所以導向該國度的先祖位置影片，而不是任務流程影片。
-  if (/reliv|memor/i.test(en || '') && hasZh) {
-    return ['光遇', realmZh, '先祖位置', t.replace(/^重溫先祖回憶\s*/, '')].filter(Boolean).join(' ');
-  }
   if (hasZh) return '光遇 ' + t;
   // 翻譯失敗（整串還是英文）才退回國度＋類型，至少不會拿英文去餵中文搜尋
   return ['光遇 每日任務', realmZh, questKindZh(en)].filter(Boolean).join(' ');
