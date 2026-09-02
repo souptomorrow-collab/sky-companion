@@ -38,6 +38,18 @@ function get(url) {
     v.segs.forEach(s => { if (s[2]) vids.set(s[2], '光之翼分區(換片):' + k + ':' + s[0]); });
   });
   Object.entries(LAYER_VIDEO).forEach(([k, v]) => vids.set(v.id, '圖層教學:' + k));
+  // app.js 的每日任務精選影片。QUEST_VIDEO 是純資料字面值，用切片取出即可，
+  // 不必 eval 整支 app.js（app.js 有 DOM 相依，在 node 裡跑不起來）。
+  const appSrc = fs.readFileSync('app.js', 'utf8');
+  const qvS = appSrc.indexOf('const QUEST_VIDEO = {');
+  const qvE = qvS < 0 ? -1 : appSrc.indexOf('\n};', qvS);
+  if (qvS < 0 || qvE < 0) {
+    bad('app.js 找不到 QUEST_VIDEO 字面值（格式被改過？任務影片會漏掉不檢查）');
+  } else {
+    const QUEST_VIDEO = eval('(' + appSrc.slice(qvS + 'const QUEST_VIDEO = '.length, qvE + 2) + ')');
+    Object.entries(QUEST_VIDEO).forEach(([kind, byRealm]) =>
+      Object.entries(byRealm).forEach(([realm, id]) => vids.set(id, '每日任務:' + realm + kind)));
+  }
   for (const [id, label] of vids) {
     const code = await get('https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D' + id + '&format=json');
     code === 200 ? ok(`${id} ${label}`) : bad(`${id} ${label} → HTTP ${code}（可能已被刪除/設私人/禁嵌入）`);

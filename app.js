@@ -430,6 +430,22 @@ function questVideoSearch(en, locZh) {
   const enQ = 'Sky Children of the Light ' + (en || '').replace(/\s*[-–]\s*video guide\s*$/i, '').trim();
   return { zh: yt(zhQ), en: yt(enQ), zhQ: zhQ };
 }
+// 精選教學影片：任務類型 → 國度 → YouTube id。一支影片涵蓋該國度該類型的所有點位，
+// 所以按「類型×國度」收而不是逐一任務收（每日任務池約 250 個，逐一收不可維護）。
+// 目前只有「冥想」找得到完整且一致的分國度中文系列（YÜI夢心 頻道，五個有冥想任務的
+// 國度各一支；晨島沒有冥想任務故無）。接光／重溫先祖回憶查無同等系列，維持走搜尋退路。
+// 影片 id 皆經 oEmbed 驗證可嵌入，並已納入 check-health.cjs 每週自動複驗。
+// 要擴充只需往這裡加：外層 key 用 questKindZh() 的回傳值，內層用中文國度名。
+const QUEST_VIDEO = {
+  '冥想': {
+    '雲野': '66zDeCbcHfY', '雨林': 'NrDRtc4rC8U', '霞谷': 'Uny2nSeKaz4',
+    '暮土': 'TBvSZsvGo14', '禁閣': '6UQLlXCpEvQ'
+  }
+};
+function questVideoOf(en, realmZh) {
+  const byKind = QUEST_VIDEO[questKindZh(en)];
+  return (byKind && realmZh && byKind[realmZh]) || null;
+}
 
 // SkyHelper 是把 Discord 頻道的每一則訊息當一筆任務回傳：同一個任務常出現兩次
 // （先發純文字清單，之後再補帶圖／影片那則），標題差在 the／a／Quest／後綴說明，
@@ -590,32 +606,50 @@ function renderQuests(now) {
             <div class="shard-map-wrap">${posMiniMap(pos, label, img)}</div>
           </div></details>`;
       const zhName = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
-      // locZh 同時給下方的影片搜尋用（機翻標題語序不穩，靠偵測到的區域組查詢字串才準）
-      let locMedia = '', locZh = '';
+      // locZh 給影片搜尋用（機翻標題語序不穩，靠偵測到的區域組查詢字串才準）；
+      // realmZh 給精選影片查表用（精選影片按國度收，不到區域這麼細）
+      let locMedia = '', locZh = '', realmZh = '';
       const area = detectQuestArea(en);
       const realm = (area && area.pos) ? null : detectQuestRealm(en);
       if (area && area.pos) {
         locMedia = mediaBlock(questAreaLabel(area), area.img, area.pos);
         // 區域名已含國度名時不重複掛（避免「霞谷 霞谷下層賽道」這種冗餘查詢）
         const rz = zhName(area.realm), az = zhName(area.name);
+        realmZh = rz;
         locZh = (az && rz && az.indexOf(rz) >= 0) ? az : [rz, az].filter(Boolean).join(' ');
       } else if (realm && realm.pos) {
         const rl = zhName(realm.name) + '（' + realm.name + '）';
         locMedia = mediaBlock(rl, realm.img, realm.pos);
-        locZh = zhName(realm.name);
+        realmZh = zhName(realm.name);
+        locZh = realmZh;
       } else if (QUEST_ANYWHERE.test(en)) {
         locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 不限地點（任何地方都可完成）</p>`;
       } else {
         locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 所有區域皆可（此任務不限定地點；如有攻略圖/影片可參考最省路線）</p>`;
       }
-      // 影片攻略分兩層：① 來源有附影片 → 內嵌播放器（免下載直接看；收合內 + preload=none，
-      // 未點開不耗流量）② 來源沒附 → 退回 YouTube 搜尋連結，確保每個任務都有教學可看。
+      // 影片攻略分三層，確保每個任務都有教學可看：
+      // ① 來源有附影片 → 內嵌播放器（最貼題，就是今天這個任務的實拍）
+      // ② 沒附但精選表有收該「國度×類型」→ 內嵌該支中文教學（涵蓋該國度所有點位）
+      // ③ 都沒有 → YouTube 搜尋連結（中文＋英文）
+      // 皆放收合內 + preload/lazy，未點開不耗流量。
       const sr = questVideoSearch(en, locZh);
-      const vidBlock = vid ? `<details class="q-loc q-vid"><summary>🎬 影片攻略　<span class="muted">· 點開直接看（免下載）</span></summary>
+      const ytId = questVideoOf(en, realmZh);
+      const searchLine = `<a class="wiki-link" href="${escapeHtml(sr.zh)}" target="_blank" rel="noopener">中文搜尋↗</a>　<a class="wiki-link" href="${escapeHtml(sr.en)}" target="_blank" rel="noopener">英文搜尋↗</a>`;
+      let vidBlock;
+      if (vid) {
+        vidBlock = `<details class="q-loc q-vid"><summary>🎬 影片攻略　<span class="muted">· 點開直接看（免下載）</span></summary>
           <video class="q-video" controls preload="none" playsinline><source src="${escapeHtml(vid)}" /></video>
           <p class="note" style="margin:3px 0 0 0">無法播放（如 .mov 格式）？<a class="wiki-link" href="${escapeHtml(vid)}" target="_blank" rel="noopener">在新分頁開啟↗</a></p>
-        </details>`
-        : `<p class="note" style="margin:2px 0 4px 28px">🎬 教學影片：<a class="wiki-link" href="${escapeHtml(sr.zh)}" target="_blank" rel="noopener">中文搜尋↗</a>　<a class="wiki-link" href="${escapeHtml(sr.en)}" target="_blank" rel="noopener">英文搜尋↗</a> <span class="muted">·「${escapeHtml(sr.zhQ)}」（來源今日未附影片）</span></p>`;
+        </details>`;
+      } else if (ytId) {
+        const vt = escapeHtml(realmZh + questKindZh(en) + '位置教學');
+        vidBlock = `<details class="q-loc q-vid"><summary>🎬 教學影片　<span class="muted">· ${vt}（點開直接看）</span></summary>
+          <div class="yt-wrap"><iframe src="https://www.youtube-nocookie.com/embed/${escapeHtml(ytId)}" title="${vt}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+          <p class="note" style="margin:5px 0 0">這支涵蓋${escapeHtml(realmZh)}全部${escapeHtml(questKindZh(en))}點位，非今日任務專屬。<a class="wiki-link" href="https://www.youtube.com/watch?v=${escapeHtml(ytId)}" target="_blank" rel="noopener">在 YouTube 開啟↗</a>　找更多：${searchLine}</p>
+        </details>`;
+      } else {
+        vidBlock = `<p class="note" style="margin:2px 0 4px 28px">🎬 教學影片：${searchLine} <span class="muted">·「${escapeHtml(sr.zhQ)}」（來源今日未附影片）</span></p>`;
+      }
       return `<div class="q-item">
         <div class="wl-row">
           ${withCheck ? `<input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />` : ''}
