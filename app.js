@@ -406,6 +406,31 @@ function detectQuestRealm(en) {
 // 不限地點（社交/通用動作，所有區域皆可）的任務
 const QUEST_ANYWHERE = /melt \d* ?darkness|light \d+ candles?|forge \d+ candles?|make \d+ (?:new )?friends?|bow (?:to|at)|wave (?:to|at)|give a hug|hug a|high[- ]?five|send (?:a )?gift|hold hands?/i;
 
+// 任務類型 → 中文關鍵字（給 YouTube 搜尋用）。標題機翻後語序常亂，改用「偵測到的區域 ＋
+// 這張表的類型詞」組查詢字串，結果穩定得多（例：光遇 霞谷 冰凍湖 冥想）。由上往下 first-match。
+const QUEST_KIND_ZH = [
+  [/meditat/i, '冥想'], [/relive|memory|memories/i, '重溫先祖回憶'],
+  [/catch .*lights?|wandering lights?/i, '接光'], [/collect \d+ \w+ lights?/i, '收集彩光'],
+  [/melt .*darkness/i, '融化黑暗'], [/light \d+ candles?/i, '點蠟燭'], [/forge/i, '鍛造蠟燭'],
+  [/social light|social space|social area/i, '社交光區'], [/butterfl/i, '蝴蝶'], [/\bmantas?\b/i, '蝠鱝'],
+  [/kite/i, '風箏'], [/tidy up/i, '整理'], [/read a book/i, '讀書'], [/pay .*respects?/i, '致敬'],
+  [/practice with/i, '練習'], [/meet up with/i, '會合'], [/make \d+ .*friends?/i, '交朋友'],
+  [/bow (?:to|at)/i, '鞠躬'], [/wave (?:to|at)/i, '揮手'], [/high[- ]?five/i, '擊掌'],
+  [/give a hug|hug a/i, '擁抱'], [/send (?:a )?gift/i, '送禮'], [/hold hands?/i, '牽手']
+];
+function questKindZh(en) {
+  for (const [re, zh] of QUEST_KIND_ZH) if (re.test(en || '')) return zh;
+  return '每日任務';
+}
+// SkyHelper 沒附影片時的退路：組 YouTube 搜尋連結，保證每個任務都點得到教學。
+// 中文優先（使用者偏好），另附英文查詢——英文頻道對冷門地點的覆蓋通常較完整。
+function questVideoSearch(en, locZh) {
+  const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
+  const zhQ = ['光遇', locZh, questKindZh(en)].filter(Boolean).join(' ');
+  const enQ = 'Sky Children of the Light ' + (en || '').replace(/\s*[-–]\s*video guide\s*$/i, '').trim();
+  return { zh: yt(zhQ), en: yt(enQ), zhQ: zhQ };
+}
+
 // SkyHelper 是把 Discord 頻道的每一則訊息當一筆任務回傳：同一個任務常出現兩次
 // （先發純文字清單，之後再補帶圖／影片那則），標題差在 the／a／Quest／後綴說明，
 // 直接列會變成 7 筆而不是每日應有的 4 個。正規化標題後合併。
@@ -565,26 +590,32 @@ function renderQuests(now) {
             <div class="shard-map-wrap">${posMiniMap(pos, label, img)}</div>
           </div></details>`;
       const zhName = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
-      let locMedia = '';
+      // locZh 同時給下方的影片搜尋用（機翻標題語序不穩，靠偵測到的區域組查詢字串才準）
+      let locMedia = '', locZh = '';
       const area = detectQuestArea(en);
+      const realm = (area && area.pos) ? null : detectQuestRealm(en);
       if (area && area.pos) {
         locMedia = mediaBlock(questAreaLabel(area), area.img, area.pos);
+        // 區域名已含國度名時不重複掛（避免「霞谷 霞谷下層賽道」這種冗餘查詢）
+        const rz = zhName(area.realm), az = zhName(area.name);
+        locZh = (az && rz && az.indexOf(rz) >= 0) ? az : [rz, az].filter(Boolean).join(' ');
+      } else if (realm && realm.pos) {
+        const rl = zhName(realm.name) + '（' + realm.name + '）';
+        locMedia = mediaBlock(rl, realm.img, realm.pos);
+        locZh = zhName(realm.name);
+      } else if (QUEST_ANYWHERE.test(en)) {
+        locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 不限地點（任何地方都可完成）</p>`;
       } else {
-        const realm = detectQuestRealm(en);
-        if (realm && realm.pos) {
-          const rl = zhName(realm.name) + '（' + realm.name + '）';
-          locMedia = mediaBlock(rl, realm.img, realm.pos);
-        } else if (QUEST_ANYWHERE.test(en)) {
-          locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 不限地點（任何地方都可完成）</p>`;
-        } else {
-          locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 所有區域皆可（此任務不限定地點；如有攻略圖/影片可參考最省路線）</p>`;
-        }
+        locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 所有區域皆可（此任務不限定地點；如有攻略圖/影片可參考最省路線）</p>`;
       }
-      // 影片攻略：內嵌播放器（免下載直接看）。放收合內 + preload=none，未點開不耗流量
+      // 影片攻略分兩層：① 來源有附影片 → 內嵌播放器（免下載直接看；收合內 + preload=none，
+      // 未點開不耗流量）② 來源沒附 → 退回 YouTube 搜尋連結，確保每個任務都有教學可看。
+      const sr = questVideoSearch(en, locZh);
       const vidBlock = vid ? `<details class="q-loc q-vid"><summary>🎬 影片攻略　<span class="muted">· 點開直接看（免下載）</span></summary>
           <video class="q-video" controls preload="none" playsinline><source src="${escapeHtml(vid)}" /></video>
           <p class="note" style="margin:3px 0 0 0">無法播放（如 .mov 格式）？<a class="wiki-link" href="${escapeHtml(vid)}" target="_blank" rel="noopener">在新分頁開啟↗</a></p>
-        </details>` : '';
+        </details>`
+        : `<p class="note" style="margin:2px 0 4px 28px">🎬 教學影片：<a class="wiki-link" href="${escapeHtml(sr.zh)}" target="_blank" rel="noopener">中文搜尋↗</a>　<a class="wiki-link" href="${escapeHtml(sr.en)}" target="_blank" rel="noopener">英文搜尋↗</a> <span class="muted">·「${escapeHtml(sr.zhQ)}」（來源今日未附影片）</span></p>`;
       return `<div class="q-item">
         <div class="wl-row">
           ${withCheck ? `<input type="checkbox" class="q-check" data-q="${i}" ${done[i] ? 'checked' : ''} />` : ''}
