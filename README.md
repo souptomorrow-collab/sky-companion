@@ -77,7 +77,7 @@ sw.js            Service Worker（HTML 網路優先、靜態 cache-first、舊�
 
 ```bash
 node verify.cjs        # 部署前驗證：JS 語法、資源/圖片存在、?v= 一致、影片段落對應
-node check-health.cjs  # 外部依賴健檢：YouTube 影片可嵌入、SkyHelper API、wikia 圖床
+node check-health.cjs  # 外部依賴健檢：YouTube 影片可嵌入、SkyHelper API、wikia 圖床、先祖中文對照覆蓋率
 node bump-version.cjs  # 自動 bump index.html 的 ?v= 版本號（改 JS/CSS 後執行，別靠記性）
 node build-skydata.cjs # 由 everything.json 重新產生 skydata.js
 node opt-images.cjs    # 壓縮 img/ 下的 WebP
@@ -85,7 +85,7 @@ node opt-images.cjs    # 壓縮 img/ 下的 WebP
 
 GitHub Actions：
 - **verify**：每次 push 自動跑 `verify.cjs`（壞了擋下＋寄信）。
-- **health**：每週一自動跑 `check-health.cjs`（影片被刪、API 掛掉會寄信，不用等使用者回報）。
+- **health**：每週一自動跑 `check-health.cjs`（影片被刪、API 掛掉、新季節先祖缺中文名會寄信，不用等使用者回報）。
 - **refresh-data**：每天自動重抓社群資料集（`skygame-data`）並 `build-skydata.cjs`，skydata.js 有變動才 bump 版本＋驗證＋自動 commit 推上線（新季節/活動/復刻先祖確認後免手動更新）。需在 repo Settings → Actions → General → Workflow permissions 設為「Read and write permissions」才能自動 push。
 
 ## 免責

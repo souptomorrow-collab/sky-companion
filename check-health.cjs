@@ -3,6 +3,7 @@
  *   1. 所有內嵌 YouTube 影片（oEmbed 200 = 可嵌入；作者刪片/設私人會變非 200）
  *   2. SkyHelper 每日任務 API
  *   3. 抽樣幾張 wikia 熱鏈圖片
+ *   4. 先祖中文對照覆蓋率（新季節先祖沒中文名 → 寄信提醒；verify 只當警告不會擋部署）
  * 任一失敗 → exit 1。建議每週跑一次（GitHub Actions 已排程）。
  */
 const fs = require('fs');
@@ -58,6 +59,19 @@ function get(url) {
     const code = await get(u);
     code === 200 ? ok(u.slice(0, 70) + '…') : bad(u.slice(0, 70) + '… → HTTP ' + code);
   }
+
+  // 4) 先祖中文對照覆蓋率（不打網路，但放這裡是為了「會寄信」）
+  // 排程每天重抓 skygame-data，新季節先祖若沒中文名只會顯示英文。verify.cjs 把它列為
+  // 警告不擋部署（否則 refresh-data 會卡住無法自動上線），代價是沒人會發現它在累積。
+  // 放進每週健檢當硬性失敗 → 觸發 Actions 寄信，新季節上線後就會收到提醒。
+  console.log('[4] 先祖中文對照覆蓋率');
+  eval(fs.readFileSync('zh.js', 'utf8').replace('window.SKYZH', 'globalThis.SKYZH'));
+  const zh = globalThis.SKYZH || {};
+  const spAll = globalThis.SKYDATA.spirits || [];
+  const noZh = spAll.filter(s => !zh[s.name]);
+  noZh.length === 0
+    ? ok('先祖名稱中文對照 100%（' + spAll.length + ' 位）')
+    : bad(noZh.length + '/' + spAll.length + ' 位先祖缺中文名 → 請補進 zh.js：' + noZh.map(s => s.name).join('、'));
 
   console.log(`\n結果：${fails ? '✗ ' + fails + ' 項失敗' : '✓ 外部依賴全部正常'}`);
   process.exit(fails ? 1 : 0);
