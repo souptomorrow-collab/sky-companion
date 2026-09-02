@@ -340,7 +340,7 @@ const QUEST_TEMPLATES = [
   // SkyHelper 專有的包裝格式（不是遊戲內任務原文），先於一般句型比對：
   [/^Relive Spirit Quest\b.*?[-–]\s*(.+)$/i, m => '重溫先祖回憶：' + qLoc(m[1])],
   [/^Visiting (?:the )?Social Light Area(?:\s*[-–]\s*(.+))?$/i, m => '造訪社交光區' + (m[1] ? '（' + qLoc(m[1]) + '）' : '')],
-  [/^Catch (?:the )?wandering lights?(?:\s+(?:along|around|at|in|near|on)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '追逐散落的星光'],
+  [/^Catch (?:the )?wandering lights?(?:\s+(?:along|around|at|in|near|on)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '抓住散落的光'],
   [/^Fly with (?:many )?butterfl(?:y|ies)(?:\s+(?:in|at|near|through)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '與蝴蝶齊飛'],
   [/^Ride (?:a |an |the )?Manta(?: Quest)?(?:\s+(?:in|at|near)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '騎蝠鱝'],
   [/^Catch (?:the )?(\d+) lights?(?: in (.+))?$/i, m => (m[2] ? '在' + qLoc(m[2]) : '') + '接 ' + m[1] + ' 個光'],
@@ -430,9 +430,9 @@ const QUEST_ANYWHERE = /melt \d* ?darkness|light \d+ candles?|forge \d+ candles?
 // 這張表的類型詞」組查詢字串，結果穩定得多（例：光遇 霞谷 冰凍湖 冥想）。由上往下 first-match。
 const QUEST_KIND_ZH = [
   [/meditat/i, '冥想'], [/relive|memory|memories/i, '重溫先祖回憶'],
-  // 用社群實際講法，不要自己造詞：wandering lights 中文圈叫「追逐散落的星光」，
-  // 原本寫「接光」搜不到任何相關攻略（反而配到光之翼收集的內容）。
-  [/catch .*lights?|wandering lights?/i, '追逐散落的星光'], [/collect \d+ \w+ lights?/i, '收集光芒'],
+  // 短標籤（給 QUEST_VIDEO 查表與影片標題用）。搜尋查詢另見 QUEST_QUERY_ZH —— 那裡要用
+  // 含國度的官方任務全名，兩者用途不同不要混用。
+  [/catch .*lights?|wandering lights?/i, '抓光'], [/collect \d+ \w+ lights?/i, '收集光芒'],
   [/melt .*darkness/i, '融化黑暗'], [/light \d+ candles?/i, '點蠟燭'], [/forge/i, '鍛造蠟燭'],
   [/social light|social space|social area/i, '社交光區'], [/butterfl/i, '蝴蝶'], [/\bmantas?\b/i, '蝠鱝'],
   [/kite/i, '風箏'], [/tidy up/i, '整理'], [/read a book/i, '讀書'], [/pay .*respects?/i, '致敬'],
@@ -446,30 +446,64 @@ function questKindZh(en) {
 }
 // SkyHelper 沒附影片時的退路：組 YouTube 搜尋連結，保證每個任務都點得到教學。
 // 中文優先（使用者偏好），另附英文查詢——英文頻道對冷門地點的覆蓋通常較完整。
-// 查詢字串用「國度」而不是「區域」：區域名（霞谷下層賽道、冰凍湖）是本專案資料的用詞，
-// 社群影片標題不這樣寫，掛上去反而配不到。另外「每日任務」這個限定詞是必要的 ——
-// 少了它，「霞谷 …光」會被 YouTube 配到光之翼收集的影片，整個搜錯主題。
+// 搜尋查詢用「遊戲內的官方中文任務名」，而且要含國度的完整句。
+// 每日任務攻略頻道是直接拿任務原名當影片標題（例：「Sky光遇-霞谷每日任務位置：抓住霞谷之光」），
+// 所以查詢愈接近官方任務名命中率愈高。注意攻略『網站』與 YouTube 用詞不同 ——
+// 百度經驗/9game 那類寫「追逐散落的星光」，YouTube 創作者寫「抓住霞谷之光」，
+// 這裡的連結是打到 YouTube 搜尋，故一律以 YouTube 上的實際標題用詞為準。
+// 值為 realmZh => 查詢片語；查不到對應就退回 questKindZh() 的短標籤。
+const QUEST_QUERY_ZH = [
+  [/catch .*lights?|wandering lights?/i, r => r ? '抓住' + r + '之光' : '抓住之光'],
+  [/relive|memory|memories/i, r => r ? '重溫這個來自' + r + '先靈的記憶' : '重溫先靈的記憶'],
+  [/collect \d+ \w+ lights?/i, () => '收集光芒'],
+  [/melt .*darkness/i, () => '融化黑暗'],
+  [/social light|social space|social area/i, () => '社交空間']
+];
+function questQueryZh(en, realmZh) {
+  for (const [re, fn] of QUEST_QUERY_ZH) if (re.test(en || '')) return fn(realmZh);
+  return [realmZh, questKindZh(en)].filter(Boolean).join(' ');
+}
 function questVideoSearch(en, realmZh) {
   const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
-  const zhQ = ['光遇 每日任務', realmZh, questKindZh(en)].filter(Boolean).join(' ');
+  // 「每日任務」這個限定詞不能省 —— 少了它，「霞谷 …光」會被配到光之翼收集的影片
+  const zhQ = ['光遇 每日任務', questQueryZh(en, realmZh)].filter(Boolean).join(' ');
   const enQ = 'Sky Children of the Light daily quest ' + (en || '').replace(/\s*[-–]\s*video guide\s*$/i, '').trim();
   return { zh: yt(zhQ), en: yt(enQ), zhQ: zhQ, enQ: enQ };
 }
-// 精選教學影片：任務類型 → 國度 → YouTube id。一支影片涵蓋該國度該類型的所有點位，
-// 所以按「類型×國度」收而不是逐一任務收（每日任務池約 250 個，逐一收不可維護）。
-// 目前只有「冥想」找得到完整且一致的分國度中文系列（YÜI夢心 頻道，五個有冥想任務的
-// 國度各一支；晨島沒有冥想任務故無）。接光／重溫先祖回憶查無同等系列，維持走搜尋退路。
-// 影片 id 皆經 oEmbed 驗證可嵌入，並已納入 check-health.cjs 每週自動複驗。
-// 要擴充只需往這裡加：外層 key 用 questKindZh() 的回傳值，內層用中文國度名。
+// 精選教學影片：任務類型 → 國度 → { id, segs }。
+// segs 是「這支影片實際講到的點位」[英文關鍵字, 起始秒數]，由上往下 first-match。
+//
+// 重要：一支影片並不涵蓋該國度的所有點位 —— YÜI夢心 這系列每支只講 2 個冥想點，
+// 而霞谷光是遊戲裡就有 5 個以上。所以比對必須落到「點位」這一層：對得上才嵌入並直接
+// 跳到那一段，對不上就回傳 null 走搜尋退路。若只按國度比對，會把「在滑冰場冥想」
+// 配到一支根本沒講滑冰場的影片，看起來有影片其實沒用。
+//
+// segs 的關鍵字取自各影片描述裡的英文章節名，那正好就是遊戲的官方英文任務名，
+// 與 SkyHelper 傳來的標題同一套寫法，所以直接拿 en 比對即可。
+// 影片 id 經 oEmbed 驗證可嵌入，並納入 check-health.cjs 每週複驗。
 const QUEST_VIDEO = {
   '冥想': {
-    '雲野': '66zDeCbcHfY', '雨林': 'NrDRtc4rC8U', '霞谷': 'Uny2nSeKaz4',
-    '暮土': 'TBvSZsvGo14', '禁閣': '6UQLlXCpEvQ'
+    '雲野': { id: '66zDeCbcHfY', segs: [[/bird\s?nest/i, 7], [/cave/i, 79]] },
+    '雨林': { id: 'NrDRtc4rC8U', segs: [[/hollow tree/i, 44], [/clearing/i, 11]] },
+    '霞谷': { id: 'Uny2nSeKaz4', segs: [[/citadel arch|arch/i, 9], [/citadel/i, 78]] },
+    '暮土': { id: 'TBvSZsvGo14', segs: [[/broken temple/i, 8], [/graveyard/i, 49]] },
+    '禁閣': { id: '6UQLlXCpEvQ', segs: [[/manta/i, 6], [/summit/i, 22]] }
   }
 };
+// 回 { id, start } 或 null（沒收錄這個點位 → 交給搜尋退路）
 function questVideoOf(en, realmZh) {
   const byKind = QUEST_VIDEO[questKindZh(en)];
-  return (byKind && realmZh && byKind[realmZh]) || null;
+  if (!byKind) return null;
+  const pick = v => {
+    for (const [re, s] of v.segs) if (re.test(en || '')) return { id: v.id, start: s };
+    return null;
+  };
+  // 有偵測到國度就只查那一支 —— 別的國度的影片再怎麼像也是錯的。
+  if (realmZh && byKind[realmZh]) return pick(byKind[realmZh]);
+  // 偵測不到國度時（有些任務標題不含國度，例如 Meditate in the broken temple）
+  // 才全表掃描。段落關鍵字夠獨特，誤配風險低。
+  if (!realmZh) { for (const k in byKind) { const r = pick(byKind[k]); if (r) return r; } }
+  return null;
 }
 
 // SkyHelper 是把 Discord 頻道的每一則訊息當一筆任務回傳：同一個任務常出現兩次
@@ -655,7 +689,7 @@ function renderQuests(now) {
       // ③ 都沒有 → YouTube 搜尋連結（中文＋英文）
       // 皆放收合內 + preload/lazy，未點開不耗流量。
       const sr = questVideoSearch(en, realmZh);
-      const ytId = questVideoOf(en, realmZh);
+      const ytv = questVideoOf(en, realmZh);
       // 查詢字串放 title 屬性（滑過才看得到），不直接印在畫面上 —— 那是實作細節，
       // 印出來只會把這一列撐長變吵，對使用者沒幫助。
       const searchLine = `<a class="wiki-link" href="${escapeHtml(sr.zh)}" title="YouTube 搜尋：${escapeHtml(sr.zhQ)}" target="_blank" rel="noopener">中文搜尋↗</a>　<a class="wiki-link" href="${escapeHtml(sr.en)}" title="YouTube search: ${escapeHtml(sr.enQ)}" target="_blank" rel="noopener">英文搜尋↗</a>`;
@@ -665,11 +699,12 @@ function renderQuests(now) {
           <video class="q-video" controls preload="none" playsinline><source src="${escapeHtml(vid)}" /></video>
           <p class="note" style="margin:3px 0 0 0">無法播放（如 .mov 格式）？<a class="wiki-link" href="${escapeHtml(vid)}" target="_blank" rel="noopener">在新分頁開啟↗</a></p>
         </details>`;
-      } else if (ytId) {
-        const vt = escapeHtml(realmZh + questKindZh(en) + '位置教學');
-        vidBlock = `<details class="q-loc q-vid"><summary>🎬 教學影片　<span class="muted">· ${vt}（點開直接看）</span></summary>
-          <div class="yt-wrap"><iframe src="https://www.youtube-nocookie.com/embed/${escapeHtml(ytId)}" title="${vt}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
-          <p class="note" style="margin:5px 0 0">這支涵蓋${escapeHtml(realmZh)}全部${escapeHtml(questKindZh(en))}點位，非今日任務專屬。<a class="wiki-link" href="https://www.youtube.com/watch?v=${escapeHtml(ytId)}" target="_blank" rel="noopener">在 YouTube 開啟↗</a>　找更多：${searchLine}</p>
+      } else if (ytv) {
+        // 已比對到這支影片裡確切講這個點位的段落，直接用 ?start= 跳過去
+        const vt = escapeHtml(qZh(en) + ' · 教學');
+        vidBlock = `<details class="q-loc q-vid"><summary>🎬 教學影片　<span class="muted">· 直接跳到這個點位（點開直接看）</span></summary>
+          <div class="yt-wrap"><iframe src="https://www.youtube-nocookie.com/embed/${escapeHtml(ytv.id)}?start=${ytv.start}" title="${vt}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+          <p class="note" style="margin:5px 0 0">已跳到影片中講這個點位的段落。<a class="wiki-link" href="https://www.youtube.com/watch?v=${escapeHtml(ytv.id)}&t=${ytv.start}s" target="_blank" rel="noopener">在 YouTube 開啟↗</a>　找更多：${searchLine}</p>
         </details>`;
       } else {
         vidBlock = `<p class="q-vid-line">🎬 <b>教學影片</b>：${searchLine}</p>`;

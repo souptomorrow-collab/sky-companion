@@ -48,7 +48,8 @@ function get(url) {
   } else {
     const QUEST_VIDEO = eval('(' + appSrc.slice(qvS + 'const QUEST_VIDEO = '.length, qvE + 2) + ')');
     Object.entries(QUEST_VIDEO).forEach(([kind, byRealm]) =>
-      Object.entries(byRealm).forEach(([realm, id]) => vids.set(id, '每日任務:' + realm + kind)));
+      Object.entries(byRealm).forEach(([realm, v]) =>
+        vids.set(v.id, '每日任務:' + realm + kind + '(' + v.segs.length + '段)')));
   }
   for (const [id, label] of vids) {
     const code = await get('https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D' + id + '&format=json');
