@@ -452,21 +452,28 @@ function questKindZh(en) {
 // 百度經驗/9game 那類寫「追逐散落的星光」，YouTube 創作者寫「抓住霞谷之光」，
 // 這裡的連結是打到 YouTube 搜尋，故一律以 YouTube 上的實際標題用詞為準。
 // 值為 realmZh => 查詢片語；查不到對應就退回 questKindZh() 的短標籤。
-const QUEST_QUERY_ZH = [
-  [/catch .*lights?|wandering lights?/i, r => r ? '抓住' + r + '之光' : '抓住之光'],
-  [/relive|memory|memories/i, r => r ? '重溫這個來自' + r + '先靈的記憶' : '重溫先靈的記憶'],
-  [/collect \d+ \w+ lights?/i, () => '收集光芒'],
-  [/melt .*darkness/i, () => '融化黑暗'],
-  [/social light|social space|social area/i, () => '社交空間']
-];
 function questQueryZh(en, realmZh) {
-  for (const [re, fn] of QUEST_QUERY_ZH) if (re.test(en || '')) return fn(realmZh);
-  return [realmZh, questKindZh(en)].filter(Boolean).join(' ');
+  // 用「翻譯後的任務名」當關鍵字，因為它帶著具體地點／對象（冰凍湖、霞谷下層賽道、
+  // 鞠躬的獎牌得主）—— 這才和英文查詢直接帶完整標題對等。先前只用「國度＋動作」組通用句，
+  // 會搜到同國度的『別的』任務：今天是 Lower Valley Track 的抓光，卻搜到另一個
+  // 「抓住霞谷之光」。實測帶地點後第一筆就是該任務本身。
+  const t = (qZh(en) || '').replace(/^在/, '').replace(/[：:·・，,、（）()]/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+  const hasZh = /[㐀-鿿]/.test(t);
+  // 重溫先祖回憶例外：任務流程很單純（找到先祖點亮），玩家真正缺的是「先祖在哪」，
+  // 所以導向該國度的先祖位置影片，而不是任務流程影片。
+  if (/reliv|memor/i.test(en || '') && hasZh) {
+    return ['光遇', realmZh, '先祖位置', t.replace(/^重溫先祖回憶\s*/, '')].filter(Boolean).join(' ');
+  }
+  if (hasZh) return '光遇 ' + t;
+  // 翻譯失敗（整串還是英文）才退回國度＋類型，至少不會拿英文去餵中文搜尋
+  return ['光遇 每日任務', realmZh, questKindZh(en)].filter(Boolean).join(' ');
 }
 function questVideoSearch(en, realmZh) {
   const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
-  // 「每日任務」這個限定詞不能省 —— 少了它，「霞谷 …光」會被配到光之翼收集的影片
-  const zhQ = ['光遇 每日任務', questQueryZh(en, realmZh)].filter(Boolean).join(' ');
+  // 不要再無條件加「每日任務」：實測它會把通用的每日任務合輯拉到前面，反而擠掉
+  // 針對這個任務的影片。地點夠具體時不需要這個限定詞。
+  const zhQ = questQueryZh(en, realmZh);
   const enQ = 'Sky Children of the Light daily quest ' + (en || '').replace(/\s*[-–]\s*video guide\s*$/i, '').trim();
   return { zh: yt(zhQ), en: yt(enQ), zhQ: zhQ, enQ: enQ };
 }
