@@ -340,7 +340,7 @@ const QUEST_TEMPLATES = [
   // SkyHelper 專有的包裝格式（不是遊戲內任務原文），先於一般句型比對：
   [/^Relive Spirit Quest\b.*?[-–]\s*(.+)$/i, m => '重溫先祖回憶：' + qLoc(m[1])],
   [/^Visiting (?:the )?Social Light Area(?:\s*[-–]\s*(.+))?$/i, m => '造訪社交光區' + (m[1] ? '（' + qLoc(m[1]) + '）' : '')],
-  [/^Catch (?:the )?wandering lights?(?:\s+(?:along|around|at|in|near|on)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '接遊蕩的光'],
+  [/^Catch (?:the )?wandering lights?(?:\s+(?:along|around|at|in|near|on)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '追逐散落的星光'],
   [/^Fly with (?:many )?butterfl(?:y|ies)(?:\s+(?:in|at|near|through)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '與蝴蝶齊飛'],
   [/^Ride (?:a |an |the )?Manta(?: Quest)?(?:\s+(?:in|at|near)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '騎蝠鱝'],
   [/^Catch (?:the )?(\d+) lights?(?: in (.+))?$/i, m => (m[2] ? '在' + qLoc(m[2]) : '') + '接 ' + m[1] + ' 個光'],
@@ -430,7 +430,9 @@ const QUEST_ANYWHERE = /melt \d* ?darkness|light \d+ candles?|forge \d+ candles?
 // 這張表的類型詞」組查詢字串，結果穩定得多（例：光遇 霞谷 冰凍湖 冥想）。由上往下 first-match。
 const QUEST_KIND_ZH = [
   [/meditat/i, '冥想'], [/relive|memory|memories/i, '重溫先祖回憶'],
-  [/catch .*lights?|wandering lights?/i, '接光'], [/collect \d+ \w+ lights?/i, '收集彩光'],
+  // 用社群實際講法，不要自己造詞：wandering lights 中文圈叫「追逐散落的星光」，
+  // 原本寫「接光」搜不到任何相關攻略（反而配到光之翼收集的內容）。
+  [/catch .*lights?|wandering lights?/i, '追逐散落的星光'], [/collect \d+ \w+ lights?/i, '收集光芒'],
   [/melt .*darkness/i, '融化黑暗'], [/light \d+ candles?/i, '點蠟燭'], [/forge/i, '鍛造蠟燭'],
   [/social light|social space|social area/i, '社交光區'], [/butterfl/i, '蝴蝶'], [/\bmantas?\b/i, '蝠鱝'],
   [/kite/i, '風箏'], [/tidy up/i, '整理'], [/read a book/i, '讀書'], [/pay .*respects?/i, '致敬'],
@@ -444,10 +446,13 @@ function questKindZh(en) {
 }
 // SkyHelper 沒附影片時的退路：組 YouTube 搜尋連結，保證每個任務都點得到教學。
 // 中文優先（使用者偏好），另附英文查詢——英文頻道對冷門地點的覆蓋通常較完整。
-function questVideoSearch(en, locZh) {
+// 查詢字串用「國度」而不是「區域」：區域名（霞谷下層賽道、冰凍湖）是本專案資料的用詞，
+// 社群影片標題不這樣寫，掛上去反而配不到。另外「每日任務」這個限定詞是必要的 ——
+// 少了它，「霞谷 …光」會被 YouTube 配到光之翼收集的影片，整個搜錯主題。
+function questVideoSearch(en, realmZh) {
   const yt = q => 'https://www.youtube.com/results?search_query=' + encodeURIComponent(q);
-  const zhQ = ['光遇', locZh, questKindZh(en)].filter(Boolean).join(' ');
-  const enQ = 'Sky Children of the Light ' + (en || '').replace(/\s*[-–]\s*video guide\s*$/i, '').trim();
+  const zhQ = ['光遇 每日任務', realmZh, questKindZh(en)].filter(Boolean).join(' ');
+  const enQ = 'Sky Children of the Light daily quest ' + (en || '').replace(/\s*[-–]\s*video guide\s*$/i, '').trim();
   return { zh: yt(zhQ), en: yt(enQ), zhQ: zhQ, enQ: enQ };
 }
 // 精選教學影片：任務類型 → 國度 → YouTube id。一支影片涵蓋該國度該類型的所有點位，
@@ -626,22 +631,19 @@ function renderQuests(now) {
             <div class="shard-map-wrap">${posMiniMap(pos, label, img)}</div>
           </div></details>`;
       const zhName = n => (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[n]) || n;
-      // locZh 給影片搜尋用（機翻標題語序不穩，靠偵測到的區域組查詢字串才準）；
-      // realmZh 給精選影片查表用（精選影片按國度收，不到區域這麼細）
-      let locMedia = '', locZh = '', realmZh = '';
+      // realmZh 同時給精選影片查表與搜尋查詢用，兩者都只到「國度」這一層：
+      // 精選影片本來就按國度收；搜尋則是因為區域名（冰凍湖、霞谷下層賽道）是本專案
+      // 資料的用詞，社群影片標題不這樣寫，掛上去反而配不到。
+      let locMedia = '', realmZh = '';
       const area = detectQuestArea(en);
       const realm = (area && area.pos) ? null : detectQuestRealm(en);
       if (area && area.pos) {
         locMedia = mediaBlock(questAreaLabel(area), area.img, area.pos);
-        // 區域名已含國度名時不重複掛（避免「霞谷 霞谷下層賽道」這種冗餘查詢）
-        const rz = zhName(area.realm), az = zhName(area.name);
-        realmZh = rz;
-        locZh = (az && rz && az.indexOf(rz) >= 0) ? az : [rz, az].filter(Boolean).join(' ');
+        realmZh = zhName(area.realm);
       } else if (realm && realm.pos) {
         const rl = zhName(realm.name) + '（' + realm.name + '）';
         locMedia = mediaBlock(rl, realm.img, realm.pos);
         realmZh = zhName(realm.name);
-        locZh = realmZh;
       } else if (QUEST_ANYWHERE.test(en)) {
         locMedia = `<p class="note" style="margin:2px 0 4px 28px">📍 不限地點（任何地方都可完成）</p>`;
       } else {
@@ -652,7 +654,7 @@ function renderQuests(now) {
       // ② 沒附但精選表有收該「國度×類型」→ 內嵌該支中文教學（涵蓋該國度所有點位）
       // ③ 都沒有 → YouTube 搜尋連結（中文＋英文）
       // 皆放收合內 + preload/lazy，未點開不耗流量。
-      const sr = questVideoSearch(en, locZh);
+      const sr = questVideoSearch(en, realmZh);
       const ytId = questVideoOf(en, realmZh);
       // 查詢字串放 title 屬性（滑過才看得到），不直接印在畫面上 —— 那是實作細節，
       // 印出來只會把這一列撐長變吵，對使用者沒幫助。
