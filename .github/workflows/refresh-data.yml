@@ -24,22 +24,43 @@ jobs:
         with:
           node-version: 20
 
-      - name: 重抓最新資料集並重建 skydata.js
-        run: |
-          curl -fsSL https://unpkg.com/skygame-data@latest/assets/everything.json -o everything.json
-          node build-skydata.cjs
+      - name: 下載最新資料集
+        run: curl -fsSL https://unpkg.com/skygame-data@latest/assets/everything.json -o everything.json
+
+      # 復刻先祖：資料集通常在先祖『到達當天』才收錄，官方卻會提前幾天公告，只靠資料集
+      # 網頁要等先祖到了才知道是誰。這步讀社群 Wiki 的公告狀態，已公布但資料集還沒收錄的
+      # 先寫進 ts-extra.json（資料集之後收錄同一天會自動以官方版取代）。
+      # continue-on-error：Wiki 掛掉或格式改了，不能連帶擋住資料集更新；
+      # 但最後一步會把整個 run 標成失敗，GitHub 照樣寄信通知有人要看。
+      - name: 抓社群 Wiki 已公布的下一位復刻先祖
+        id: ts
+        continue-on-error: true
+        run: node fetch-ts-wiki.cjs
+
+      - name: 重建 skydata.js
+        run: node build-skydata.cjs
 
       - name: 有變動才 bump + 驗證 + 提交
         run: |
-          if git diff --quiet -- skydata.js; then
-            echo "skydata.js 無變動，今天沒有新資料，跳過。"
+          if git diff --quiet -- skydata.js ts-extra.json; then
+            echo "skydata.js / ts-extra.json 皆無變動，今天沒有新資料，跳過。"
             exit 0
           fi
-          echo "偵測到 skydata.js 變動，進行 bump + 驗證 + 提交。"
+          MSG="自動更新圖鑑資料（skygame-data 每日重抓）"
+          if ! git diff --quiet -- ts-extra.json; then
+            MSG="自動補上已公布的復刻先祖（社群 Wiki 公告）＋圖鑑資料更新"
+          fi
+          echo "偵測到變動，進行 bump + 驗證 + 提交：$MSG"
           node bump-version.cjs
           node verify.cjs   # 失敗 → job 失敗、不提交，GitHub 會寄信通知
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add skydata.js index.html
-          git commit -m "自動更新圖鑑資料（skygame-data 每日重抓）"
+          git add skydata.js index.html ts-extra.json
+          git commit -m "$MSG"
           git push
+
+      - name: 復刻先祖公告抓取失敗 → 標記 run 失敗（觸發寄信）
+        if: steps.ts.outcome == 'failure'
+        run: |
+          echo "::error::fetch-ts-wiki.cjs 失敗（Wiki 取不到、版面改了或先祖名對不上資料集）。資料集更新已照常完成，但復刻先祖公告需要人工確認。"
+          exit 1

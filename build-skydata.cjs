@@ -245,7 +245,8 @@ const travelingSpirits = get('travelingSpirits')
   })
   .filter(t => t.spirit)
   .sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-// 補充近期復刻先祖（資料集快照較舊時，由 ts-extra.json 手動補上 {date:先祖名}）
+// 補充近期復刻先祖 ts-extra.json {date:先祖名}。資料集通常到達『當天』才收錄，
+// refresh-data 排程會先跑 fetch-ts-wiki.cjs，依社群 Wiki 公告自動寫入（也可手動補）。
 let TS_EXTRA = {};
 try { TS_EXTRA = JSON.parse(fs.readFileSync(path.join(__dirname, 'ts-extra.json'), 'utf8')); } catch (e) {}
 const spiritByName = new Map(get('spirits').map(s => [s.name, s]));
