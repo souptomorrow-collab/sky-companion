@@ -594,7 +594,12 @@ function dailyCandlesHTML() {
   const t = candleCard('每日尋寶蠟燭（大蠟·輪換）', '🕯️', d.rotating_candles);
   const s = candleCard('季節蠟燭', '🌙', d.seasonal_candles);
   if (!t && !s) return '';
-  return `<div class="candle-today">${t}${s}<p class="note" style="margin:6px 0 0">這是<b>每日輪換</b>的尋寶蠟燭（共 4 根：該國度入口 1 根＋散落 3 根），每天換國度與位置。<br>另有 <b>35 根「永久」尋寶蠟燭</b>固定不變、每天都能撿，路線在「地圖」分頁的<b>永久尋寶蠟燭</b>。</p></div>`;
+  // 雙倍活動期間根數會變（平常 4 → 8），寫死 4 會跟上方的雙倍橫幅互相矛盾
+  const dbl = activeDoubleEvent(new Date());
+  const cnt = (dbl && dbl.treasure)
+    ? `平常共 4 根：該國度入口 1 根＋散落 3 根；<b>✨ 雙倍活動期間增為 ${dbl.treasure} 根</b>，至 ${dbl.end}（太平洋）`
+    : '共 4 根：該國度入口 1 根＋散落 3 根';
+  return `<div class="candle-today">${t}${s}<p class="note" style="margin:6px 0 0">這是<b>每日輪換</b>的尋寶蠟燭（${cnt}），每天換國度與位置。<br>另有 <b>35 根「永久」尋寶蠟燭</b>固定不變、每天都能撿，路線在「地圖」分頁的<b>永久尋寶蠟燭</b>。</p></div>`;
 }
 // 主畫面「今日蠟燭」卡內容（含載入/錯誤狀態）
 function ovCandleHTML() {
@@ -629,11 +634,21 @@ function renderPermCandles() {
   box.dataset.done = '1';
   if (typeof bindCollChecks === 'function') bindCollChecks($('#perm-candles'));
 }
-// 雙倍燭光活動（不定期，官方公告制）。手動維護已知場次；日期為太平洋日，每場約持續一週。
+// 雙倍燭光活動（不定期，官方公告制）。手動維護已知場次；日期為太平洋日，近年每場約兩週。
+// 來源：官方月報 This Month in Sky ＋ Wiki「Double Currency Events」，兩邊對過才寫入。
+// 注意 Wiki 常把結束日的星期寫錯（寫 Friday 實為 Thursday）、把 PDT 標成 UTC-8，以日期為準。
+// 也別被沒寫年份的舊公告騙：官方 X 上「August 19 - September 1」那則是 2025 年發的。
+// treasure：該場每日輪換尋寶蠟燭的根數（平常 4），給「今日蠟燭」卡顯示正確數量用。
 const DOUBLE_EVENTS = [
-  { start: '2025-12-31', end: '2026-01-15', note: '雙倍尋寶燭光🕯️ ＋ 雙倍愛心❤️' },
-  { start: '2026-02-27', end: '2026-03-12', note: '雙倍季節蠟燭🌙 ＋ 雙倍尋寶蠟燭🕯️' }
+  { start: '2025-12-31', end: '2026-01-15', treasure: 8, note: '雙倍尋寶燭光🕯️ ＋ 雙倍愛心❤️' },
+  { start: '2026-02-27', end: '2026-03-12', treasure: 8, note: '雙倍季節蠟燭🌙 ＋ 雙倍尋寶蠟燭🕯️' },
+  { start: '2026-06-19', end: '2026-07-02', treasure: 8, note: '雙倍季節蠟燭🌙（每日任務國度 8 束，平常 4）＋ 雙倍尋寶蠟燭🕯️（8 根，平常 4）' },
+  { start: '2026-09-11', end: '2026-09-24', treasure: 8, note: '雙倍季節蠟燭🌙（每日任務國度 8 束，平常 4）＋ 雙倍尋寶蠟燭🕯️（8 根，平常 4）' }
 ];
+function activeDoubleEvent(now) {
+  const p = skyParts(now), dk = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+  return DOUBLE_EVENTS.find(e => dk >= e.start && dk <= e.end) || null;
+}
 function doubleEventHTML(now) {
   const p = skyParts(now), dk = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
   const active = DOUBLE_EVENTS.find(e => dk >= e.start && dk <= e.end);
@@ -641,7 +656,7 @@ function doubleEventHTML(now) {
   const next = DOUBLE_EVENTS.filter(e => e.start > dk).sort((a, b) => a.start < b.start ? -1 : 1)[0];
   const nextLine = next ? `下一場 <b>${next.start}</b>：${next.note}` : '目前查無已公告的下一場（不定期，無固定排程）。';
   return `<details class="dbl-banner"><summary>✨ 雙倍燭光活動：目前無進行中　<span class="muted">· 點看說明</span></summary>
-    <div class="sp-body"><p class="note">「雙倍日」是官方<b>不定期公告</b>的活動（每場約一週），會雙倍<b>季節蠟燭🌙／尋寶蠟燭🕯️／愛心❤️</b>其中幾項，常搭季節或特殊活動。${nextLine}<br>以官方公告為準：<a class="wiki-link" href="https://sky-children-of-the-light.fandom.com/wiki/Double_Currency_Events" target="_blank" rel="noopener">雙倍活動列表 ↗</a></p></div></details>`;
+    <div class="sp-body"><p class="note">「雙倍日」是官方<b>不定期公告</b>的活動（近年每場約兩週），會雙倍<b>季節蠟燭🌙／尋寶蠟燭🕯️／愛心❤️</b>其中幾項，常搭季節或特殊活動。${nextLine}<br>以官方公告為準：<a class="wiki-link" href="https://sky-children-of-the-light.fandom.com/wiki/Double_Currency_Events" target="_blank" rel="noopener">雙倍活動列表 ↗</a></p></div></details>`;
 }
 function renderQuests(now) {
   const box = $('#ov-quests .card-body');
