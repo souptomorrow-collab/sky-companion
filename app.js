@@ -948,33 +948,84 @@ function renderSpirits(now) {
   }
   $('#ts-status .card-body').innerHTML = statusHTML;
 
-  // 行事曆（自動帶入實際先祖；未公布的標「待官方公布」）
-  let list = '';
-  for (let i = -1; i <= 6; i++) {
-    const t = tsArrival(cur.k + i);
-    const past = now.getTime() >= t.departInst.getTime();
-    const live = now.getTime() >= t.arrivalInst.getTime() && now.getTime() < t.departInst.getTime();
-    const dep = addDays(t.cal.y, t.cal.mo, t.cal.d, 3); // 週日
-    const who = tsSpiritOn(dateKey(t.cal));
-    const visit = tsVisitOn(dateKey(t.cal));
-    const badge = live ? '<span class="badge live">在場</span>' : past ? '<span class="badge none">已過</span>' : '<span class="badge black">即將</span>';
-    if (who) {
-      // 已知先祖 → 可展開看兌換物品
-      list += `<details class="shard-day-x ts-cal">
-        <summary class="shard-day">
-          <span class="d-date">${dateKey(t.cal)} ~ ${pad(dep.mo)}/${pad(dep.d)}</span>
-          <span class="d-loc">${badge} ${nm(who)}</span>
-          ${imgThumb(tsImgOn(dateKey(t.cal)), who, 'ts-portrait')}</summary>
-        <div style="padding:6px 4px 2px">${tsItemsInline(who, visit)}</div>
-      </details>`;
-    } else {
-      list += `<div class="shard-day">
-        <span class="d-date">${dateKey(t.cal)} ~ ${pad(dep.mo)}/${pad(dep.d)}</span>
+  renderTsCalendar(now, cur);
+  renderSpecialVisits(now);
+}
+
+// 行事曆：直接走 skydata 的場次資料（新→舊），列出全部歷史。
+//
+// 為什麼不沿用 14 天循環往回推：早期場次並不都落在網格上 —— 174 筆裡有 3 筆週五、1 筆週二，
+// 且有 8 筆偏離 14 天網格（最早一筆 2020-01-31 是週五）。用循環推算，那些場次會查不到先祖、
+// 變成「待官方公布」。資料本身每筆都自帶 date，直接用它才正確。
+//
+// 未來只補「下一場」一列：官方都在到達前幾天才公布，再往後排都是空白列，沒有資訊量。
+const TS_CAL_RECENT = 10; // 直接展開顯示的列數，其餘收進「更早的場次」
+function renderTsCalendar(now, cur) {
+  const el = $('#ts-list');
+  if (!el) return;
+  const all = (typeof window !== 'undefined' && window.SKYDATA && window.SKYDATA.travelingSpirits) || [];
+  const p = skyParts(now);
+  const today = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+  // 待公布的列要同時涵蓋「這一場」與「下一場」。只補下一場的話，當某場已經到達、官方卻還沒
+  // 公布先祖時，畫面上會完全看不到正在場上的那一場。通常兩者只有下一場未公布，故多半仍是 1 列。
+  const known = new Set(all.map(t => t.date));
+  const pending = [dateKey(cur.cal), dateKey(tsArrival(cur.k + 1).cal)].filter(d => !known.has(d));
+
+  // renderSpirits 由 tick() 每秒呼叫。沒有這道 guard，176 列會每秒重建一次，
+  // 使用者展開的那列也會跟著被關掉。狀態（在場/已過）只在太平洋午夜變動，
+  // 所以用「日期＋資料筆數＋待公布場次」當 key 就足以涵蓋所有會改變畫面的因素。
+  const key = today + '|' + all.length + '|' + pending.join(',');
+  if (el.dataset.calKey === key) return;
+  el.dataset.calKey = key;
+
+  const row = date => {
+    const [y, mo, d] = date.split('-').map(Number);
+    const dep = addDays(y, mo, d, 3); // 週日離開
+    const depKey = `${dep.y}-${pad(dep.mo)}-${pad(dep.d)}`;
+    const span = `${date} ~ ${pad(dep.mo)}/${pad(dep.d)}`;
+    const badge = today >= depKey ? '<span class="badge none">已過</span>'
+      : today >= date ? '<span class="badge live">在場</span>'
+        : '<span class="badge black">即將</span>';
+    const who = tsSpiritOn(date);
+    if (!who) {
+      return `<div class="shard-day">
+        <span class="d-date">${span}</span>
         <span class="d-loc">${badge} <span class="muted">（待官方公布）</span></span></div>`;
     }
+    // 兌換內容不在這裡產生：176 列 × 約 10 項會做出上千個節點。改成展開時才填（見下方 toggle）。
+    return `<details class="shard-day-x ts-cal" data-date="${date}">
+      <summary class="shard-day">
+        <span class="d-date">${span}</span>
+        <span class="d-loc">${badge} ${nm(who)}</span>
+        ${imgThumb(tsImgOn(date), who, 'ts-portrait')}</summary>
+      <div class="ts-cal-body" style="padding:6px 4px 2px"><p class="muted">載入中…</p></div>
+    </details>`;
+  };
+
+  // 待公布列與資料併在一起後統一由新到舊排序（日期格式可直接字串排序），
+  // 這樣即使資料已經含有比「下一場」更晚的場次，順序也不會亂掉。
+  const rows = pending.concat(all.map(t => t.date)).sort().reverse();
+  const head = rows.slice(0, TS_CAL_RECENT).map(row).join('');
+  const rest = rows.slice(TS_CAL_RECENT);
+  const more = rest.length
+    ? `<details class="wiki-card" style="margin-top:8px"><summary><b>📜 更早的場次（${rest.length} 場）</b> <span class="muted">· 點開看完整歷史</span></summary>
+       <div class="sp-body">${rest.map(row).join('')}</div></details>`
+    : '';
+  el.innerHTML = head + more;
+
+  // 展開才填兌換內容。toggle 事件不會冒泡，所以用捕獲階段監聽；監聽器掛在容器本身，
+  // innerHTML 重建不會把它清掉，故只需綁一次。
+  if (!el.dataset.lazyBound) {
+    el.dataset.lazyBound = '1';
+    el.addEventListener('toggle', e => {
+      const d = e.target;
+      if (!d.open || !d.classList || !d.classList.contains('ts-cal') || d.dataset.filled) return;
+      d.dataset.filled = '1';
+      const body = d.querySelector('.ts-cal-body');
+      const date = d.dataset.date;
+      if (body && date) body.innerHTML = tsItemsInline(tsSpiritOn(date), tsVisitOn(date));
+    }, true);
   }
-  $('#ts-list').innerHTML = list;
-  renderSpecialVisits(now);
 }
 
 // 集體復刻實際兌換價警語（由該次復刻專屬樹擷取，可信）
