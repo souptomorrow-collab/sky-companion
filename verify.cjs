@@ -12,7 +12,7 @@ const warn = m => { console.log('  ⚠ ' + m); warns++; };
 
 // 1) JS 語法
 console.log('[1] JS 語法檢查');
-for (const f of ['app.js', 'skyenc.js', 'shards.js', 'util.js', 'auth.js', 'permcandles.js', 'sw.js', 'zh.js', 'skydata.js']) {
+for (const f of ['app.js', 'skyenc.js', 'shards.js', 'util.js', 'auth.js', 'permcandles.js', 'workshop.js', 'sw.js', 'zh.js', 'skydata.js']) {
   try { execSync('node --check ' + f, { stdio: 'pipe' }); ok(f); }
   catch (e) { bad(f + ' 語法錯誤'); }
 }

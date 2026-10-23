@@ -649,6 +649,43 @@ function activeDoubleEvent(now) {
   const p = skyParts(now), dk = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
   return DOUBLE_EVENTS.find(e => dk >= e.start && dk <= e.end) || null;
 }
+/* ---------- 築巢工坊家具輪換 ----------
+ * 13 週固定循環、每週五 00:00 太平洋換一輪，所以跟碎石一樣可以直接算，不必每天抓資料。
+ * 輪次公式與 Wiki 計算器一致。驗證：2026-10-23（週五）算出第 3 輪，與 Wiki 標的 (current) 相同；
+ * 且 10-22(四)=第 2 輪、10-23(五)=第 3 輪，邊界落在週五，正確。
+ */
+function workshopWeek(now) {
+  const rot = (typeof window !== 'undefined' && window.WORKSHOP_ROTATION) || [];
+  if (!rot.length) return null;
+  const p = skyParts(now);
+  const today = Date.UTC(p.year, p.month - 1, p.day) / 86400000;
+  const a = ((typeof window !== 'undefined' && window.WORKSHOP_ANCHOR) || '2024-04-12').split('-').map(Number);
+  const anchor = Date.UTC(a[0], a[1] - 1, a[2]) / 86400000;
+  const i = ((Math.floor((today - anchor) / 7) % rot.length) + rot.length) % rot.length;
+  return { week: i + 1, total: rot.length, items: rot[i] };
+}
+// 下一次換輪：下一個太平洋週五 00:00（今天就是週五也算下週五，因為這輪已經開始了）
+function nextWorkshopFlip(now) {
+  const p = skyParts(now);
+  const add = (5 - skyWeekday(p.year, p.month, p.day) + 7) % 7 || 7;
+  const t = addDays(p.year, p.month, p.day, add);
+  return skyWallToDate(t.y, t.mo, t.d, 0, 0, 0);
+}
+const WS_UNIT = { C: '🕯️', H: '❤️', AC: '🕊️' };
+function renderWorkshop(now) {
+  const box = $('#ov-workshop .card-body');
+  if (!box) return;
+  const w = workshopWeek(now);
+  if (!w) { box.innerHTML = '<p class="note">家具輪換資料載入失敗，請重新整理。</p>'; return; }
+  const rows = w.items.map(i =>
+    `<div class="kv"><span class="k">${escapeHtml(i.zh)} <span class="muted fs-tag">${escapeHtml(i.n)}</span></span>
+      <span class="v">${i.c}${WS_UNIT[i.u] || i.u}${i.x > 1 ? ` <span class="muted">· 可買 ${i.x} 份</span>` : ''}</span></div>`).join('');
+  box.innerHTML = `<div class="kv"><span class="k">本週</span><span class="v">第 ${w.week}／${w.total} 輪　<span class="muted">${w.items.length} 件</span></span></div>
+    <div class="kv"><span class="k">換下一輪</span><span class="v big">${cd(nextWorkshopFlip(now).getTime())}</span></div>
+    ${rows}
+    <p class="note">在鳥族村的<b>築巢工坊</b>販售，每週五 00:00（太平洋）換一輪，13 輪循環。中文為本站自譯，英文為遊戲內原名。另有不輪換的常駐區。</p>`;
+}
+
 function doubleEventHTML(now) {
   const p = skyParts(now), dk = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
   const active = DOUBLE_EVENTS.find(e => dk >= e.start && dk <= e.end);
@@ -1271,6 +1308,7 @@ function reRenderDay(now) {
   renderOverview(now);
   renderShards(now);
   renderSpirits(now);
+  renderWorkshop(now);
   lastDayKey = dateKey(skyParts(now));
   computeNextFlip(now);
   updateCountdowns(now);
