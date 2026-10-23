@@ -314,6 +314,7 @@ const QUEST_VOCAB = [
   [/Yellow Light/gi, '黃光'], [/Orange Light/gi, '橙光'], [/White Light/gi, '白光'],
   [/\bPrairie\b/gi, '雲野'], [/\bForest\b/gi, '雨林'], [/\bValley\b/gi, '霞谷'],
   [/\bWasteland\b/gi, '暮土'], [/\bVault\b/gi, '禁閣'], [/\bIsle\b/gi, '晨島'],
+  [/\bCrabs?\b/gi, '暗蟹'], [/\bRainbows?\b/gi, '彩虹'],
   [/\bcandles?\b/gi, '蠟燭'], [/\bdarkness\b/gi, '黑暗'], [/\bcave\b/gi, '洞穴'], [/\bshrine\b/gi, '神壇'],
   [/\bfriends?\b/gi, '朋友'], [/\bstrangers?\b/gi, '陌生人'], [/\bplayers?\b/gi, '玩家'], [/\bsomeone\b/gi, '某人'],
   [/\bTemple\b/gi, '神廟'], [/\bGuide\b/gi, '嚮導'], [/\bLight\b/gi, '光'],
@@ -342,6 +343,10 @@ const QUEST_TEMPLATES = [
   // 這樣同一個字串既是畫面標題、也是命中率最高的搜尋關鍵字。
   //   在俯瞰冰封湖的位置冥想 ／ 沿著霞谷下層賽道捕捉四散的光 ／ 重溫鞠躬季軍在霞谷的記憶
   [/^Meditate overlooking (?:the )?(.+)$/i, m => '在俯瞰' + qLoc(m[1]) + '的位置冥想'],
+  // 「海底」那條要排在一般的 wandering lights 之前，否則會被後者先吃掉而漏掉「海底」
+  [/^Catch (?:the )?wandering lights? under the sea(?:\s+in\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '海底捕捉四散的光'],
+  [/^Admire (?:the )?Rainbow(?:\s+(?:in|at|near|from)\s+(?:the )?(.+))?$/i, m => (m[1] ? '在' + qLoc(m[1]) : '') + '欣賞彩虹'],
+  [/^Pick up (?:a |an |the )?(.+)$/i, m => '抱起一隻' + qLoc(m[1])],
   [/^Relive Spirit Quest\s+(.+?)\s*[-–]\s*(.+)$/i, m => '重溫' + qLoc(m[2]) + '在' + qLoc(m[1]) + '的記憶'],
   [/^Reli(?:ev|v)e (.+?)['’]?s memory from (.+)$/i, m => '重溫' + qLoc(m[1]) + '在' + qLoc(m[2]) + '的記憶'],
   [/^Relive Spirit Quest\b.*?[-–]\s*(.+)$/i, m => '重溫' + qLoc(m[1]) + '的記憶'],
@@ -373,6 +378,11 @@ function qZh(s) {
   // SkyHelper 常包一層「<類型> Quest Guide <國度> - <區域>（真正的任務句）」。真正的任務在
   // 括號裡，不先剝掉的話模板會比對到外層，翻出「Meditation Quest 嚮導 霞谷 · Ice Rink」這種
   // 半英半中的結果。只在括號內容看起來是任務句（含任務動詞）時才取，避免誤吃 (IAP) 這類註記。
+  // 再剝兩種前綴，否則後面的句型對不上：
+  //   「Daily Quest Guide - Wave to a Friend」→「Wave to a Friend」
+  //   「Days of Rainbow 2022 - Admire the Rainbow in...」→「Admire the Rainbow in...」
+  s = s.replace(/^daily quest guide\s*[-–]\s*/i, '')
+    .replace(/^days of [a-z' ]+?(?:\s+\d{4})?\s*[-–]\s*/i, '').trim();
   const par = s.match(/\(([^()]{6,})\)\s*$/);
   if (par && /\b(?:meditate|catch|collect|melt|light|forge|reliv|relieve|fly|ride|visit|meet|bow|wave|make|read|tidy|propose|practice|pay|sit|hug)\w*\b/i.test(par[1])) s = par[1].trim();
   for (const [re, fn] of QUEST_TEMPLATES) { const m = s.match(re); if (m) return fn(m); }
@@ -526,6 +536,15 @@ function questKey(t) {
     .replace(/\b(?:a|an|the|quest)\b/g, ' ')   // 冠詞與 Quest 兩版不一致
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
+}
+// 「Daily Quest Guide」後面沒接東西，才是 SkyHelper 附的玩法圖解；接了內容
+// （例：Daily Quest Guide - Wave to a Friend）其實是當天的真任務，前綴由 qZh 剝掉。
+// 原本用 /daily quest guide/ 一律當圖解濾掉，會讓那一列真任務整個消失 —— 2026-10-23 就發生了。
+function isGuideRow(q) { return /^daily quest guide\s*[-–]?\s*$/i.test(((q && q.title) || '').trim()); }
+// 來源偶爾回傳錯誤佔位字串，不濾掉會把「[Quest Title Error]: Unknown」原樣顯示給使用者
+function isBrokenRow(q) {
+  const t = ((q && q.title) || '').trim();
+  return /quest title error/i.test(t) || /^unknown$/i.test(t) || !t;
 }
 // 合併重複任務：標題取較短的（純文字版是任務原名，帶圖那則常黏著補充說明），
 // 附件取聯集。回傳全新物件，不動到 questState.data，重繪多次結果一致。
@@ -883,9 +902,8 @@ function renderQuests(now) {
     if (questsFresh(questState.data, dk)) {
       // 「Daily Quest Guide」是 SkyHelper 附的「玩法圖解」(教某類任務怎麼做)，不一定是 4 任務總覽，
       // 也不保證完整 → 老實標成「任務圖解」，不宣稱完整。實際任務以文字列 + 遊戲內為準。
-      const isGuide = q => /daily quest guide/i.test(q.title || '');
-      const guideImg = (qs.find(q => isGuide(q) && q.images && q.images[0] && q.images[0].url) || {}).images;
-      const tasks = dedupeQuests(qs.filter(q => !isGuide(q)));
+      const guideImg = (qs.find(q => isGuideRow(q) && q.images && q.images[0] && q.images[0].url) || {}).images;
+      const tasks = dedupeQuests(qs.filter(q => !isGuideRow(q) && !isBrokenRow(q)));
       if (tasks.length >= 4) clearQuestsRetry(); else scheduleQuestsRetry(); // 不足 4 個＝來源還在補，續抓
       const done = Store.get('quests_' + dk, {});
       const cnt = tasks.filter((q, i) => done[i]).length;
