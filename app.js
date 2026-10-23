@@ -690,6 +690,57 @@ function renderEvents(now) {
   }).join('') + '<p class="note">日期為太平洋時間。資料來自社群資料集，官方公布新活動後會自動更新。</p>';
 }
 
+/* ---------- 彩染店（Dye Exchange Shop）每週輪換 ----------
+ * 位於鳥族村染色工坊樓上。3 輪循環，每週重置（週日 00:00 太平洋）換一輪。
+ * 常見色＝紅/綠/藍，稀有色＝黃/青/紫，每週各取 2 種，組合固定如下。
+ *
+ * 錨點是實際觀測定出來的 —— Wiki 只寫了輪換規則，沒寫從哪一週起算：
+ *   2026-10-18 那週：黃←4綠、紫←4紅、黑←3黃  → 符合第 2 輪
+ *   2026-10-11 那週：紫←4紅、青←4藍、黑←3紫  → 符合第 1 輪
+ * 兩次觀測相隔一週且各自吻合，故以 2026-10-11（週日）為第 1 輪起點。
+ * 注意 10-11 那週正逢 Radiance 活動，店內商品加倍、混入其他顏色，
+ * 但該輪應有的三項都在，不影響判讀。
+ *
+ * 規則來源：Sky Wiki「Aviary Village#Dye Exchange Shop」(CC BY-SA)
+ */
+const DYE_ANCHOR = '2026-10-11'; // 太平洋週日，第 1 輪起算
+const DYE_ROTATION = [
+  { common: ['red', 'blue'], rare: ['purple', 'cyan'] },
+  { common: ['green', 'red'], rare: ['yellow', 'purple'] },
+  { common: ['blue', 'green'], rare: ['cyan', 'yellow'] },
+];
+const DYE_ZH = { red: '紅', green: '綠', blue: '藍', yellow: '黃', cyan: '青', purple: '紫', black: '黑', white: '白' };
+const DYE_HEX = { red: '#e0605e', green: '#6ec46e', blue: '#5a92e0', yellow: '#e6d257', cyan: '#57cfd0', purple: '#b56ee0', black: '#4a4a4a', white: '#f0f0f0' };
+function dyeWeek(now) {
+  const p = skyParts(now);
+  const sun = addDays(p.year, p.month, p.day, -skyWeekday(p.year, p.month, p.day)); // 退到本週的週日
+  const dnum = (y, mo, d) => Date.UTC(y, mo - 1, d) / 86400000;
+  const a = DYE_ANCHOR.split('-').map(Number);
+  const i = ((Math.floor((dnum(sun.y, sun.mo, sun.d) - dnum(a[0], a[1], a[2])) / 7) % 3) + 3) % 3;
+  return { week: i + 1, total: DYE_ROTATION.length, common: DYE_ROTATION[i].common, rare: DYE_ROTATION[i].rare };
+}
+function dyeChip(c) {
+  return `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle;`
+    + `margin-right:3px;background:${DYE_HEX[c]};border:1px solid rgba(0,0,0,.25)"></span>${DYE_ZH[c]}`;
+}
+function renderDye(now) {
+  const box = $('#ov-dye .card-body');
+  if (!box) return;
+  const w = dyeWeek(now);
+  const deals = [
+    ['3', dyeChip(w.rare[0]), '4 × ' + dyeChip(w.common[0])],
+    ['3', dyeChip(w.rare[1]), '4 × ' + dyeChip(w.common[1])],
+    ['1', dyeChip('black'), '3 × ' + dyeChip(w.rare[0])],
+    ['1', dyeChip('white'), '3 × ' + dyeChip(w.rare[1])],
+    ['—', dyeChip(w.common[0]), '1 🕯️'],
+    ['—', dyeChip(w.common[1]), '1 🕯️'],
+  ];
+  box.innerHTML = `<div class="kv"><span class="k">本週</span><span class="v">第 ${w.week}／${w.total} 輪　<span class="muted">常見 ${DYE_ZH[w.common[0]]}${DYE_ZH[w.common[1]]}・稀有 ${DYE_ZH[w.rare[0]]}${DYE_ZH[w.rare[1]]}</span></span></div>
+    <div class="kv"><span class="k">換下一輪</span><span class="v big">${cd(nextWeeklyReset(now).getTime())}</span></div>
+    ${deals.map(d => `<div class="kv"><span class="k">${d[1]} ×1 <span class="muted fs-tag">週限 ${d[0]}</span></span><span class="v">${d[2]}</span></div>`).join('')}
+    <p class="note">鳥族村<b>染色工坊</b>樓上，每週日 00:00（太平洋）換一輪，3 輪循環。<b>Radiance 活動期間商品會加倍</b>並混入其他顏色，屆時以遊戲內為準。</p>`;
+}
+
 /* ---------- 築巢工坊家具輪換 ----------
  * 13 週固定循環、每週五 00:00 太平洋換一輪，所以跟碎石一樣可以直接算，不必每天抓資料。
  * 輪次公式與 Wiki 計算器一致。驗證：2026-10-23（週五）算出第 3 輪，與 Wiki 標的 (current) 相同；
@@ -1350,6 +1401,7 @@ function reRenderDay(now) {
   renderShards(now);
   renderSpirits(now);
   renderWorkshop(now);
+  renderDye(now);
   renderEvents(now);
   lastDayKey = dateKey(skyParts(now));
   computeNextFlip(now);
