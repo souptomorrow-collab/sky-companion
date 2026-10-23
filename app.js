@@ -683,9 +683,13 @@ function renderEvents(now) {
     const live = r.start <= today;
     const badge = live ? '<span class="badge live">進行中</span>' : '<span class="badge black">即將</span>';
     const left = live ? `還有 ${daysBetween(today, r.end)} 天` : `${daysBetween(today, r.start)} 天後開始`;
-    const title = nm(r.name);
-    const link = r.wiki ? `<a class="wiki-link" href="${escapeHtml(r.wiki)}" target="_blank" rel="noopener">↗</a>` : '';
-    return `<div class="kv"><span class="k">${badge} ${title} ${link}</span>
+    // 中文優先、英文另起一行。nm() 產生的「English (中文)」在這張窄卡裡會斷在奇怪的位置
+    const zh = (typeof window !== 'undefined' && window.SKYZH && window.SKYZH[r.name]) || '';
+    const link = r.wiki ? ` <a class="wiki-link" href="${escapeHtml(r.wiki)}" target="_blank" rel="noopener">↗</a>` : '';
+    const title = zh
+      ? `${escapeHtml(zh)}${link}<br><span class="muted fs-tag">${escapeHtml(r.name)}</span>`
+      : `${escapeHtml(r.name)}${link}`;
+    return `<div class="kv"><span class="k">${badge}<br>${title}</span>
       <span class="v">${r.start} ~ ${r.end}<br><span class="muted">${left}</span></span></div>`;
   }).join('') + '<p class="note">日期為太平洋時間。資料來自社群資料集，官方公布新活動後會自動更新。</p>';
 }
@@ -735,7 +739,8 @@ function renderDye(now) {
     ['—', dyeChip(w.common[0]), '1 🕯️'],
     ['—', dyeChip(w.common[1]), '1 🕯️'],
   ];
-  box.innerHTML = `<div class="kv"><span class="k">本週</span><span class="v">第 ${w.week}／${w.total} 輪　<span class="muted">常見 ${DYE_ZH[w.common[0]]}${DYE_ZH[w.common[1]]}・稀有 ${DYE_ZH[w.rare[0]]}${DYE_ZH[w.rare[1]]}</span></span></div>
+  // 常見／稀有的摘要不再放在「本週」那行：加起來太長會擠成一團，而且下方商品清單已經表達了
+  box.innerHTML = `<div class="kv"><span class="k">本週</span><span class="v">第 ${w.week}／${w.total} 輪</span></div>
     <div class="kv"><span class="k">換下一輪</span><span class="v big">${cd(nextWeeklyReset(now).getTime())}</span></div>
     ${deals.map(d => `<div class="kv"><span class="k">${d[1]} ×1 <span class="muted fs-tag">週限 ${d[0]}</span></span><span class="v">${d[2]}</span></div>`).join('')}
     <p class="note">鳥族村<b>染色工坊</b>樓上，每週日 00:00（太平洋）換一輪，3 輪循環。<b>Radiance 活動期間商品會加倍</b>並混入其他顏色，屆時以遊戲內為準。</p>`;
@@ -769,9 +774,10 @@ function renderWorkshop(now) {
   if (!box) return;
   const w = workshopWeek(now);
   if (!w) { box.innerHTML = '<p class="note">家具輪換資料載入失敗，請重新整理。</p>'; return; }
+  // 英文原名另起一行：與中文並列時整串太長，會把價格和「可買 N 份」一起擠到換行
   const rows = w.items.map(i =>
-    `<div class="kv"><span class="k">${escapeHtml(i.zh)} <span class="muted fs-tag">${escapeHtml(i.n)}</span></span>
-      <span class="v">${i.c}${WS_UNIT[i.u] || i.u}${i.x > 1 ? ` <span class="muted">· 可買 ${i.x} 份</span>` : ''}</span></div>`).join('');
+    `<div class="kv"><span class="k">${escapeHtml(i.zh)}<br><span class="muted fs-tag">${escapeHtml(i.n)}</span></span>
+      <span class="v">${i.c}${WS_UNIT[i.u] || i.u}${i.x > 1 ? ` <span class="muted">×${i.x}</span>` : ''}</span></div>`).join('');
   box.innerHTML = `<div class="kv"><span class="k">本週</span><span class="v">第 ${w.week}／${w.total} 輪　<span class="muted">${w.items.length} 件</span></span></div>
     <div class="kv"><span class="k">換下一輪</span><span class="v big">${cd(nextWorkshopFlip(now).getTime())}</span></div>
     ${rows}
