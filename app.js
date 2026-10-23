@@ -649,6 +649,47 @@ function activeDoubleEvent(now) {
   const p = skyParts(now), dk = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
   return DOUBLE_EVENTS.find(e => dk >= e.start && dk <= e.end) || null;
 }
+/* ---------- 進行中／即將的活動 ----------
+ * 資料來自 skydata 的 events（社群資料集，排程每天更新），所以官方公布新活動後會自動出現。
+ * 只列「還沒結束」的場次：進行中標剩餘天數，未開始標倒數。
+ * 季節不列在這裡——總覽已有專屬的「季節」卡，重複列只會洗版。
+ */
+function upcomingEvents(now) {
+  const S = (typeof window !== 'undefined' && window.SKYDATA) || {};
+  const p = skyParts(now);
+  const today = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+  const rows = [];
+  (S.events || []).forEach(e => (e.instances || []).forEach(i => {
+    if (i.date && i.end && i.end >= today) rows.push({ name: e.name, start: i.date, end: i.end, wiki: e.wiki });
+  }));
+  return rows.sort((a, b) => (a.start < b.start ? -1 : 1)).slice(0, 6);
+}
+// 兩個太平洋日期相差幾天
+function daysBetween(a, b) {
+  const n = s => { const x = s.split('-').map(Number); return Date.UTC(x[0], x[1] - 1, x[2]) / 86400000; };
+  return n(b) - n(a);
+}
+function renderEvents(now) {
+  const box = $('#ov-events .card-body');
+  if (!box) return;
+  const p = skyParts(now);
+  const today = `${p.year}-${pad(p.month)}-${pad(p.day)}`;
+  const rows = upcomingEvents(now);
+  if (!rows.length) {
+    box.innerHTML = '<p class="note">目前沒有進行中或已公布的活動。官方公布後會自動出現（資料每天更新）。</p>';
+    return;
+  }
+  box.innerHTML = rows.map(r => {
+    const live = r.start <= today;
+    const badge = live ? '<span class="badge live">進行中</span>' : '<span class="badge black">即將</span>';
+    const left = live ? `還有 ${daysBetween(today, r.end)} 天` : `${daysBetween(today, r.start)} 天後開始`;
+    const title = nm(r.name);
+    const link = r.wiki ? `<a class="wiki-link" href="${escapeHtml(r.wiki)}" target="_blank" rel="noopener">↗</a>` : '';
+    return `<div class="kv"><span class="k">${badge} ${title} ${link}</span>
+      <span class="v">${r.start} ~ ${r.end}<br><span class="muted">${left}</span></span></div>`;
+  }).join('') + '<p class="note">日期為太平洋時間。資料來自社群資料集，官方公布新活動後會自動更新。</p>';
+}
+
 /* ---------- 築巢工坊家具輪換 ----------
  * 13 週固定循環、每週五 00:00 太平洋換一輪，所以跟碎石一樣可以直接算，不必每天抓資料。
  * 輪次公式與 Wiki 計算器一致。驗證：2026-10-23（週五）算出第 3 輪，與 Wiki 標的 (current) 相同；
@@ -1309,6 +1350,7 @@ function reRenderDay(now) {
   renderShards(now);
   renderSpirits(now);
   renderWorkshop(now);
+  renderEvents(now);
   lastDayKey = dateKey(skyParts(now));
   computeNextFlip(now);
   updateCountdowns(now);
