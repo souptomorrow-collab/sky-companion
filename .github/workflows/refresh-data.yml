@@ -52,7 +52,8 @@ jobs:
           fi
           echo "偵測到變動，進行 bump + 驗證 + 提交：$MSG"
           node bump-version.cjs
-          node verify.cjs   # 失敗 → job 失敗、不提交，GitHub 會寄信通知
+          node verify.cjs       # 失敗 → job 失敗、不提交，GitHub 會寄信通知
+          node test-logic.cjs   # 資料變動若讓核心計算算錯，這裡會擋下
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add skydata.js index.html ts-extra.json

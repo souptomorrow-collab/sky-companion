@@ -1,4 +1,6 @@
-# 每次 push 跑資料完整性驗證（離線檢查），失敗會擋下並寄通知
+# 每次 push 跑兩道離線檢查，失敗會擋下並寄通知：
+#   verify.cjs     — 檔案在不在、語法過不過、資源與版本號一致
+#   test-logic.cjs — 算得對不對（輪換公式、錨點、行事曆、任務過濾與翻譯）
 name: verify
 on:
   push:
@@ -13,3 +15,4 @@ jobs:
         with:
           node-version: 20
       - run: node verify.cjs
+      - run: node test-logic.cjs

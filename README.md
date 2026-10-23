@@ -78,6 +78,7 @@ sw.js            Service Worker（HTML 網路優先、靜態 cache-first、舊�
 
 ```bash
 node verify.cjs        # 部署前驗證：JS 語法、資源/圖片存在、?v= 一致、影片段落對應
+node test-logic.cjs    # 核心計算回歸測試：輪換公式與錨點、行事曆、任務過濾與翻譯
 node check-health.cjs  # 外部依賴健檢：YouTube 影片可嵌入、SkyHelper API、wikia 圖床、先祖中文對照覆蓋率
 node bump-version.cjs  # 自動 bump index.html 的 ?v= 版本號（改 JS/CSS 後執行，別靠記性）
 node build-skydata.cjs # 由 everything.json 重新產生 skydata.js
@@ -87,7 +88,7 @@ node opt-images.cjs    # 壓縮 img/ 下的 WebP
 ```
 
 GitHub Actions：
-- **verify**：每次 push 自動跑 `verify.cjs`（壞了擋下＋寄信）。
+- **verify**：每次 push 自動跑 `verify.cjs` 與 `test-logic.cjs`（壞了擋下＋寄信）。前者驗「檔案與語法」，後者驗「算得對不對」—— 週期計算算錯時畫面照樣顯示、不會報錯，只有測試擋得住。
 - **health**：每週一自動跑 `check-health.cjs`（影片被刪、API 掛掉、新季節先祖缺中文名、築巢工坊輪換與 Wiki 對不上會寄信，不用等使用者回報）。
 - **refresh-data**：每天台灣 10:00 自動重抓社群資料集（`skygame-data`）並 `build-skydata.cjs`，有變動才 bump 版本＋驗證＋自動 commit 推上線（新季節/活動/復刻先祖確認後免手動更新）。
   資料集通常在復刻先祖「到達當天」才收錄，所以同一個 job 會先跑 `fetch-ts-wiki.cjs` 讀社群 Wiki 的公告狀態：官方一公布就先寫進 `ts-extra.json`，網頁提早顯示下一位；Wiki 取不到或格式改了不會擋住資料集更新，但該次 run 會標失敗並寄信。需在 repo Settings → Actions → General → Workflow permissions 設為「Read and write permissions」才能自動 push。
